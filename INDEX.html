@@ -872,7 +872,7 @@ html, body {
             <option value="资料分析">资料分析</option>
         </select>
         <input type="file" id="fileInput" accept=".json" multiple style="display:none;">
-        <button type="button" id="uploadButton" class="btn btn-primary">📁 选择文件</button>
+        <button type="button" class="btn btn-primary">📁 选择文件</button>
     </div>
 
     <!-- 文件列表（标签页形式） -->
@@ -1048,11 +1048,7 @@ function showStudyPositionRestored(){
 function setupStudyPositionTracking(){
   if(window.__studyPositionTracking) return;
   window.__studyPositionTracking=true;
-  let saveTimer=0;
   window.addEventListener('scroll', function(){
-    if(saveTimer) return;
-    saveTimer=setTimeout(function(){
-      saveTimer=0;
     const questions=Array.from(document.querySelectorAll('#content .question'));
     if(!questions.length) return;
     let current=questions[0];
@@ -1062,7 +1058,6 @@ function setupStudyPositionTracking(){
     const indexInPage=questions.indexOf(current);
     const globalIndex=(currentPage-1)*PAGE_SIZE+Math.max(0,indexInPage);
     try{ localStorage.setItem(STUDY_POSITION_KEY, JSON.stringify({zone:activeZone, page:currentPage, questionIndex:globalIndex})); }catch(e){}
-    }, 120);
   }, {passive:true});
 }
 
@@ -1369,14 +1364,6 @@ function handleFiles(fileListArr){
 fileInput.addEventListener('change', e=> handleFiles(e.target.files));
 // 打开文件选择框：先清空 value，保证“再次选择同一文件”也必定触发 change 事件
 function openFilePicker(){ try{ fileInput.value=''; fileInput.click(); }catch(err){} }
-const uploadButton = document.getElementById('uploadButton');
-if(uploadButton){
-  uploadButton.addEventListener('click', function(e){
-    e.preventDefault();
-    e.stopPropagation();
-    openFilePicker();
-  });
-}
 // 整个上传区可点击打开选择框（下拉框除外，否则点下拉会误触发文件框）；忽略 fileInput 自身冒泡，避免递归
 uploadZone.addEventListener('click', e=>{
   const t=e.target;
@@ -1562,10 +1549,11 @@ function renderFileList(){
   // iOS Safari 会把点击派发到外层按钮，导致删除按钮点不动。改用 <div role="button"> 承载切换，
   // 内层删除保留为真正的 <button>，移动端才能可靠触发 click。
   // 切换逻辑改由 fileTabs 上的【事件委托】触发（见 bindFileTabSwitch）：用 data-file 标记，
-  // 兼容 iOS/Edge 上“div 上的 click 偶发不合成”的问题（同时绑定 click、touchend 与键盘事件）。
+  // 兼容 iOS/Edge 上“div 上的 click 偶发不合成”的问题（同时绑定 click 与 touchend 兜底，防双触发）。
   const tabAttrs=(id, extra='')=>{
     const active=activeFile===id?' active':'';
-    return `class="file-tab${active}" data-file="${id}" role="button" tabindex="0"${extra}`;
+    // onclick 兜底：与 #fileTabs 上的事件委托双保险。tabJustTouched 守卫已防 touchend+click 双触发。
+    return `class="file-tab${active}" data-file="${id}" role="button" tabindex="0"${extra} onclick="switchFile('${id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchFile('${id}');}"`;
   };
   let html=`<div ${tabAttrs('__all__')}>
     <span>📂 全部文件（${list.length}）</span>
@@ -1614,13 +1602,6 @@ function bindFileTabSwitch(){
   fileTabs.addEventListener('click', function(e){
     if(tabJustTouched) return; // 已由 touchend 触发，忽略随后合成的 click
     const id=pick(e); if(id!==null) switchFile(id);
-  });
-  fileTabs.addEventListener('keydown', function(e){
-    if(e.key!=='Enter' && e.key!==' ') return;
-    const tab=e.target.closest('.file-tab');
-    if(!tab || e.target.closest('.ft-del')) return;
-    e.preventDefault();
-    switchFile(tab.dataset.file);
   });
 }
 // ============================================================
@@ -2686,62 +2667,6 @@ async function exportAllChats() {
   URL.revokeObjectURL(url);
 }
 
-// 对话记录管理功能：保留为全局函数，动态面板刷新后仍可调用。
-async function copyAllChats() {
-  try {
-    const allChats=await idbGet(CHAT_DB_KEY);
-    const keys=Object.keys(allChats&&typeof allChats==='object'?allChats:{});
-    if(!keys.length){ alert('暂无对话可复制'); return; }
-    let text='========================================\n📋 全部AI对话记录\n导出时间：'+new Date().toLocaleString()+'\n========================================\n\n';
-    keys.forEach(function(key,index){
-      const messages=Array.isArray(allChats[key])?allChats[key]:[];
-      text+='📌 题目 '+(index+1)+'（'+key+'）\n';
-      messages.forEach(function(msg){ text+=(msg.role==='user'?'🙋 用户':'🤖 AI')+'：'+(msg.content||'')+'\n'; });
-      text+='\n'+'-'.repeat(40)+'\n\n';
-    });
-    if(navigator.clipboard&&navigator.clipboard.writeText) await navigator.clipboard.writeText(text);
-    else {
-      const textarea=document.createElement('textarea');
-      textarea.value=text; textarea.style.cssText='position:fixed;left:-9999px;top:0;';
-      document.body.appendChild(textarea); textarea.select();
-      if(!document.execCommand('copy')) throw new Error('复制失败');
-      textarea.remove();
-    }
-    const button=document.querySelector('.btn-copy-all');
-    if(button){ button.textContent='✅ 已复制'; setTimeout(function(){ button.textContent='📋 复制全部对话'; },2000); }
-  }catch(e){ alert('复制失败：'+e.message); }
-}
-
-async function clearAllChats() {
-  const allChats=await idbGet(CHAT_DB_KEY);
-  if(!Object.keys(allChats&&typeof allChats==='object'?allChats:{}).length){ alert('暂无对话可清空'); return; }
-  showConfirm('确定要清空所有题目的全部对话记录吗？此操作不可撤销！',async function(){
-    await idbSet(CHAT_DB_KEY,{});
-    await refreshChatHistoryPanel();
-    alert('✅ 已清空全部对话');
-  });
-}
-
-async function refreshChatHistoryPanel() {
-  const panel=document.querySelector('.chat-history-panel');
-  if(!panel) return;
-  const allChats=await idbGet(CHAT_DB_KEY);
-  const keys=Object.keys(allChats&&typeof allChats==='object'?allChats:{});
-  const header=panel.querySelector('.chat-history-header span');
-  if(header) header.textContent='💬 对话记录 ('+keys.length+')';
-  const list=panel.querySelector('.chat-history-list');
-  if(!list) return;
-  if(!keys.length){ list.innerHTML='<div class="chat-history-empty">暂无对话记录</div>'; return; }
-  list.innerHTML=keys.map(function(key){
-    const messages=Array.isArray(allChats[key])?allChats[key]:[];
-    const firstUser=messages.find(function(message){ return message.role==='user'; });
-    const preview=firstUser?(firstUser.content||'').substring(0,50):'对话记录';
-    const item=filteredQuestions.find(function(question){ return question._key===key; });
-    const title=item?(item.content||'').substring(0,30):key;
-    return '<div class="chat-history-item" onclick="location.hash=\'q-'+key+'\'; this.closest(\'.chat-history-panel\').remove();"><div class="chat-history-item-title">'+title+'...</div><div class="chat-history-item-preview">'+preview+'... ('+messages.length+'条消息)</div></div>';
-  }).join('');
-}
-
 async function openChatHistory() {
   const oldPanel = document.querySelector('.chat-history-panel');
   if (oldPanel) oldPanel.remove();
@@ -3081,264 +3006,6 @@ function toggleNoHack(on){
   renderQuestions();
   diagnoseImages();
 }
-
-// ============================================================
-// 增量功能：对话操作、做题次数、详情查看
-// 仅通过新增监听器和动态元素增强现有界面，不改动原有业务函数。
-// ============================================================
-(function setupIncrementalFeatures(){
-  const ATTEMPT_KEY='qz_question_attempts_v1';
-  const newClasses={
-    copy:'new-chat-copy-btn', clear:'new-chat-clear-btn', count:'new-question-attempts',
-    detail:'new-chat-detail-panel', detailClose:'new-chat-detail-close', detailButton:'new-chat-detail-btn'
-  };
-
-  function readAttempts(){
-    try{
-      const value=JSON.parse(localStorage.getItem(ATTEMPT_KEY)||'{}');
-      return value && typeof value==='object' ? value : {};
-    }catch(e){ return {}; }
-  }
-  function incrementAttempt(key){
-    const attempts=readAttempts();
-    attempts[key]=(Number(attempts[key])||0)+1;
-    try{ localStorage.setItem(ATTEMPT_KEY, JSON.stringify(attempts)); }catch(e){}
-  }
-  function renderAttemptCounts(){
-    const attempts=readAttempts();
-    document.querySelectorAll('#content .question').forEach(function(question){
-      const title=question.querySelector('.q-title');
-      if(!title) return;
-      const key=question.id.replace(/^q-/,'');
-      let count=title.querySelector('.'+newClasses.count);
-      if(!count){
-        count=document.createElement('span');
-        count.className=newClasses.count;
-        title.appendChild(document.createTextNode(' '));
-        title.appendChild(count);
-      }
-      const nextText='做过'+(Number(attempts[key])||0)+'次';
-      if(count.textContent!==nextText) count.textContent=nextText;
-      count.title='本题累计答题次数';
-    });
-  }
-
-  function copyText(text){
-    if(navigator.clipboard && navigator.clipboard.writeText){
-      return navigator.clipboard.writeText(text);
-    }
-    return new Promise(function(resolve,reject){
-      const input=document.createElement('textarea');
-      input.value=text; input.setAttribute('readonly','');
-      input.style.cssText='position:fixed;left:-9999px;top:0;opacity:0;';
-      document.body.appendChild(input); input.select();
-      try{ document.execCommand('copy') ? resolve() : reject(new Error('复制失败')); }
-      catch(e){ reject(e); }
-      input.remove();
-    });
-  }
-  function messageText(messages){
-    return messages.map(function(message){
-      const role=message.role==='user'?'用户':'AI';
-      return role+'：'+(message.content||'');
-    }).join('\n');
-  }
-  function getCurrentChatKey(box){
-    return (box.id||'').replace(/^chat-/,'');
-  }
-  function deleteChatHistory(key){
-    return loadAllChats().then(function(allChats){
-      delete allChats[key];
-      return idbSet(CHAT_DB_KEY, allChats);
-    }).then(function(){
-      return openAIHistoryDb();
-    }).then(function(d){
-      return new Promise(function(resolve){
-        const tx=d.transaction(AI_HISTORY_STORE,'readwrite');
-        tx.objectStore(AI_HISTORY_STORE).delete(key);
-        tx.oncomplete=function(){ resolve(true); };
-        tx.onerror=function(){ resolve(false); };
-      });
-    });
-  }
-  function clearCurrentChat(box){
-    const key=getCurrentChatKey(box);
-    if(!key) return;
-    showConfirm('确定清空当前题目的全部对话记录吗？', function(){
-      deleteChatHistory(key).then(function(){
-        renderChatBox(key, []);
-        enhanceChatBox(box);
-      });
-    });
-  }
-  function copyCurrentChat(box, button){
-    const key=getCurrentChatKey(box);
-    Promise.all([loadAllChats(), getAIHistory(key)]).then(function(values){
-      const chat=values[0][key]||[];
-      const simplify=values[1].filter(function(message){ return message.type==='simplify'; });
-      const text=messageText(chat.concat(simplify));
-      if(!text){ button.textContent='📋 暂无对话'; setTimeout(function(){ button.textContent='📋 复制对话'; },1200); return; }
-      return copyText(text).then(function(){
-        button.textContent='✅ 已复制';
-        setTimeout(function(){ button.textContent='📋 复制对话'; },1200);
-      });
-    }).catch(function(){
-      button.textContent='❌ 复制失败';
-      setTimeout(function(){ button.textContent='📋 复制对话'; },1200);
-    });
-  }
-  function enhanceChatBox(box){
-    if(!box || box.querySelector('.'+newClasses.copy)) return;
-    box.dataset.newChatEnhanced='1';
-    const key=getCurrentChatKey(box);
-    const top=document.createElement('div');
-    top.className='new-chat-actions-top';
-    const copy=document.createElement('button');
-    copy.type='button'; copy.className=newClasses.copy; copy.textContent='📋 复制对话';
-    copy.addEventListener('click',function(){ copyCurrentChat(box,copy); });
-    top.appendChild(copy);
-    box.insertBefore(top,box.firstChild);
-    const clear=document.createElement('button');
-    clear.type='button'; clear.className=newClasses.clear; clear.textContent='🗑 清空对话';
-    clear.addEventListener('click',function(){ clearCurrentChat(box); });
-    box.appendChild(clear);
-    if(key) box.setAttribute('data-new-chat-key',key);
-  }
-  function normalizeAIResult(result){
-    if(!result || result.dataset.newAIFormat==='1' || !result.textContent.includes('AI 简化解析')) return;
-    const normalized=result.innerHTML.replace(/(?:<br\s*\/?>(?:\s|&nbsp;)*){2,}/gi,'<br>');
-    if(normalized!==result.innerHTML) result.innerHTML=normalized;
-    result.dataset.newAIFormat='1';
-  }
-  function enhanceVisibleContent(){
-    document.querySelectorAll('#content .q-chat-box').forEach(enhanceChatBox);
-    document.querySelectorAll('#content .q-ai-result').forEach(normalizeAIResult);
-    renderAttemptCounts();
-  }
-  function openChatDetail(key){
-    const old=document.querySelector('.'+newClasses.detail);
-    if(old) old.remove();
-    Promise.all([loadAllChats(), getAIHistory(key)]).then(function(values){
-      const messages=(values[0][key]||[]).concat(values[1].filter(function(m){ return m.type==='simplify'; }));
-      const panel=document.createElement('div');
-      panel.className=newClasses.detail;
-      const close=document.createElement('button');
-      close.type='button'; close.className=newClasses.detailClose; close.textContent='✕';
-      close.addEventListener('click',function(){ panel.remove(); });
-      const title=document.createElement('div'); title.className='new-chat-detail-title'; title.textContent='对话详细内容';
-      panel.appendChild(close); panel.appendChild(title);
-      if(!messages.length){
-        const empty=document.createElement('div'); empty.textContent='暂无对话记录'; panel.appendChild(empty);
-      }else{
-        messages.forEach(function(message){
-          const row=document.createElement('div'); row.className='new-chat-detail-message';
-          row.textContent=(message.role==='user'?'用户：':'AI：')+(message.content||'');
-          panel.appendChild(row);
-        });
-      }
-      document.body.appendChild(panel);
-    });
-  }
-  function enhanceHistoryPanel(panel){
-    if(panel.dataset.newHistoryEnhanced==='1') return;
-    panel.dataset.newHistoryEnhanced='1';
-    panel.querySelectorAll('.chat-history-item').forEach(function(item){
-      const match=(item.getAttribute('onclick')||'').match(/q-([^'\\]+)/);
-      if(!match) return;
-      const key=match[1]; item.setAttribute('data-new-chat-key',key);
-      const detail=document.createElement('button');
-      detail.type='button'; detail.className=newClasses.detailButton; detail.textContent='查看详情';
-      detail.addEventListener('click',function(e){ e.stopPropagation(); openChatDetail(key); });
-      item.appendChild(detail);
-    });
-    const close=panel.querySelector('.chat-history-close');
-    if(close) close.classList.add('new-chat-history-close-hit');
-    const actions=document.createElement('div');
-    actions.className='chat-history-footer';
-    const copyAll=document.createElement('button');
-    copyAll.type='button';
-    copyAll.className='footer-btn btn-copy-all';
-    copyAll.textContent='📋 复制全部对话';
-    copyAll.addEventListener('click',function(){ copyAllChats(copyAll); });
-    const clearAll=document.createElement('button');
-    clearAll.type='button';
-    clearAll.className='footer-btn btn-clear-all';
-    clearAll.textContent='🗑 清空全部对话';
-    clearAll.addEventListener('click',clearAllChats);
-    actions.appendChild(copyAll);
-    actions.appendChild(clearAll);
-    panel.appendChild(actions);
-  }
-
-  function formatAllChats(allChats){
-    let text='# AI 全部对话记录\n\n';
-    let number=0;
-    Object.keys(allChats).forEach(function(key){
-      const messages=Array.isArray(allChats[key])?allChats[key]:[];
-      if(!messages.length) return;
-      number++;
-      text+='## 题目 '+number+'（'+key+'）\n';
-      messages.forEach(function(message, index){
-        const role=message.role==='user'?'用户':'AI';
-        text+=role+' ('+(index+1)+')：\n'+(message.content||'')+'\n\n';
-      });
-      text+='--------------------------------\n\n';
-    });
-    return number?text:'';
-  }
-  function copyAllChats(button){
-    loadAllChats().then(function(allChats){
-      const text=formatAllChats(allChats);
-      if(!text){ alert('暂无对话可复制'); return; }
-      return copyText(text).then(function(){
-        button.textContent='✅ 已复制';
-        setTimeout(function(){ button.textContent='📋 复制全部对话'; },1200);
-      });
-    }).catch(function(){
-      button.textContent='❌ 复制失败';
-      setTimeout(function(){ button.textContent='📋 复制全部对话'; },1200);
-    });
-  }
-  function clearAllChats(){
-    showConfirm('确定要清空所有题目的全部对话记录吗？此操作不可撤销！',function(){
-      idbSet(CHAT_DB_KEY,{}).then(function(){
-        const panel=document.querySelector('.chat-history-panel');
-        if(panel) panel.remove();
-        openChatHistory();
-      });
-    });
-  }
-
-  let enhancementQueued=false;
-  const observer=new MutationObserver(function(){
-    if(enhancementQueued) return;
-    enhancementQueued=true;
-    queueMicrotask(function(){
-      enhancementQueued=false;
-      enhanceVisibleContent();
-      document.querySelectorAll('.chat-history-panel').forEach(enhanceHistoryPanel);
-    });
-  });
-  observer.observe(document.body,{childList:true,subtree:true});
-  document.addEventListener('click',function(e){
-    const item=e.target.closest && e.target.closest('.chat-history-item');
-    if(item && !e.target.closest('.'+newClasses.detailButton)){
-      const key=item.getAttribute('data-new-chat-key');
-      if(key) setTimeout(function(){ openChatDetail(key); },0);
-    }
-  });
-  document.addEventListener('click',function(e){
-    const option=e.target.closest && e.target.closest('#content .q-options .option');
-    if(!option) return;
-    const key=option.getAttribute('data-key');
-    const item=filteredQuestions.find(function(question){ return question._key===key; });
-    if(item && item._answered===undefined) incrementAttempt(key);
-  },true);
-  const style=document.createElement('style');
-  style.textContent='.'+newClasses.copy+'{background:#2563eb;color:#fff;border:0;border-radius:6px;padding:7px 12px;cursor:pointer;}.'+newClasses.clear+'{display:block;background:#dc2626;color:#fff;border:0;border-radius:6px;padding:7px 12px;margin:10px 0 0;cursor:pointer;} .new-chat-actions-top{margin-bottom:8px;} .'+newClasses.count+'{margin-left:6px;color:var(--secondary);font-size:.9em;white-space:nowrap;} .'+newClasses.detail+'{position:fixed;inset:10% 5%;z-index:10001;overflow:auto;background:#fff;padding:18px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.3);} .'+newClasses.detailClose+'{float:right;min-width:44px;min-height:44px;border:0;background:transparent;font-size:24px;cursor:pointer;} .new-chat-detail-title{font-weight:bold;font-size:16px;margin-bottom:14px;} .new-chat-detail-message{padding:10px;margin:8px 0;background:#f1f5f9;border-radius:6px;white-space:pre-wrap;} .'+newClasses.detailButton+'{margin-top:6px;background:#2563eb;color:#fff;border:0;border-radius:5px;padding:5px 9px;cursor:pointer;} .new-chat-history-close-hit{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;} .chat-history-panel{height:100vh !important;max-height:100vh !important;bottom:0 !important;overflow:hidden !important;} .chat-history-header{flex-shrink:0 !important;min-height:60px !important;} .chat-history-list{flex:1 1 auto !important;min-height:0 !important;overflow-y:auto !important;} .chat-history-footer{flex:0 0 auto !important;display:flex !important;gap:10px !important;align-items:center !important;justify-content:center !important;padding:8px 16px 12px !important;border-top:1px solid #e2e8f0 !important;background:#fff !important;min-height:56px !important;box-sizing:border-box !important;} .chat-history-footer .footer-btn{flex:1 1 0 !important;min-width:0 !important;max-width:200px !important;min-height:44px !important;padding:10px 12px !important;border:0 !important;border-radius:8px !important;color:#fff !important;font-size:14px !important;font-weight:600 !important;cursor:pointer !important;text-align:center !important;touch-action:manipulation !important;} .chat-history-footer .btn-copy-all{background:#2563eb !important;} .chat-history-footer .btn-clear-all{background:#dc2626 !important;} @media(max-width:480px){.chat-history-panel{width:100vw !important;max-width:100vw !important;}.chat-history-footer{padding:6px 12px 10px !important;gap:8px !important;min-height:50px !important;}.chat-history-footer .footer-btn{min-height:48px !important;font-size:13px !important;padding:8px 6px !important;}} @media(max-width:768px){.'+newClasses.detail+'{inset:4% 3%;}.'+newClasses.copy+','+'.'+newClasses.clear+'{min-height:44px;}}';
-  document.head.appendChild(style);
-  enhanceVisibleContent();
-})();
 </script>
 <!-- 图片诊断调试工具（调试用，定位完成后可整段删除） -->
 <button id="dbgBtn" type="button" onclick="toggleDebug()">🔧</button>
