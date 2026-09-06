@@ -922,6 +922,12 @@ html, body {
 #pomodoroDuration { max-width:74px; background:transparent; color:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:2px 6px; font-size:10px; cursor:pointer; outline:none; }
 #pomodoroDuration option { background:#142038; color:#e2e8f0; }
 #pomodoroStatus { margin-top:7px; color:rgba(255,255,255,0.4); font-size:10px; }
+#sidebar { transition:width 0.35s cubic-bezier(0.22,1,0.36,1) !important; will-change:width; }
+#sidebarToggle { transition:right 0.35s cubic-bezier(0.22,1,0.36,1), transform 0.2s ease !important; }
+#sidebarToggle:hover { transform:scale(1.05); }
+#sidebarToggle:active, #sidebar button:active { transform:scale(0.96); transition-duration:0.05s; }
+#sidebar > div:nth-child(2) { opacity:0; transition:opacity 0.25s ease 0.1s; }
+#sidebar[style*="width: 270px"] > div:nth-child(2), #sidebar[style*="width:270px"] > div:nth-child(2) { opacity:1; }
 
 </style>
 </head>
@@ -1065,11 +1071,11 @@ const STUDY_POSITION_KEY = 'qz_study_position';
 const NOTE_KEY = 'qz_shenlun_notes';
 
 const ZONES = [
-  { id:'gk', name:'国考/省考' },
-  { id:'mk', name:'模考' },
-  { id:'sy', name:'事业单位' },
-  { id:'sl', name:'申论' },
-  { id:'ms', name:'面试' }
+  { id:'gk', name:'国考/省考', icon:'🏛️' },
+  { id:'mk', name:'模考', icon:'📝' },
+  { id:'sy', name:'事业单位', icon:'🏢' },
+  { id:'sl', name:'申论', icon:'✍️' },
+  { id:'ms', name:'面试', icon:'🎙️' }
 ];
 const MODS = ['常识判断','政治理论','言语理解与表达','数量关系','判断推理','资料分析'];
 
@@ -1702,7 +1708,7 @@ function renderAll(){
 function renderZoneTabs(){
   zoneTabs.innerHTML = ZONES.map(z=>{
     const total=index[z.id].reduce((s,m)=>s+(m.count||0),0);
-    return `<button class="zone-tab ${z.id===activeZone?'active':''}" data-zone="${z.id}" onclick="switchZone('${z.id}')">📂 ${z.name}<span class="z-count">${total} 题</span></button>`;
+    return `<button class="zone-tab ${z.id===activeZone?'active':''}" data-zone="${z.id}" onclick="switchZone('${z.id}')">${z.icon||'📂'} ${z.name}<span class="z-count">${total} 题</span></button>`;
   }).join('');
 }
 
@@ -6455,8 +6461,8 @@ function toggleNoHack(on){
 </div>
 
 <!-- 右侧伸缩侧边栏 -->
-<button id="sidebarToggle" style="position:fixed;right:12px;top:12px;z-index:100000;width:40px;height:40px;background:rgba(20,30,50,0.85);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#e2e8f0;font-size:20px;cursor:pointer;transition:all 0.3s cubic-bezier(0.4,0,0.2,1);box-shadow:0 2px 12px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;">☰</button>
-<div id="sidebar" style="position:fixed;right:0;top:0;bottom:0;z-index:99999;width:0;overflow:hidden;background:rgba(20,30,50,0.95);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#e2e8f0;transition:width 0.3s cubic-bezier(0.4,0,0.2,1);box-shadow:-2px 0 20px rgba(0,0,0,0.3);border-left:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;font-family:-apple-system,"Microsoft YaHei",sans-serif;">
+<button id="sidebarToggle" style="position:fixed;right:12px;top:12px;z-index:100000;width:40px;height:40px;background:rgba(20,30,50,0.85);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#e2e8f0;font-size:20px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;">☰</button>
+<div id="sidebar" style="position:fixed;right:0;top:0;bottom:0;z-index:99999;width:0;overflow:hidden;background:rgba(20,30,50,0.95);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#e2e8f0;box-shadow:-2px 0 20px rgba(0,0,0,0.3);border-left:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;font-family:-apple-system,"Microsoft YaHei",sans-serif;">
   <div style="padding:16px 18px;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;display:flex;justify-content:space-between;align-items:center;">
     <span style="font-weight:bold;font-size:16px;color:#fff;">☰ Helium</span>
     <button id="sidebarClose" style="background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer;padding:4px 8px;">✕</button>
@@ -6480,10 +6486,15 @@ function toggleNoHack(on){
         <button id="pomodoroStart" type="button">▶ 开始</button>
         <button id="pomodoroReset" type="button">⟳ 重置</button>
         <select id="pomodoroDuration" aria-label="番茄钟时长">
+          <option value="5">5分钟</option>
+          <option value="10">10分钟</option>
           <option value="15">15分钟</option>
           <option value="25" selected>25分钟</option>
+          <option value="30">30分钟</option>
           <option value="45">45分钟</option>
           <option value="60">60分钟</option>
+          <option value="90">90分钟</option>
+          <option value="120">120分钟</option>
         </select>
       </div>
       <div id="pomodoroStatus">⏳ 就绪</div>
@@ -7043,18 +7054,23 @@ function restoreSoundState() {
 }
 
 var isSidebarOpen = false;
-document.getElementById('sidebarToggle').onclick = function() {
-  isSidebarOpen = !isSidebarOpen;
+function openSidebar(){
+  isSidebarOpen = true;
   document.getElementById('sidebar').style.width = isSidebarOpen ? '270px' : '0';
-  document.getElementById('sidebarToggle').style.right = isSidebarOpen ? '282px' : '12px';
-  document.getElementById('sidebarToggle').textContent = isSidebarOpen ? '✕' : '☰';
-};
-document.getElementById('sidebarClose').onclick = function() {
+  document.getElementById('sidebarToggle').style.right = '282px';
+  document.getElementById('sidebarToggle').textContent = '✕';
+}
+function closeSidebar(){
   isSidebarOpen = false;
   document.getElementById('sidebar').style.width = '0';
   document.getElementById('sidebarToggle').style.right = '12px';
   document.getElementById('sidebarToggle').textContent = '☰';
+}
+document.getElementById('sidebarToggle').onclick = function() {
+  if(isSidebarOpen) closeSidebar();
+  else openSidebar();
 };
+document.getElementById('sidebarClose').onclick = closeSidebar;
 
 document.querySelectorAll('#sidebar button[data-snd]').forEach(function(btn) {
   btn.onclick = function() { playSound(this.dataset.snd); };
