@@ -5698,7 +5698,17 @@ if (window.renderQuestions) window.renderQuestions();
   historyBtn.type = 'button';
   historyBtn.className = 'chat-history-btn';
   historyBtn.textContent = '💬';
-  historyBtn.onclick = function() { openChatHistory(); };
+  historyBtn.onclick = function() {
+    var panel = document.querySelector('.chat-history-panel');
+    if (panel && panel.classList.contains('show')) {
+      panel.classList.remove('show');
+      setTimeout(function() {
+        if (panel.parentNode) panel.remove();
+      }, 350);
+    } else {
+      openChatHistory();
+    }
+  };
   document.body.appendChild(historyBtn);
   renderAll();
   if(restoredStudyPosition){
