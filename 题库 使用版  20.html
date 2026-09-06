@@ -584,7 +584,7 @@ body.essay-zone #moduleFilter, body.essay-zone #leafTypeFilter, body.essay-zone 
 .q-options .option.excluded { opacity:0.35 !important; background:#e2e8f0 !important; border-color:#cbd5e0 !important; transition:all 0.2s ease !important; text-decoration:line-through; }
 
 /* ====== 返回顶部按钮 ====== */
-#backToTop { position:fixed; bottom:150px; right:10px; z-index:999; background:var(--main); color:#fff; border:none; border-radius:50%; width:44px; height:44px; font-size:18px; cursor:pointer; box-shadow:0 2px 12px rgba(0,0,0,0.15); transition:all 0.3s ease; opacity:0; pointer-events:none; }
+#backToTop { position:fixed; right:10px; bottom:80px; left:auto; z-index:999; background:var(--main); color:#fff; border:none; border-radius:50%; width:44px; height:44px; font-size:18px; cursor:pointer; box-shadow:0 2px 12px rgba(0,0,0,0.15); transition:all 0.3s ease; opacity:0; pointer-events:none; }
 #backToTop.visible { opacity:1; pointer-events:auto; }
 #backToTop:hover { transform:translateY(-2px) scale(1.05); }
 
@@ -889,6 +889,40 @@ html, body {
     line-height: 1 !important;
 }
 
+.mian-shi-question { border-left:3px solid #10b981 !important; }
+.mian-shi-answer { margin-top:12px; border:1px solid #a7f3d0; border-radius:8px; background:#ecfdf5; overflow:hidden; }
+.mian-shi-answer summary { padding:10px 12px; color:#047857; font-weight:bold; cursor:pointer; }
+.mian-shi-answer > div { padding:10px 12px; border-top:1px solid #a7f3d0; background:#fff; }
+.mian-shi-answer img { max-width:100%; height:auto; }
+
+.ms-recorder { margin-top:12px; padding:10px 12px; background:#f0fdf4; border:1px solid #86efac; border-radius:8px; }
+.ms-recorder-controls { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+.ms-record-btn { padding:6px 14px; border:1px solid #10b981; border-radius:6px; background:#10b981; color:#fff; cursor:pointer; font-size:12px; }
+.ms-record-btn.recording { background:#ef4444; border-color:#ef4444; animation:msRecordingPulse 1s infinite; }
+.ms-record-time { font-family:monospace; font-size:14px; color:#047857; min-width:48px; }
+.ms-play-btn, .ms-download-btn { padding:4px 10px; border:1px solid #d1d5db; border-radius:4px; background:#fff; color:#374151; cursor:pointer; font-size:11px; }
+.ms-play-btn:disabled, .ms-download-btn:disabled { opacity:.4; cursor:not-allowed; }
+.ms-record-meter { height:4px; margin-top:6px; background:#d1fae5; border-radius:99px; overflow:hidden; }
+.ms-meter-fill { width:0; height:100%; background:#10b981; transition:width .08s linear; }
+@keyframes msRecordingPulse { 0%,100% { opacity:1; } 50% { opacity:.5; } }
+
+#sidebarResetTimer { width:100%; margin-top:6px; padding:4px 8px; border:1px solid rgba(255,255,255,0.15); border-radius:4px; background:rgba(255,255,255,0.05); color:rgba(255,255,255,0.7); cursor:pointer; font-size:10px; font-weight:400; letter-spacing:0.3px; transition:all 0.25s ease; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); }
+#sidebarResetTimer:hover { background:rgba(255,255,255,0.12); color:rgba(255,255,255,0.95); border-color:rgba(255,255,255,0.3); }
+#sidebarResetTimer:active { transform:scale(0.96); }
+#pomodoroCard { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:10px 12px; margin-bottom:14px; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); }
+.pomodoro-title { font-size:11px; color:#94a3b8; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
+#pomodoroTime { text-align:center; font:24px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace; color:#f8fafc; transition:opacity .2s ease,color .2s ease; }
+#pomodoroCard.paused #pomodoroTime { opacity:.5; }
+#pomodoroCard.complete #pomodoroTime { color:#fbbf24; }
+.pomodoro-progress { height:3px; margin:7px 0 9px; background:rgba(255,255,255,0.1); border-radius:99px; overflow:hidden; }
+#pomodoroProgressFill { width:0; height:100%; background:linear-gradient(90deg,#f59e0b,#f97316); border-radius:99px; transition:width .4s ease; }
+.pomodoro-controls { display:flex; align-items:center; gap:5px; }
+.pomodoro-controls button { flex:1; padding:4px 8px; border:1px solid rgba(255,255,255,0.12); border-radius:4px; background:transparent; color:rgba(255,255,255,0.8); cursor:pointer; font-size:11px; transition:background .2s ease; }
+.pomodoro-controls button:hover { background:rgba(255,255,255,0.08); }
+#pomodoroDuration { max-width:74px; background:transparent; color:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:2px 6px; font-size:10px; cursor:pointer; outline:none; }
+#pomodoroDuration option { background:#142038; color:#e2e8f0; }
+#pomodoroStatus { margin-top:7px; color:rgba(255,255,255,0.4); font-size:10px; }
+
 </style>
 </head>
 <body class="pc-mode">
@@ -949,6 +983,7 @@ html, body {
             <option value="mk">粉笔模考</option>
             <option value="sy">事业单位</option>
             <option value="sl">申论</option>
+            <option value="ms">面试</option>
         </select>
         <select id="moduleSelect">
             <option value="auto">子模块：自动识别</option>
@@ -1033,7 +1068,8 @@ const ZONES = [
   { id:'gk', name:'国考/省考' },
   { id:'mk', name:'模考' },
   { id:'sy', name:'事业单位' },
-  { id:'sl', name:'申论' }
+  { id:'sl', name:'申论' },
+  { id:'ms', name:'面试' }
 ];
 const MODS = ['常识判断','政治理论','言语理解与表达','数量关系','判断推理','资料分析'];
 
@@ -1042,7 +1078,8 @@ const ZONE_THEMES = {
   gk: { main:'#4a90d9', mid:'#7fb0e8', deep:'#2c6b9e', bg:'#e8f0fe', onMain:'#ffffff' },   // 国省考 蓝
   mk: { main:'#f5a623', mid:'#f8c560', deep:'#b97312', bg:'#fef3e2', onMain:'#2d3748' },   // 模考 橙
   sy: { main:'#f7c948', mid:'#fae08a', deep:'#8a6d12', bg:'#fef9e0', onMain:'#2d3748' },    // 事业单位 黄
-  sl: { main:'#8b5cf6', mid:'#c4b5fd', deep:'#6d28d9', bg:'#f5f3ff', onMain:'#ffffff' }    // 申论 紫
+  sl: { main:'#8b5cf6', mid:'#c4b5fd', deep:'#6d28d9', bg:'#f5f3ff', onMain:'#ffffff' },   // 申论 紫
+  ms: { main:'#10b981', mid:'#34d399', deep:'#059669', bg:'#ecfdf5', onMain:'#ffffff' }     // 面试 绿
 };
 function applyZoneTheme(z){
   const t = ZONE_THEMES[z] || ZONE_THEMES.gk;
@@ -1055,8 +1092,9 @@ function applyZoneTheme(z){
   r.setProperty('--on-main', t.onMain);
 }
 
-let index = { gk:[], mk:[], sy:[], sl:[] };   // 轻量元数据：{id,fileName,zone,module,uploadTime,size,count}
-let db = { gk:{}, mk:{}, sy:{}, sl:{} };      // 完整数据：id -> {fileName,zone,module,uploadTime,size,questions,answered}
+const ZONE_IDS = ['gk','mk','sy','sl','ms'];
+let index = { gk:[], mk:[], sy:[], sl:[], ms:[] };   // 轻量元数据：{id,fileName,zone,module,uploadTime,size,count}
+let db = { gk:{}, mk:{}, sy:{}, sl:{}, ms:{} };      // 完整数据：id -> {fileName,zone,module,uploadTime,size,questions,answered}
 let activeZone = 'gk';
 let activeFile = '__all__';   // '__all__' 表示显示本分区全部文件合并
 let currentPage = 1;
@@ -1069,8 +1107,8 @@ let filterState = {
 };
 
 // 错题集 / 收藏 / 每日任务 / 考试日期（均持久化到 IndexedDB）
-let wrongSet = { gk:{}, mk:{}, sy:{}, sl:{} };
-let favorites = { gk:{}, mk:{}, sy:{}, sl:{} };
+let wrongSet = { gk:{}, mk:{}, sy:{}, sl:{}, ms:{} };
+let favorites = { gk:{}, mk:{}, sy:{}, sl:{}, ms:{} };
 let daily = { date:'', count:0, goal:50 };
 let examDate = '';
 
@@ -1227,10 +1265,11 @@ function idbDel(key){
 async function loadAll(){
   const idx=await idbGet('idx');
   if(idx) index=idx;
-  ['gk','mk','sy','sl'].forEach(function(z){ if(!Array.isArray(index[z])) index[z]=[]; });
-  db={gk:{},mk:{},sy:{},sl:{}};
-  for(let zi=0; zi<4; zi++){
-    const z=['gk','mk','sy','sl'][zi];
+  ZONE_IDS.forEach(function(z){ if(!Array.isArray(index[z])) index[z]=[]; });
+  db={};
+  ZONE_IDS.forEach(function(z){ db[z]={}; });
+  for(let zi=0; zi<ZONE_IDS.length; zi++){
+    const z=ZONE_IDS[zi];
     for(let mi=0; mi<index[z].length; mi++){
       const m=index[z][mi];
       const f=await idbGet('file:'+z+':'+m.id);
@@ -1243,13 +1282,17 @@ function saveFile(z,id){ return idbSet('file:'+z+':'+id, db[z][id]); }    // fir
 function saveView(){ return idbSet('view', {activeZone, activeFile, filterState}); }
 async function loadView(){
   const v=await idbGet('view');
-  if(v){ if(v.activeZone) activeZone=v.activeZone; if(v.activeFile) activeFile=v.activeFile; if(v.filterState) filterState=Object.assign(filterState, v.filterState); }
+  if(v){
+    if(v.activeZone && ZONE_IDS.indexOf(v.activeZone)!==-1) activeZone=v.activeZone;
+    if(v.activeFile) activeFile=v.activeFile;
+    if(v.filterState) filterState=Object.assign(filterState, v.filterState);
+  }
 }
 
 // —— 错题集 / 收藏 / 每日 / 考试（均迁 IndexedDB） ——
-async function loadWrong(){ const r=await idbGet('wrong'); if(r) wrongSet=r; ['gk','mk','sy','sl'].forEach(function(z){ if(!wrongSet[z]||typeof wrongSet[z]!=='object') wrongSet[z]={}; }); }
+async function loadWrong(){ const r=await idbGet('wrong'); if(r) wrongSet=r; ZONE_IDS.forEach(function(z){ if(!wrongSet[z]||typeof wrongSet[z]!=='object') wrongSet[z]={}; }); }
 function saveWrong(){ return idbSet('wrong', wrongSet); }
-async function loadFav(){ const r=await idbGet('fav'); if(r) favorites=r; ['gk','mk','sy','sl'].forEach(function(z){ if(!favorites[z]||typeof favorites[z]!=='object') favorites[z]={}; }); }
+async function loadFav(){ const r=await idbGet('fav'); if(r) favorites=r; ZONE_IDS.forEach(function(z){ if(!favorites[z]||typeof favorites[z]!=='object') favorites[z]={}; }); }
 function saveFav(){ return idbSet('fav', favorites); }
 function isFavorite(key){ return !!(favorites[activeZone]&&favorites[activeZone][key]); }
 function toggleFavorite(key){ if(!favorites[activeZone]) favorites[activeZone]={}; if(favorites[activeZone][key]) delete favorites[activeZone][key]; else favorites[activeZone][key]=true; saveFav(); renderQuestions(); }
@@ -1352,10 +1395,10 @@ async function migrateFromLocalStorage(){
     const oldIndex=JSON.parse(oldIdxRaw);
     if(oldIndex && Array.isArray(oldIndex.gk) && Array.isArray(oldIndex.mk) && Array.isArray(oldIndex.sy)){
       index=oldIndex;
-      ['gk','mk','sy'].forEach(function(z){ if(!Array.isArray(index[z])) index[z]=[]; });
+      ZONE_IDS.forEach(function(z){ if(!Array.isArray(index[z])) index[z]=[]; });
       await saveIndex();
-      for(let zi=0; zi<3; zi++){
-        const z=['gk','mk','sy'][zi];
+      for(let zi=0; zi<ZONE_IDS.length; zi++){
+        const z=ZONE_IDS[zi];
         for(let mi=0; mi<index[z].length; mi++){
           const m=index[z][mi];
           const f=localStorage.getItem('qz_file_'+z+'_'+m.id);
@@ -1363,8 +1406,8 @@ async function migrateFromLocalStorage(){
         }
       }
       const ov=localStorage.getItem(VIEW_KEY); if(ov){ try{ const v=JSON.parse(ov); if(v.activeZone) activeZone=v.activeZone; if(v.activeFile) activeFile=v.activeFile; if(v.filterState) filterState=Object.assign(filterState, v.filterState); await saveView(); }catch(e){} }
-      const ow=localStorage.getItem(WRONG_KEY); if(ow){ try{ wrongSet=JSON.parse(ow); ['gk','mk','sy'].forEach(function(z){ if(!wrongSet[z]) wrongSet[z]={}; }); await saveWrong(); }catch(e){} }
-      const ofav=localStorage.getItem(FAV_KEY); if(ofav){ try{ favorites=JSON.parse(ofav); ['gk','mk','sy'].forEach(function(z){ if(!favorites[z]) favorites[z]={}; }); await saveFav(); }catch(e){} }
+      const ow=localStorage.getItem(WRONG_KEY); if(ow){ try{ wrongSet=JSON.parse(ow); ZONE_IDS.forEach(function(z){ if(!wrongSet[z]) wrongSet[z]={}; }); await saveWrong(); }catch(e){} }
+      const ofav=localStorage.getItem(FAV_KEY); if(ofav){ try{ favorites=JSON.parse(ofav); ZONE_IDS.forEach(function(z){ if(!favorites[z]) favorites[z]={}; }); await saveFav(); }catch(e){} }
       const od=localStorage.getItem(DAILY_KEY); if(od){ try{ daily=JSON.parse(od); await saveDaily(); }catch(e){} }
       const oe=localStorage.getItem(EXAM_KEY); if(oe){ examDate=oe; await saveExam(); }
       console.log('[迁移] localStorage 数据已迁移到 IndexedDB');
@@ -1410,6 +1453,7 @@ function renderProgressPanel(){
 function detectZone(name){
   const n=name.toLowerCase();
   if(/申论|shenlun/.test(n)) return 'sl';
+  if(/面试/.test(n)) return 'ms';
   if(/国考|省考|行测|xingce/.test(n)) return 'gk';
   if(/模考|模拟/.test(n)) return 'mk';
   if(/事业单位|职测|syzc/.test(n)) return 'sy';
@@ -1424,6 +1468,13 @@ function extractProvince(paperName){
 function getYear(paperDate){ return String(paperDate||'').substring(0,4)||'未知'; }
 function getAnswer(question){ return question&&question.solutionAccessories ? (question.solutionAccessories.find(s=>s.label==='reference')||{}).content||'' : ''; }
 function getAnalysis(question){ return question&&question.solutionAccessories ? (question.solutionAccessories.find(s=>s.label==='demonstrate')||{}).content||'' : ''; }
+function getSolutionAccessory(question, label){
+  if(!question || !Array.isArray(question.solutionAccessories)) return null;
+  return question.solutionAccessories.find(function(item){ return item && item.label===label; }) || null;
+}
+function isMianShiQuestion(question){
+  return !!(question && (question._interview || getSolutionAccessory(question,'stzd') || getSolutionAccessory(question,'sfdt') || getSolutionAccessory(question,'swdt')));
+}
 function cleanMaterialMarkers(value){
   return String(value||'').replace(/\s*\[materialid\]\s*\d+\s*\[\/materialid\]\s*/gi,' ').replace(/ {2,}/g,' ');
 }
@@ -1537,7 +1588,9 @@ function handleFiles(fileListArr){
         const mz=zoneSelect.value, mm=moduleSelect.value;
         let zone = isEssay ? 'sl' : (mz==='auto' ? detectZone(file.name) : mz);
         if(!zone) zone = activeZone;
-        let module = isEssay ? '申论' : (mm==='auto' ? detectModule(file.name, questions) : mm);
+        const isMianShi = zone === 'ms';
+        if(isMianShi) questions.forEach(function(q){ if(q && typeof q==='object') q._interview=true; });
+        let module = isEssay ? '申论' : (isMianShi ? '面试' : (mm==='auto' ? detectModule(file.name, questions) : mm));
         if(!module) module = '常识判断';
         const id=genId();
         const exist=index[zone].find(x=>x.fileName===file.name);
@@ -2810,7 +2863,7 @@ window.fullDiagnosticScan = function() {
     var brokenFiles = [];
     var missingCategories = 0;
     
-    ['gk', 'mk', 'sy'].forEach(function(zone) {
+    ZONE_IDS.forEach(function(zone) {
         var files = db[zone] || {};
         Object.keys(files).forEach(function(fileId) {
             var f = files[fileId];
@@ -3116,6 +3169,7 @@ setTimeout(function() {
 }, 3000);
 
 function renderQuestions(){
+  stopAllMianShiRecordings();
   if (filterState.status === 'wrong') {
     var zone = activeZone || 'gk';
     var keys = Object.keys(wrongSet[zone] || {});
@@ -3192,6 +3246,10 @@ function renderQuestions(){
       html+=renderShenLunPaper(item, i, key);
       continue;
     }
+    if(activeZone==='ms'){
+      html+=renderMianShiQuestion(item, i, key);
+      continue;
+    }
     const hasAnswered=item._answered!==undefined;
     const isCorrect=isAnsweredCorrect(item)||false;
     const correctLetter=getCorrectLetter(item);
@@ -3250,6 +3308,7 @@ function renderQuestions(){
     html+='</div>';
   }
   content.innerHTML=html;
+  if(activeZone==='ms') bindMianShiRecorders();
   if(activeZone==='sl') restoreNotes();
   try{ content.querySelectorAll('img').forEach(fixImg); }catch(e){}
   scanRenderedImages();
@@ -3352,6 +3411,26 @@ function renderShenLunPaper(paper, index, key){
 }
 
 var lastEssayNoteInfo = null;
+
+function renderMianShiQuestion(question, index, key){
+  const guidance=getSolutionAccessory(question,'stzd');
+  const sample=getSolutionAccessory(question,'sfdt');
+  const mindMap=getSolutionAccessory(question,'swdt');
+  let html='<article class="question visible mian-shi-question" id="q-'+escapeHtml(key)+'">';
+  html+='<div class="q-title">第 '+(index+1)+' 题 <span class="q-source">'+escapeHtml(question&&question.source||'')+'</span></div>';
+  html+='<div class="q-content">'+fixProtocols(question&&question.content||question&&question.question||'')+'</div>';
+  if(guidance && guidance.content) html+='<details class="mian-shi-answer"><summary>📝 审题指导（解析）</summary><div>'+fixProtocols(guidance.content)+'</div></details>';
+  if(sample && sample.content) html+='<details class="mian-shi-answer"><summary>✅ 示范答题（参考答案）</summary><div>'+fixProtocols(sample.content)+'</div></details>';
+  if(mindMap && mindMap.content) html+='<details class="mian-shi-answer"><summary>🧠 思维导图（图片）</summary><div>'+fixProtocols(mindMap.content)+'</div></details>';
+  html+='<div class="ms-recorder" data-key="'+escapeHtml(key)+'">';
+  html+='<div class="ms-recorder-controls">';
+  html+='<button type="button" class="ms-record-btn" data-key="'+escapeHtml(key)+'">🎙️ 录音</button>';
+  html+='<span class="ms-record-time" data-key="'+escapeHtml(key)+'">00:00</span>';
+  html+='<button type="button" class="ms-play-btn" data-key="'+escapeHtml(key)+'" disabled>▶️ 播放</button>';
+  html+='<button type="button" class="ms-download-btn" data-key="'+escapeHtml(key)+'" disabled>💾 下载</button>';
+  html+='</div><div class="ms-record-meter" data-key="'+escapeHtml(key)+'"><div class="ms-meter-fill"></div></div></div>';
+  return html+'</article>';
+}
 
 function getEssayNoteTargetBySelection(){
   const selection=window.getSelection();
@@ -3731,7 +3810,7 @@ function buildExportItem(q){
 }
 
 function findQuestionByKey(key){
-  for (const zone of ['gk', 'mk', 'sy']) {
+  for (const zone of ZONE_IDS) {
     const zoneData = db[zone] || {};
     for (const fileId of Object.keys(zoneData)) {
       const fileData = zoneData[fileId];
@@ -3754,7 +3833,7 @@ function findQuestionByContent(content){
   const target=normalizeQuestionText(content);
   if(!target) return null;
   let partial=null;
-  for(const zone of ['gk','mk','sy']){
+  for(const zone of ZONE_IDS){
     const zoneData=db[zone]||{};
     for(const fileId of Object.keys(zoneData)){
       const questions=zoneData[fileId]&&zoneData[fileId].questions;
@@ -3774,7 +3853,7 @@ function findQuestionByContent(content){
 function findQuestionByQidPart(qid){
   const target=String(qid||'').trim();
   if(!target) return null;
-  for(const zone of ['gk','mk','sy']){
+  for(const zone of ZONE_IDS){
     const zoneData=db[zone]||{};
     for(const fileId of Object.keys(zoneData)){
       const questions=zoneData[fileId]&&zoneData[fileId].questions;
@@ -3894,9 +3973,9 @@ async function exportBackup(){
   // 统计所有分区中做过多少题
   let totalAnswered = 0;
   const answeredByZone = {};
-  const dataByZone = { gk: {}, mk: {}, sy: {} };
+  const dataByZone = { gk: {}, mk: {}, sy: {}, sl: {}, ms: {} };
   
-  ['gk', 'mk', 'sy'].forEach(zone => {
+  ZONE_IDS.forEach(zone => {
     answeredByZone[zone] = 0;
     
     // 遍历该分区所有文件
@@ -3955,8 +4034,8 @@ async function exportBackup(){
   }
   
   // 读取错题集、收藏、做题次数
-  const wrongSetData = { gk: {}, mk: {}, sy: {} };
-  const favoritesData = { gk: {}, mk: {}, sy: {} };
+  const wrongSetData = { gk: {}, mk: {}, sy: {}, sl: {}, ms: {} };
+  const favoritesData = { gk: {}, mk: {}, sy: {}, sl: {}, ms: {} };
   const attemptsData = {};
   let chatHistory = {};
   
@@ -3972,7 +4051,7 @@ async function exportBackup(){
     chatHistory = {};
   }
   
-  ['gk', 'mk', 'sy'].forEach(zone => {
+  ZONE_IDS.forEach(zone => {
     // 构建 qid 到 key 的映射
     const qidToKeys = {};
     Object.keys(db[zone] || {}).forEach(fileId => {
@@ -4017,7 +4096,7 @@ async function exportBackup(){
     const attempts = JSON.parse(localStorage.getItem(attemptKey) || '{}');
     
     // 只导出做过的题的做题次数
-    ['gk', 'mk', 'sy'].forEach(zone => {
+    ZONE_IDS.forEach(zone => {
       Object.keys(db[zone] || {}).forEach(fileId => {
         const fileData = db[zone][fileId];
         if (!fileData || !fileData.questions) return;
@@ -4089,7 +4168,7 @@ async function importBackupFromObject(data){
     const qidMap = {};  // qid → {zone, fileId, qi}
     const keyMap = {};  // key → {zone, fileId, qi}（用于导入时更新答案）
     
-    ['gk', 'mk', 'sy'].forEach(zone => {
+    ZONE_IDS.forEach(zone => {
       Object.keys(db[zone] || {}).forEach(fileId => {
         const fileData = db[zone][fileId];
         if (!fileData || !fileData.questions) return;
@@ -4111,7 +4190,7 @@ async function importBackupFromObject(data){
     let matchedCount = 0, skippedCount = 0;
     const backupData = data.data || {};
     
-    ['gk', 'mk', 'sy'].forEach(zone => {
+    ZONE_IDS.forEach(zone => {
       Object.keys(backupData[zone] || {}).forEach(fileId => {
         const fileBackup = backupData[zone][fileId];
         if (!fileBackup || !fileBackup.questions) return;
@@ -4140,7 +4219,7 @@ async function importBackupFromObject(data){
     // 第三步：恢复错题集标记（用 qid 匹配）
     let wrongSetRestored = 0;
     if (data.wrongSet) {
-      ['gk', 'mk', 'sy'].forEach(zone => {
+      ZONE_IDS.forEach(zone => {
         if (!wrongSet[zone]) wrongSet[zone] = {};
         
         Object.keys(data.wrongSet[zone] || {}).forEach(qid => {
@@ -4156,7 +4235,7 @@ async function importBackupFromObject(data){
     // 第四步：恢复收藏标记（用 qid 匹配）
     let favoritesRestored = 0;
     if (data.favorites) {
-      ['gk', 'mk', 'sy'].forEach(zone => {
+      ZONE_IDS.forEach(zone => {
         if (!favorites[zone]) favorites[zone] = {};
         
         Object.keys(data.favorites[zone] || {}).forEach(qid => {
@@ -4241,16 +4320,11 @@ async function importBackupFromObject(data){
     }
     
     // 第七步：保存恢复结果
-    ['gk', 'mk', 'sy'].forEach(z => {
-      (index[z] || []).forEach(m => {
-        saveFile(z, m.id);
-      });
+    ZONE_IDS.forEach(function(z){
+      (index[z] || []).forEach(function(m){ saveFile(z, m.id); });
     });
-    saveWrong();
-    saveFav();
-    
     const v = data.view || null;
-    if (v && v.activeZone) {
+    if (v && v.activeZone && ZONE_IDS.indexOf(v.activeZone)!==-1) {
       activeZone = v.activeZone;
       if (v.activeFile !== undefined) activeFile = v.activeFile;
     }
@@ -4266,14 +4340,14 @@ async function importBackupFromObject(data){
   }
   
   // ========== 旧版完整备份格式导入 ==========
-  let newIndex={gk:[],mk:[],sy:[]};
-  let newDb={gk:{},mk:{},sy:{}};
+  let newIndex={gk:[],mk:[],sy:[],sl:[],ms:[]};
+  let newDb={gk:{},mk:{},sy:{},sl:{},ms:{}};
   let fromLabel='';
   
   if(data._type==='helium_quiz_backup' && data.index){
     alert('检测到旧版备份格式，正在导入...');
     fromLabel='备份对象';
-    const zoneMap={'gk':'gk','mk':'mk','sy':'sy','国考省考':'gk','国考/省考':'gk','粉笔模考':'mk','事业单位':'sy'};
+    const zoneMap={'gk':'gk','mk':'mk','sy':'sy','sl':'sl','ms':'ms','国考省考':'gk','国考/省考':'gk','粉笔模考':'mk','事业单位':'sy','申论':'sl','面试':'ms'};
     Object.keys(data.index).forEach(zoneKey=>{
       const zone=zoneMap[zoneKey]||zoneKey;
       if(!newIndex[zone]){ newIndex[zone]=[]; newDb[zone]={}; }
@@ -4305,7 +4379,7 @@ async function importBackupFromObject(data){
   // —— 电脑版数组格式 ——
   else if(Array.isArray(data)){
     fromLabel='数组格式';
-    const zoneMap={'国考省考':'gk','国考/省考':'gk','粉笔模考':'mk','事业单位':'sy'};
+    const zoneMap={'国考省考':'gk','国考/省考':'gk','粉笔模考':'mk','事业单位':'sy','申论':'sl','面试':'ms'};
     data.forEach(item=>{
       if(!item) return;
       const zone=zoneMap[item.partition]||'gk';
@@ -4330,12 +4404,12 @@ async function importBackupFromObject(data){
   
   // 统计可恢复的题目数（以实际载入题库的题目为准，避免清单格式虚报）
   let totalQ=0, totalFiles=0;
-  ['gk','mk','sy'].forEach(z=>{ Object.keys(newDb[z]).forEach(id=>{ totalFiles++; totalQ+=(newDb[z][id].questions.length||0); }); });
+  ZONE_IDS.forEach(z=>{ Object.keys(newDb[z]||{}).forEach(id=>{ totalFiles++; totalQ+=(newDb[z][id].questions.length||0); }); });
   if(!totalFiles){ alert('备份中没有可恢复的文件数据'); return; }
   showConfirm('导入「'+fromLabel+'」将覆盖当前所有分区的数据与做题进度，确定继续？', ()=>{
   index=newIndex; db=newDb;
-  ['gk','mk','sy'].forEach(z=>{ if(!Array.isArray(index[z])) index[z]=[]; if(typeof db[z]!=='object'||!db[z]) db[z]={}; });
-  ['gk','mk','sy'].forEach(z=>{ (index[z]||[]).forEach(m=>{ saveFile(z,m.id); }); });
+  ZONE_IDS.forEach(z=>{ if(!Array.isArray(index[z])) index[z]=[]; if(typeof db[z]!=='object'||!db[z]) db[z]={}; });
+  ZONE_IDS.forEach(z=>{ (index[z]||[]).forEach(m=>{ saveFile(z,m.id); }); });
   saveIndex();
   const v=data.view||null;
   if(v&&v.activeZone){ activeZone=v.activeZone; if(v.activeFile!==undefined) activeFile=v.activeFile; }
@@ -6030,7 +6104,7 @@ function toggleNoHack(on){
 // ============================================================
 (function setupLocalWrongList(){
   const qzLocalWrongKey='qz_wrong_list';
-  const qzLocalZones=['gk','mk','sy'];
+  const qzLocalZones=ZONE_IDS;
 
   function qzLocalRead(){
     try{
@@ -6395,13 +6469,29 @@ function toggleNoHack(on){
         <div style="text-align:center;"><div style="font-size:10px;color:#64748b;">总用时</div><div id="sidebarTotalTime" style="font-size:16px;font-weight:bold;color:#f59e0b;">0秒</div></div>
         <div style="text-align:center;"><div style="font-size:10px;color:#64748b;">平均</div><div id="sidebarAvgTime" style="font-size:16px;font-weight:bold;color:#a78bfa;">0秒</div></div>
       </div>
-      <button id="sidebarResetTimer" style="width:100%;margin-top:6px;padding:4px;border:1px solid #ef4444;border-radius:4px;background:transparent;color:#ef4444;cursor:pointer;font-size:10px;">RESET</button>
+      <button id="sidebarResetTimer" type="button">RESET</button>
+    </div>
+
+    <div id="pomodoroCard">
+      <div class="pomodoro-title">🍅 番茄钟</div>
+      <div id="pomodoroTime">25:00</div>
+      <div class="pomodoro-progress"><div id="pomodoroProgressFill"></div></div>
+      <div class="pomodoro-controls">
+        <button id="pomodoroStart" type="button">▶ 开始</button>
+        <button id="pomodoroReset" type="button">⟳ 重置</button>
+        <select id="pomodoroDuration" aria-label="番茄钟时长">
+          <option value="15">15分钟</option>
+          <option value="25" selected>25分钟</option>
+          <option value="45">45分钟</option>
+          <option value="60">60分钟</option>
+        </select>
+      </div>
+      <div id="pomodoroStatus">⏳ 就绪</div>
     </div>
 
     <div style="margin-bottom:10px;">
       <div style="font-size:11px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">🎧 专注背景音</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
-        <button data-snd="pomodoro" style="padding:4px 6px;border:1px solid #f59e0b;border-radius:4px;background:#0f172a;color:#f59e0b;cursor:pointer;font-size:9px;transition:0.15s;">🍅 番茄钟</button>
         <button data-snd="tick" style="padding:4px 6px;border:1px solid #f59e0b;border-radius:4px;background:#0f172a;color:#f59e0b;cursor:pointer;font-size:10px;transition:0.15s;">🕐 机械时钟</button>
         <button data-snd="brown" style="padding:4px 6px;border:1px solid #334155;border-radius:4px;background:#0f172a;color:#e2e8f0;cursor:pointer;font-size:10px;transition:0.15s;">🎧 棕色噪音</button>
         <button data-snd="wave" style="padding:4px 6px;border:1px solid #334155;border-radius:4px;background:#0f172a;color:#e2e8f0;cursor:pointer;font-size:10px;transition:0.15s;">🌊 海浪</button>
@@ -6416,7 +6506,6 @@ function toggleNoHack(on){
         <button data-snd="forest" style="padding:4px 6px;border:1px solid #334155;border-radius:4px;background:#0f172a;color:#e2e8f0;cursor:pointer;font-size:10px;transition:0.15s;">🌿 森林早晨</button>
         <button id="sidebarStopAll" style="padding:4px 6px;border:1px solid #ef4444;border-radius:4px;background:#0f172a;color:#ef4444;cursor:pointer;font-size:10px;transition:0.15s;grid-column:span 2;">⏹ 停止播放</button>
       </div>
-      <div id="sidebarPomoDisplay" style="text-align:center;font-size:12px;color:#f59e0b;font-weight:bold;margin-top:2px;display:none;"></div>
       <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
         <span style="font-size:10px;color:#64748b;">🔊</span>
         <input type="range" id="sidebarVolume" min="0" max="100" value="60" style="flex:1;accent-color:#60a5fa;height:3px;" oninput="setSoundVolume(this.value)">
@@ -6450,6 +6539,39 @@ var soundUpdateTimer = null;
 var soundNodes = { osc: null, gain: null, filter: null, noise: null, src: null, bowlOscs: [] };
 var soundVolume = 0.6;
 var SOUND_STORAGE_KEY = 'qz_sound_state';
+var pomodoroTotalSeconds = 25 * 60;
+var pomodoroElapsedSeconds = 0;
+
+function updatePomodoroCard(timeText, statusText, progress, state){
+  var card=document.getElementById('pomodoroCard');
+  var time=document.getElementById('pomodoroTime');
+  var status=document.getElementById('pomodoroStatus');
+  var fill=document.getElementById('pomodoroProgressFill');
+  if(time && timeText) time.textContent=timeText;
+  if(status && statusText) status.textContent=statusText;
+  if(fill && progress!==undefined) fill.style.width=Math.max(0,Math.min(100,progress))+'%';
+  if(card){ card.classList.toggle('paused',state==='paused'); card.classList.toggle('complete',state==='complete'); }
+}
+function resetPomodoroCard(){
+  var duration=document.getElementById('pomodoroDuration');
+  pomodoroTotalSeconds=(parseInt(duration&&duration.value,10)||25)*60;
+  pomodoroElapsedSeconds=0;
+  var minutes=Math.floor(pomodoroTotalSeconds/60);
+  updatePomodoroCard(String(minutes).padStart(2,'0')+':00','⏳ 就绪',0,'idle');
+}
+function setupPomodoroCard(){
+  var start=document.getElementById('pomodoroStart'), reset=document.getElementById('pomodoroReset'), duration=document.getElementById('pomodoroDuration');
+  if(!start||!reset||!duration) return;
+  start.onclick=function(){
+    if(isSoundPlaying && currentSoundType==='pomodoro') { stopAllSounds(); return; }
+    pomodoroTotalSeconds=(parseInt(duration.value,10)||25)*60;
+    pomodoroElapsedSeconds=0;
+    playSound('pomodoro');
+  };
+  reset.onclick=function(){ stopAllSounds(); resetPomodoroCard(); };
+  duration.onchange=function(){ if(!(isSoundPlaying&&currentSoundType==='pomodoro')) resetPomodoroCard(); };
+  resetPomodoroCard();
+}
 
 function saveSoundState() {
   try {
@@ -6584,6 +6706,7 @@ function playBirdSound(c) {
 }
 
 function stopAllSounds() {
+  var stoppedType = currentSoundType;
   isSoundPlaying = false;
   clearTimeout(soundTimerId);
   if (soundUpdateTimer) clearInterval(soundUpdateTimer);
@@ -6607,12 +6730,11 @@ function stopAllSounds() {
   currentSoundType = '';
   var statusEl = document.getElementById('sidebarStatus');
   if (statusEl) statusEl.textContent = '⏹ 已停止';
-  var pomoDisplay = document.getElementById('sidebarPomoDisplay');
-  if (pomoDisplay) pomoDisplay.style.display = 'none';
+  if (stoppedType === 'pomodoro') resetPomodoroCard();
   document.querySelectorAll('#sidebar button[data-snd]').forEach(function(b) {
     var bc = '#334155';
     if (b.dataset.snd === 'bowl') bc = '#a78bfa';
-    else if (b.dataset.snd === 'pomodoro' || b.dataset.snd === 'tick') bc = '#f59e0b';
+    else if (b.dataset.snd === 'tick') bc = '#f59e0b';
     b.style.borderColor = bc;
     b.style.background = '#0f172a';
   });
@@ -6630,7 +6752,7 @@ function playSound(type) {
     var borderColor = '#334155';
     if (b.dataset.snd === type) borderColor = '#60a5fa';
     else if (b.dataset.snd === 'bowl') borderColor = '#a78bfa';
-    else if (b.dataset.snd === 'pomodoro' || b.dataset.snd === 'tick') borderColor = '#f59e0b';
+    else if (b.dataset.snd === 'tick') borderColor = '#f59e0b';
     b.style.borderColor = borderColor;
     b.style.background = b.dataset.snd === type ? '#1e3a5f' : '#0f172a';
   });
@@ -6770,23 +6892,19 @@ function playSound(type) {
   }
 
   if (type === 'pomodoro') {
-    var total = 25;
+    var total = pomodoroTotalSeconds;
     var elapsed = 0;
     var tg = c.createGain();
     tg.gain.value = soundVolume * 0.2;
     tg.connect(c.destination);
 
-    var disp = document.getElementById('sidebarPomoDisplay');
-    if (disp) {
-      disp.style.display = 'block';
-      disp.textContent = '🍅 25:00';
-    }
+    var disp = document.getElementById('pomodoroTime');
+    updatePomodoroCard(String(Math.floor(total/60)).padStart(2,'0')+':00','▶️ 进行中',0,'running');
     soundUpdateTimer = setInterval(function() {
       var rem = total - elapsed;
-      if (rem <= 0) { clearInterval(soundUpdateTimer); if (disp) disp.textContent = '🔔 时间到！'; return; }
+      if (rem <= 0) { clearInterval(soundUpdateTimer); updatePomodoroCard('00:00','🔔 已完成',100,'complete'); return; }
       var m = Math.floor(rem / 60), s = rem % 60;
-      if (disp) disp.textContent = '🍅 ' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
-      if (disp) disp.style.color = rem <= 10 ? '#ef4444' : '#f59e0b';
+      updatePomodoroCard(String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0'),rem <= 10 ? '⚠️ 即将完成' : '▶️ 进行中',elapsed / total * 100,'running');
     }, 500);
 
     function playPomoTick() {
@@ -6963,6 +7081,106 @@ function updateSidebarTimer() {
 updateSidebarTimer();
 setInterval(updateSidebarTimer, 5000);
 
+var mianShiRecordings = new Map();
+function formatRecordingTime(ms){ var total=Math.floor(Math.max(0,ms)/1000); return String(Math.floor(total/60)).padStart(2,'0')+':'+String(total%60).padStart(2,'0'); }
+function getMianShiRecorder(key){ return mianShiRecordings.get(key); }
+function updateMianShiTime(state){
+  var el=document.querySelector('.ms-record-time[data-key="'+CSS.escape(state.key)+'"]');
+  if(!el) return;
+  var value=state.elapsedMs;
+  if(state.recorder && state.recorder.state==='recording') value+=Date.now()-state.startedAt;
+  el.textContent=formatRecordingTime(value);
+}
+function updateMianShiControls(state){
+  var root=document.querySelector('.ms-recorder[data-key="'+CSS.escape(state.key)+'"]');
+  if(!root) return;
+  var record=root.querySelector('.ms-record-btn'), play=root.querySelector('.ms-play-btn'), download=root.querySelector('.ms-download-btn');
+  var active=state.recorder && (state.recorder.state==='recording'||state.recorder.state==='paused');
+  if(record){ record.classList.toggle('recording',!!active); record.textContent=active?'⏹ 停止':'🎙️ 录音'; }
+  if(play) play.disabled=!state.audioBlob;
+  if(download) download.disabled=!state.audioBlob;
+}
+function updateMianShiMeter(state){
+  if(!state.analyser || !state.meterData) return;
+  state.analyser.getByteTimeDomainData(state.meterData);
+  var sum=0;
+  for(var i=0;i<state.meterData.length;i++){ var n=(state.meterData[i]-128)/128; sum+=n*n; }
+  var fill=document.querySelector('.ms-recorder[data-key="'+CSS.escape(state.key)+'"] .ms-meter-fill');
+  if(fill) fill.style.width=Math.min(100,Math.max(0,Math.sqrt(sum/state.meterData.length)*260)).toFixed(1)+'%';
+  state.meterFrame=requestAnimationFrame(function(){ updateMianShiMeter(state); });
+}
+function stopMianShiMeter(state){
+  if(state.meterFrame) cancelAnimationFrame(state.meterFrame);
+  state.meterFrame=0; state.analyser=null; state.meterData=null;
+}
+function releaseMianShiState(state){
+  if(state.timer) clearInterval(state.timer);
+  stopMianShiMeter(state);
+  if(state.stream) state.stream.getTracks().forEach(function(track){track.stop();});
+  if(state.audioUrl) URL.revokeObjectURL(state.audioUrl);
+  state.timer=null; state.stream=null; state.recorder=null; state.audioUrl=''; state.audioBlob=null;
+}
+function stopAllMianShiRecordings(){ mianShiRecordings.forEach(function(state){ releaseMianShiState(state); }); mianShiRecordings.clear(); }
+async function startMianShiRecording(key){
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ alert('当前浏览器不支持麦克风录音'); return; }
+  var old=getMianShiRecorder(key);
+  if(old && old.recorder && (old.recorder.state==='recording'||old.recorder.state==='paused')){ stopMianShiRecording(key); return; }
+  if(old) releaseMianShiState(old);
+  var state={key:key,recorder:null,stream:null,chunks:[],audioBlob:null,audioUrl:'',analyser:null,meterData:null,meterFrame:0,timer:null,startedAt:0,elapsedMs:0};
+  mianShiRecordings.set(key,state);
+  try{
+    state.stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    var mime=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/webm';
+    state.recorder=new MediaRecorder(state.stream,{mimeType:mime});
+    state.recorder.ondataavailable=function(event){ if(event.data&&event.data.size) state.chunks.push(event.data); };
+    state.recorder.onstop=function(){
+      state.audioBlob=new Blob(state.chunks,{type:'audio/webm'}); state.audioUrl=URL.createObjectURL(state.audioBlob);
+      if(state.stream) state.stream.getTracks().forEach(function(track){track.stop();});
+      state.stream=null; stopMianShiMeter(state); updateMianShiControls(state); updateMianShiTime(state);
+    };
+    var AudioContextCtor=window.AudioContext||window.webkitAudioContext;
+    if(AudioContextCtor){ var context=new AudioContextCtor(), source=context.createMediaStreamSource(state.stream); state.analyser=context.createAnalyser(); state.analyser.fftSize=256; state.meterData=new Uint8Array(state.analyser.fftSize); source.connect(state.analyser); updateMianShiMeter(state); }
+    state.startedAt=Date.now(); state.recorder.start(250); state.timer=setInterval(function(){updateMianShiTime(state);},250); updateMianShiControls(state);
+  }catch(error){ releaseMianShiState(state); mianShiRecordings.delete(key); alert('无法开始录音：'+(error&&error.message||'麦克风权限被拒绝')); }
+}
+function stopMianShiRecording(key){
+  var state=getMianShiRecorder(key); if(!state||!state.recorder) return;
+  if(state.recorder.state==='recording') state.elapsedMs+=Date.now()-state.startedAt;
+  if(state.recorder.state==='recording'||state.recorder.state==='paused') state.recorder.stop();
+  if(state.timer){clearInterval(state.timer);state.timer=null;} updateMianShiTime(state);
+}
+function playMianShiRecording(key){ var state=getMianShiRecorder(key); if(state&&state.audioUrl){ var audio=new Audio(state.audioUrl); audio.play().catch(function(){alert('录音播放失败，请重新点击播放');}); } }
+function writeWavString(view, offset, value){ for(var i=0;i<value.length;i++) view.setUint8(offset+i,value.charCodeAt(i)); }
+function audioBufferToWav(buffer){
+  var channels=buffer.numberOfChannels, length=buffer.length*channels*2+44, output=new ArrayBuffer(length), view=new DataView(output), offset=0;
+  writeWavString(view,offset,'RIFF'); offset+=4; view.setUint32(offset,36+buffer.length*channels*2,true); offset+=4; writeWavString(view,offset,'WAVE'); offset+=4;
+  writeWavString(view,offset,'fmt '); offset+=4; view.setUint32(offset,16,true); offset+=4; view.setUint16(offset,1,true); offset+=2; view.setUint16(offset,channels,true); offset+=2; view.setUint32(offset,buffer.sampleRate,true); offset+=4; view.setUint32(offset,buffer.sampleRate*channels*2,true); offset+=4; view.setUint16(offset,channels*2,true); offset+=2; view.setUint16(offset,16,true); offset+=2; writeWavString(view,offset,'data'); offset+=4; view.setUint32(offset,buffer.length*channels*2,true); offset+=4;
+  var data=[]; for(var c=0;c<channels;c++) data.push(buffer.getChannelData(c));
+  for(var i=0;i<buffer.length;i++) for(var channel=0;channel<channels;channel++){ var sample=Math.max(-1,Math.min(1,data[channel][i])); view.setInt16(offset,sample<0?sample*0x8000:sample*0x7fff,true); offset+=2; }
+  return new Blob([view],{type:'audio/wav'});
+}
+async function downloadInterviewRecording(){
+  var state=getMianShiRecorder(arguments[0]);
+  if(!state||!state.audioBlob) return;
+  try{
+    var AudioContextCtor=window.AudioContext||window.webkitAudioContext;
+    if(!AudioContextCtor) throw new Error('当前浏览器不支持 WAV 转换');
+    var context=new AudioContextCtor(), buffer=await context.decodeAudioData(await state.audioBlob.arrayBuffer());
+    var wav=audioBufferToWav(buffer), url=URL.createObjectURL(wav), link=document.createElement('a');
+    link.href=url; link.download='面试录音_'+new Date().toISOString().slice(0,19).replace(/[T:]/g,'-')+'.wav'; link.click();
+    setTimeout(function(){URL.revokeObjectURL(url); context.close();},1000);
+  }catch(error){ alert('WAV 导出失败：'+(error&&error.message||'音频格式无法转换')); }
+}
+function bindMianShiRecorders(){
+  document.querySelectorAll('.ms-recorder').forEach(function(root){
+    var key=root.dataset.key, state={key:key,recorder:null,stream:null,chunks:[],audioBlob:null,audioUrl:'',analyser:null,meterData:null,meterFrame:0,timer:null,startedAt:0,elapsedMs:0};
+    mianShiRecordings.set(key,state);
+    root.querySelector('.ms-record-btn').onclick=function(){ startMianShiRecording(key); };
+    root.querySelector('.ms-play-btn').onclick=function(){ playMianShiRecording(key); };
+    root.querySelector('.ms-download-btn').onclick=function(){ downloadInterviewRecording(key); };
+  });
+}
+
 document.getElementById('sidebarResetTimer').onclick = function() {
   if (confirm('确定重置计时统计吗？')) {
     var empty = { answered: 0, totalSec: 0, startedAt: Date.now(), questionStart: 0 };
@@ -6973,6 +7191,7 @@ document.getElementById('sidebarResetTimer').onclick = function() {
 };
 
 restoreSoundState();
+setupPomodoroCard();
 document.addEventListener('click', activateAudio);
 </script>
 </style>
