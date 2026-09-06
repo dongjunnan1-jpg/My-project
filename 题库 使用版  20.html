@@ -379,8 +379,8 @@ html, body { width:100%; max-width:100%; margin:0; padding:0; box-sizing:border-
 .header h1 { margin: 0; font-size: 30px; font-weight: 800; font-family: Georgia, "Times New Roman", "Songti SC", serif; background: linear-gradient(135deg, #ffe8b8 0%, #ffd9b3 25%, #ffffff 50%, #c9e4ff 75%, #b9d9ff 100%); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: titleShine 4s linear infinite; letter-spacing: 1.5px; }
 .header p { display: none; }
 .header-controls { position: absolute; top: 14px; right: 14px; display: flex; gap: 6px; align-items: center; z-index: 10; }
-.mode-toggle { background: rgba(255,255,255,0.16); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 8px; padding: 8px 12px; font-size: 13px; cursor: pointer; transition: .15s; white-space: nowrap; }
-.mode-toggle:hover { background: rgba(255,255,255,0.28); }
+.mode-toggle { background:rgba(255,255,255,0.16) !important; color:#fff !important; border:1px solid rgba(255,255,255,0.35) !important; border-radius:8px !important; cursor:pointer !important; transition:.15s !important; width:36px !important; height:36px !important; padding:0 !important; display:flex !important; align-items:center !important; justify-content:center !important; font-size:18px !important; line-height:1 !important; }
+.mode-toggle:hover { background:rgba(255,255,255,0.28) !important; }
 .font-btn { background: rgba(255,255,255,0.16); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 8px; padding: 6px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: .15s; min-width: 36px; text-align: center; }
 .font-btn:hover { background: rgba(255,255,255,0.28); }
 
@@ -682,12 +682,13 @@ body.essay-zone #moduleFilter, body.essay-zone #leafTypeFilter, body.essay-zone 
 }
 .chat-history-export-btn:hover { background:rgba(255,255,255,0.3); }
 .chat-history-btn {
-    position:fixed; left:10px; bottom:80px; padding:8px 14px;  /* 从10px改为80px，在AI配置按钮上方 */
+  position:fixed; left:10px; bottom:80px; padding:0 !important;
     background:linear-gradient(135deg,#60a5fa,#3b82f6); color:#fff; border:none;
-    border-radius:20px; font-size:13px; cursor:pointer; font-weight:bold;
+  border-radius:50% !important; width:44px !important; height:44px !important; font-size:20px !important; cursor:pointer; font-weight:bold;
     z-index:9998; box-shadow:0 2px 8px rgba(59,130,246,0.3);
+  display:flex !important; align-items:center !important; justify-content:center !important; line-height:1 !important; text-align:center !important;
 }
-.chat-history-btn:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(59,130,246,0.4); }
+.chat-history-btn:hover { transform:translateY(-2px) scale(1.05); box-shadow:0 4px 12px rgba(59,130,246,0.4); }
 
 /* ====== 计时面板 RESET 按钮 ====== */
 .timer-reset-btn {
@@ -895,6 +896,46 @@ html, body {
 .mian-shi-answer > div { padding:10px 12px; border-top:1px solid #a7f3d0; background:#fff; }
 .mian-shi-answer img { max-width:100%; height:auto; }
 
+/* ====== 申论笔记框 - 手机端优化 ====== */
+@media (max-width:768px) {
+  .essay-note-box { padding:14px !important; margin:16px 0 !important; border-radius:12px !important; }
+  .essay-note-input { min-height:120px !important; font-size:17px !important; line-height:2 !important; padding:14px !important; border-radius:10px !important; }
+  .essay-note-label { font-size:14px !important; }
+  .essay-note-box .essay-note-clear-btn, .essay-note-box .essay-note-copy-btn { padding:10px 16px !important; font-size:14px !important; min-height:44px !important; flex:1 !important; text-align:center !important; }
+}
+
+/* ====== 侧边栏 - 手机端适配 ====== */
+@media (max-width:768px) {
+  #sidebar[style*="width: 270px"], #sidebar[style*="width:270px"] { width:85vw !important; max-width:360px !important; }
+  #sidebar { font-size:15px !important; }
+  #sidebar > div:first-child { padding:18px 20px !important; }
+  #sidebar > div:first-child span { font-size:18px !important; }
+  #sidebar button, #sidebar .sidebar-tool-btn, #sidebar .custom-sound-btn { font-size:13px !important; min-height:44px !important; padding:8px 12px !important; border-radius:8px !important; }
+  #sidebar .sidebar-tool-btn { min-height:48px !important; font-size:13px !important; }
+  #sidebar button[data-snd] { font-size:12px !important; min-height:40px !important; padding:6px 8px !important; }
+  #pomodoroTime { font-size:28px !important; }
+  #pomodoroCard .pomodoro-controls button { font-size:13px !important; min-height:40px !important; }
+  #sidebarVolume { height:6px !important; }
+  #sidebarStatus { font-size:12px !important; }
+  #sidebar .pomodoro-title, #sidebar [style*="font-size:11px;color:#94a3b8"] { font-size:12px !important; }
+  #sidebarAnswered, #sidebarTotalTime, #sidebarAvgTime { font-size:18px !important; }
+  #sidebar > div:last-child { font-size:11px !important; padding:10px 16px !important; }
+}
+
+/* ====== 暗夜模式：面试解析修复 ====== */
+body.skin-dark .mian-shi-answer { border-color:#4a5568 !important; background:transparent !important; }
+body.skin-dark .mian-shi-answer summary { color:#a78bfa !important; background:#1e293b !important; border:1px solid #334155 !important; border-radius:8px !important; padding:10px 14px !important; }
+body.skin-dark .mian-shi-answer[open] summary { border-radius:8px 8px 0 0 !important; }
+body.skin-dark .mian-shi-answer > div { color:#e2e8f0 !important; background:#0f172a !important; border:1px solid #334155 !important; border-top:none !important; border-radius:0 0 8px 8px !important; padding:14px 16px !important; line-height:2 !important; }
+body.skin-dark .mian-shi-answer > div * { color:#e2e8f0 !important; }
+body.skin-dark .mian-shi-answer > div strong, body.skin-dark .mian-shi-answer > div b { color:#fcd34d !important; }
+body.skin-dark.ms-zone .question { background:#1e293b !important; border-left-color:#a78bfa !important; }
+body.skin-dark.ms-zone .q-title, body.skin-dark.ms-zone .q-content { color:#e2e8f0 !important; }
+body.skin-dark .ms-recorder { background:#0f172a !important; border-color:#334155 !important; }
+body.skin-dark .ms-record-btn, body.skin-dark .ms-play-btn, body.skin-dark .ms-download-btn { background:#1e293b !important; border-color:#334155 !important; color:#e2e8f0 !important; }
+body.skin-dark .ms-record-btn.recording { background:#7f1d1d !important; border-color:#ef4444 !important; }
+body.skin-dark .ms-record-time { color:#94a3b8 !important; }
+
 .ms-recorder { margin-top:12px; padding:10px 12px; background:#f0fdf4; border:1px solid #86efac; border-radius:8px; }
 .ms-recorder-controls { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
 .ms-record-btn { padding:6px 14px; border:1px solid #10b981; border-radius:6px; background:#10b981; color:#fff; cursor:pointer; font-size:12px; }
@@ -967,9 +1008,7 @@ html, body {
 <div class="container">
     <div class="header">
         <div class="header-controls">
-            <button class="font-btn" onclick="fontZoom(-2)" title="缩小字体">A−</button>
-            <button class="font-btn" onclick="fontZoom(2)" title="放大字体">A+</button>
-            <button id="modeToggle" class="mode-toggle" onclick="toggleMode()">📱 切换到手机</button>
+          <button id="modeToggle" class="mode-toggle" onclick="toggleMode()">📱</button>
         </div>
         <h1>Helium</h1>
         <!-- 进度面板：今日刷题 + 考试倒计时（小卡片并排） -->
@@ -1395,9 +1434,24 @@ function cleanInvalidWrong() {
     
     alert('已清理 ' + invalidCount + ' 条无效错题记录，当前分区剩余 ' + Object.keys(validWrong).length + ' 道错题');
 }
-function wrongCount(){ return Object.keys(wrongSet[activeZone]||{}).length; }
+function cleanInvalidWrongSilent(zone){
+  zone=zone||activeZone;
+  var allQs=getZoneQuestions(zone,'__all__'), valid={}, keys={};
+  allQs.forEach(function(q){ keys[q._key]=true; });
+  Object.keys(wrongSet[zone]||{}).forEach(function(key){ if(keys[key]) valid[key]=true; });
+  if(Object.keys(valid).length!==Object.keys(wrongSet[zone]||{}).length){ wrongSet[zone]=valid; saveWrong(); }
+}
+function wrongCount(){
+  var zone = activeZone || 'gk';
+  var wrongKeys = Object.keys(wrongSet[zone] || {});
+  if (!wrongKeys.length) return 0;
+  var allQuestions = getZoneQuestions(zone, '__all__');
+  var allKeys = {};
+  allQuestions.forEach(function(q){ allKeys[q._key] = true; });
+  return wrongKeys.filter(function(key){ return !!allKeys[key]; }).length;
+}
 window.updateWrongCount = function() {
-    var count = Object.keys(wrongSet[activeZone] || {}).length;
+    var count = wrongCount();
     var countEl = document.getElementById('wrongCount');
     if (countEl) countEl.textContent = count;
 };
@@ -3697,17 +3751,6 @@ function selectOption(key, letter, event){
     }
     return;
   }
-  const savedKey=key;
-  const savedScrollY=window.scrollY;
-  const savedPage=currentPage;
-  window.__pendingScrollKey=savedKey;
-  window.__pendingScrollY=savedScrollY;
-  window.__pendingScrollPage=savedPage;
-  window.__scrollDiagRestoreStarted=Date.now();
-  if('scrollRestoration' in history) history.scrollRestoration='manual';
-  document.documentElement.style.overflowAnchor='none';
-  document.body.style.overflowAnchor='none';
-  scrollDiagWrite('select','key: '+savedKey+' scroll: '+savedScrollY);
   const f=db[activeZone][item._fileId];
   if(f){ if(!f.answered) f.answered={}; f.answered[key]=letter; saveFile(activeZone, item._fileId); }
   if(!wrongSet[activeZone]) wrongSet[activeZone]={};
@@ -3717,7 +3760,31 @@ function selectOption(key, letter, event){
   saveWrong();
   recordAnswerTiming();
   incDaily();
-  renderQuestions();
+  item._answered=letter;
+  const questionEl=document.getElementById('q-'+key);
+  if(questionEl){
+    const correctLetter=getCorrectLetter(item), isCorrect=correctLetter===letter;
+    questionEl.querySelectorAll('.q-options .option').forEach(function(opt){
+      const optLetter=opt.dataset.letter;
+      opt.classList.add('disabled');
+      if(optLetter===correctLetter) opt.classList.add('correct','selected-correct');
+      if(optLetter===letter) opt.classList.add('selected');
+      if(optLetter===letter&&!isCorrect) opt.classList.add('wrong','selected-wrong');
+    });
+    const verdict=questionEl.querySelector('.q-verdict');
+    if(verdict){
+      const answer=verdict.querySelector('.q-answer');
+      if(answer){ answer.classList.add('show'); answer.textContent=isCorrect?'✅ 回答正确':'✅ 正确答案：'+correctLetter; }
+      const oldUser=verdict.querySelector('.q-user-answer');
+      if(oldUser) oldUser.remove();
+      if(!isCorrect){ const user=document.createElement('span'); user.className='q-user-answer'; user.textContent='❌ 你的答案：'+letter; verdict.appendChild(user); }
+    }
+    const solution=questionEl.querySelector('.q-solution');
+    if(solution) solution.classList.add('show');
+  }
+  renderProgressPanel();
+  renderZoneStats();
+  updateWrongCount();
 }
 function submitMultipleChoice(key){
   const item=filteredQuestions.find(q=>q._key===key);
@@ -3805,6 +3872,7 @@ function switchZone(z){
   activeZone=z; activeFile='__all__'; document.body.classList.toggle('essay-zone', z==='sl'); filterState={module:'all',year:'all',province:'all',source:'all',subType:'all',leafType:'all',search:'',status:'all',sortBy:'default',minRatio:'',maxRatio:''};
   applyZoneTheme(z); currentPage=1; saveView(); renderAll();
   setTimeout(function(){ window.updateSubTypeFilter(); }, 100);
+  cleanInvalidWrongSilent(activeZone);
   if (typeof updateWrongCount === 'function') {
     updateWrongCount();
   } else {
@@ -4592,7 +4660,10 @@ function applyMode(mode){
     if(isTouch) document.body.classList.add('pc-touch');
   }
   const btn=document.getElementById('modeToggle');
-  if(btn) btn.textContent = (m==='mobile' ? '💻 切换到PC' : '📱 切换到手机');
+  if(btn){
+    btn.textContent = m==='mobile' ? '📱' : '💻';
+    btn.title = m==='mobile' ? '切换到PC模式' : '切换到手机模式';
+  }
 }
 function toggleMode(){
   const cur = document.body.classList.contains('mobile-mode') ? 'mobile' : 'pc';
@@ -6507,7 +6578,11 @@ function toggleNoHack(on){
 <button id="sidebarToggle" style="position:fixed;right:12px;top:12px;z-index:100000;width:40px;height:40px;background:rgba(20,30,50,0.85);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#e2e8f0;font-size:20px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;">☰</button>
 <div id="sidebar" style="position:fixed;right:0;top:0;bottom:0;z-index:99999;width:0;overflow:hidden;background:rgba(20,30,50,0.95);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#e2e8f0;box-shadow:-2px 0 20px rgba(0,0,0,0.3);border-left:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;font-family:-apple-system,"Microsoft YaHei",sans-serif;">
   <div style="padding:16px 18px;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;display:flex;justify-content:space-between;align-items:center;">
-    <span style="font-weight:bold;font-size:16px;color:#fff;">☰ Helium</span>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-weight:bold;font-size:16px;color:#fff;">☰ Helium</span>
+      <button onclick="fontZoom(-2)" title="缩小字体" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:4px;color:#e2e8f0;width:28px;height:28px;cursor:pointer;font-size:12px;font-weight:bold;display:flex;align-items:center;justify-content:center;transition:all 0.15s;">A−</button>
+      <button onclick="fontZoom(2)" title="放大字体" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:4px;color:#e2e8f0;width:28px;height:28px;cursor:pointer;font-size:12px;font-weight:bold;display:flex;align-items:center;justify-content:center;transition:all 0.15s;">A+</button>
+    </div>
     <button id="sidebarClose" style="background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer;padding:4px 8px;">✕</button>
   </div>
   <div style="flex:1;overflow-y:auto;padding:12px 16px;">
@@ -6587,7 +6662,7 @@ function toggleNoHack(on){
       </div>
     </div>
   </div>
-  <div style="padding:8px 16px;border-top:1px solid rgba(255,255,255,0.06);font-size:9px;color:#475569;text-align:center;flex-shrink:0;">Helium · 13种声音 · 点击右上角 ☰</div>
+  <div style="padding:8px 16px;border-top:1px solid rgba(255,255,255,0.06);font-size:9px;color:#475569;text-align:center;flex-shrink:0;font-style:italic;letter-spacing:0.5px;font-family:Georgia,serif;">ain't nothing but soul</div>
 </div>
 
 <script>
@@ -6923,7 +6998,7 @@ function playSound(type) {
 
   if (type === 'tick') {
     var tg = c.createGain();
-    tg.gain.value = soundVolume * 0.2;
+    tg.gain.value = soundVolume * 0.5;
     tg.connect(c.destination);
     soundNodes.gain = tg;
     var statusEl = document.getElementById('sidebarStatus');
@@ -6940,7 +7015,7 @@ function playSound(type) {
       var noise = c.createBufferSource();
       noise.buffer = noiseBuf;
       var g = c.createGain();
-      g.gain.setValueAtTime(0.18, c.currentTime);
+      g.gain.setValueAtTime(0.35, c.currentTime);
       g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 0.035);
       osc.connect(g);
       noise.connect(g);
@@ -7000,7 +7075,11 @@ function playSound(type) {
             }, idx * 400);
           })(i);
         }
-        setTimeout(stopAllSounds, 1500);
+        setTimeout(function(){
+          if(currentSoundType==='pomodoro') stopAllSounds();
+          var endStatus=document.getElementById('sidebarStatus');
+          if(endStatus) endStatus.textContent='⏹ 番茄钟结束，已停止背景音';
+        }, 1500);
         return;
       }
 
@@ -7272,11 +7351,208 @@ document.addEventListener('click', activateAudio);
   var activeTool='';
   var timers={schulte:0,memory:0};
   var fractions=[['1/2','50'],['1/3','33.3'],['1/4','25'],['1/5','20'],['1/6','16.7'],['1/7','14.3'],['1/8','12.5'],['1/9','11.1'],['1/10','10'],['1/11','9.1'],['1/12','8.3'],['1/13','7.7'],['1/14','7.1'],['1/15','6.7'],['1/16','6.3'],['1/17','5.9'],['1/18','5.6'],['1/19','5.3'],['1/20','5']];
-  var formulas=['增长率贡献率 = 部分增长量 ÷ 整体增长量','基期比值 = 基期A ÷ 基期B','权重差 = 权重A - 权重B','比值R = 部分 ÷ 整体','多年增长率 = (末年 - 初年) ÷ 初年','年均增长率 = (末年 ÷ 初年)^(1/n) - 1','比重 = 部分 ÷ 整体 × 100%','平均数 = 总和 ÷ 个数','倍数 = A ÷ B','拉动增长率 = 部分增长量 ÷ 整体基期量'];
+  const FORMULA_DATA = [
+    { formula: 'S = vt', group: '数量-行程', canBeQuestion: true },
+    { formula: '平均速度(上下坡) = 2V₁V₂/(V₁+V₂)', group: '数量-行程', canBeQuestion: true },
+    { formula: '顺水速度 = 船速 + 水速', group: '数量-行程', canBeQuestion: true },
+    { formula: '逆水速度 = 船速 - 水速', group: '数量-行程', canBeQuestion: true },
+    { formula: '船速 = (顺水速度 + 逆水速度)/2', group: '数量-行程', canBeQuestion: true },
+    { formula: '水速 = (顺水速度 - 逆水速度)/2', group: '数量-行程', canBeQuestion: true },
+    { formula: '相遇: S = (V₁+V₂) × T', group: '数量-行程', canBeQuestion: true },
+    { formula: '追及: S = (V₁-V₂) × T', group: '数量-行程', canBeQuestion: true },
+    { formula: '线性两端出发第N次相遇: S总 = (2n-1)S', group: '数量-行程', canBeQuestion: true },
+    { formula: '线性一端出发第N次相遇: S总 = 2nS', group: '数量-行程', canBeQuestion: true },
+    { formula: '环形路程第N次相遇: S总 = n圈', group: '数量-行程', canBeQuestion: true },
+    { formula: '环形路径第N次追及: S总 = n圈', group: '数量-行程', canBeQuestion: true },
+    { formula: '扶梯总长 = 人走的台阶数 × (1 + V人/V梯)', group: '数量-行程', canBeQuestion: true },
+    { formula: '等距离平均速度: V = 2V₁V₂/(V₁+V₂)', group: '数量-行程', canBeQuestion: true },
+    { formula: '等发车前后过车: T = 2t₁t₂/(t₁+t₂)', group: '数量-行程', canBeQuestion: true },
+    { formula: '队伍长度(队头→队尾) = (V₁+V₂) × T', group: '数量-行程', canBeQuestion: true },
+    { formula: '队伍长度(队尾→队头) = (V₁-V₂) × T', group: '数量-行程', canBeQuestion: true },
+    { formula: '电梯问题: S = (V人±V梯) × T', group: '数量-行程', canBeQuestion: true },
+    { formula: '工作量 = 工作效率 × 工作时间', group: '数量-工程', canBeQuestion: true },
+    { formula: '给时间: 赋值总工作量', group: '数量-工程', canBeQuestion: true },
+    { formula: '给效率: 赋值效率', group: '数量-工程', canBeQuestion: true },
+    { formula: '工作总量 = 每个人工作量总和', group: '数量-工程', canBeQuestion: true },
+    { formula: '利润 = 售价 - 成本', group: '数量-经济', canBeQuestion: true },
+    { formula: '利润率 = 利润/成本 = (售价-成本)/成本', group: '数量-经济', canBeQuestion: true },
+    { formula: '售价 = 成本 × (1+利润率)', group: '数量-经济', canBeQuestion: true },
+    { formula: '成本 = 售价/(1+利润率)', group: '数量-经济', canBeQuestion: true },
+    { formula: '正方形周长 = 4a', group: '数量-几何', canBeQuestion: true },
+    { formula: '长方形周长 = 2(a+b)', group: '数量-几何', canBeQuestion: true },
+    { formula: '圆形周长 = 2πr', group: '数量-几何', canBeQuestion: true },
+    { formula: '长方形面积 = ab', group: '数量-几何', canBeQuestion: true },
+    { formula: '圆形面积 = πr²', group: '数量-几何', canBeQuestion: true },
+    { formula: '扇形面积 = πr² × (n°/360°)', group: '数量-几何', canBeQuestion: true },
+    { formula: '三角形面积 = ½ah', group: '数量-几何', canBeQuestion: true },
+    { formula: '梯形面积 = ½(a+b)h', group: '数量-几何', canBeQuestion: true },
+    { formula: '菱形面积 = ½ × 对角线乘积', group: '数量-几何', canBeQuestion: true },
+    { formula: '长方体表面积 = 2(ab+ac+bc)', group: '数量-几何', canBeQuestion: true },
+    { formula: '球表面积 = 4πr²', group: '数量-几何', canBeQuestion: true },
+    { formula: '圆柱表面积 = 2πrh + 2πr²', group: '数量-几何', canBeQuestion: true },
+    { formula: '长方体体积 = abc', group: '数量-几何', canBeQuestion: true },
+    { formula: '球体积 = ¾πr³', group: '数量-几何', canBeQuestion: true },
+    { formula: '圆柱体积 = Sh = πr²h', group: '数量-几何', canBeQuestion: true },
+    { formula: '圆锥体积 = ⅓Sh', group: '数量-几何', canBeQuestion: true },
+    { formula: '排列(有序): Aₙᵐ = n×(n-1)×...×(n-m+1)', group: '数量-排列', canBeQuestion: true },
+    { formula: '组合(无序): Cₙᵐ = n×(n-1)×.../(m×(m-1)×...)', group: '数量-排列', canBeQuestion: true },
+    { formula: '主体相邻: 捆绑法', group: '数量-排列', canBeQuestion: true },
+    { formula: '主体不相邻: 插空法', group: '数量-排列', canBeQuestion: true },
+    { formula: '物品分配: 隔板法', group: '数量-排列', canBeQuestion: true },
+    { formula: 'P = 满足情况数/总情况数', group: '数量-概率', canBeQuestion: true },
+    { formula: '分类概率: 相加', group: '数量-概率', canBeQuestion: true },
+    { formula: '分步概率: 相乘', group: '数量-概率', canBeQuestion: true },
+    { formula: '反向公式: P = 1 - P反', group: '数量-概率', canBeQuestion: true },
+    { formula: '两集合: A+B-A∩B = 全部-都不满足', group: '数量-集合', canBeQuestion: true },
+    { formula: '三集合(标准): A+B+C-AB-AC-BC+ABC = 总数-都不', group: '数量-集合', canBeQuestion: true },
+    { formula: '三集合(非标准): A+B+C-满足两项-满足三项×2 = 总数-都不', group: '数量-集合', canBeQuestion: true },
+    { formula: '满足一项+满足两项+满足三项 = 总数-都不', group: '数量-集合', canBeQuestion: true },
+    { formula: '等差数列通项: aₙ = a₁+(n-1)d', group: '数量-数列', canBeQuestion: true },
+    { formula: '等差数列求和: Sₙ = n(a₁+aₙ)/2', group: '数量-数列', canBeQuestion: true },
+    { formula: '等差数列中项: 2aₙ = aₙ₋ₘ + aₙ₊ₘ', group: '数量-数列', canBeQuestion: true },
+    { formula: '等比数列通项: aₙ = a₁qⁿ⁻¹', group: '数量-数列', canBeQuestion: true },
+    { formula: '等比数列求和: Sₙ = a₁(1-qⁿ)/(1-q)', group: '数量-数列', canBeQuestion: true },
+    { formula: '单边线型: 棵数 = 总长/间隔 + 1', group: '数量-植树', canBeQuestion: true },
+    { formula: '楼间植树: 棵数 = 总长/间隔 - 1', group: '数量-植树', canBeQuestion: true },
+    { formula: '环形植树: 棵数 = 总长/间隔', group: '数量-植树', canBeQuestion: true },
+    { formula: '两边植树: 单边棵数 × 2', group: '数量-植树', canBeQuestion: true },
+    { formula: '最外层人数 = (每边人数-1)×4', group: '数量-方阵', canBeQuestion: true },
+    { formula: '实心方阵总人数 = N²', group: '数量-方阵', canBeQuestion: true },
+    { formula: '空心方阵总人数 = (外层²) - (外层-2×层数)²', group: '数量-方阵', canBeQuestion: true },
+    { formula: '空心方阵总人数 = (外层-层数)×层数×4', group: '数量-方阵', canBeQuestion: true },
+    { formula: 'N边形方阵总人数 = N×N', group: '数量-方阵', canBeQuestion: true },
+    { formula: '相邻两层比内层多8人', group: '数量-方阵', canBeQuestion: true },
+    { formula: 'Y = (N - X) × T', group: '数量-牛吃草', canBeQuestion: true },
+    { formula: '浓度 = 溶质/溶液', group: '数量-浓度', canBeQuestion: true },
+    { formula: '溶液混合: A×a% + B×b% = (A+B)×c%', group: '数量-浓度', canBeQuestion: true },
+    { formula: 'N个空瓶换1瓶酒，A个空瓶可换: A/(N-1) 瓶', group: '数量-空瓶', canBeQuestion: true },
+    { formula: '换M瓶酒至少需要空瓶: M×(N-1)', group: '数量-空瓶', canBeQuestion: true },
+    { formula: '对折N次剪M刀: 段数 = 2ᴺ×M + 1', group: '数量-剪绳', canBeQuestion: true },
+    { formula: '奇数±奇数=偶数', group: '数量-奇偶', canBeQuestion: true },
+    { formula: '偶数±偶数=偶数', group: '数量-奇偶', canBeQuestion: true },
+    { formula: '奇数±偶数=奇数', group: '数量-奇偶', canBeQuestion: true },
+    { formula: '和差奇偶性相同: 和奇则差奇, 和偶则差偶', group: '数量-奇偶', canBeQuestion: true },
+    { formula: 'a:b=m:n(互质) → a是m的倍数, b是n的倍数', group: '数量-倍数', canBeQuestion: true },
+    { formula: 'a:b=m:n(互质) → a±b是m±n的倍数', group: '数量-倍数', canBeQuestion: true },
+    { formula: 'n×x=m×y(互质) → x是m的倍数, y是n的倍数', group: '数量-倍数', canBeQuestion: true },
+    { formula: '基期 = 现期 - 增长量', group: '资料-基期', canBeQuestion: true },
+    { formula: '基期 = 现期/(1+增长率)', group: '资料-基期', canBeQuestion: true },
+    { formula: '化除为乘: |r|≤5%时，A/(1+r) ≈ A-A×r', group: '资料-基期', canBeQuestion: true },
+    { formula: '化除为乘: |r|≤5%时，A/(1-r) ≈ A+A×r', group: '资料-基期', canBeQuestion: true },
+    { formula: '基期和差 = A/(1+a) - B/(1+b)', group: '资料-基期', canBeQuestion: true },
+    { formula: '现期 = 基期 + 增长量', group: '资料-现期', canBeQuestion: true },
+    { formula: '保持增长量: 现期 = 基期 + 增长量×n', group: '资料-现期', canBeQuestion: true },
+    { formula: '保持增长率: 现期 = 基期×(1+增长率)ⁿ', group: '资料-现期', canBeQuestion: true },
+    { formula: 'r>0时增长量上升', group: '资料-现期', canBeQuestion: true },
+    { formula: '名义增长率: r名义 = r实际 + rCPI + r实际×rCPI', group: '资料-现期', canBeQuestion: true },
+    { formula: '增长量 = 现期 - 基期', group: '资料-增长量', canBeQuestion: true },
+    { formula: '增长量 = 现期/(1+r) × r', group: '资料-增长量', canBeQuestion: true },
+    { formula: '|r|<5%: 增长量 ≈ 现期×r', group: '资料-增长量', canBeQuestion: true },
+    { formula: '拉动增长率 = 部分增长量/整体基期值', group: '资料-增长量', canBeQuestion: true },
+    { formula: '年均增长量 = (末期值-初期值)/年份差', group: '资料-增长量', canBeQuestion: true },
+    { formula: '增长量比较: 大大则大, 一大一小百化分', group: '资料-增长量', canBeQuestion: true },
+    { formula: '增长率 = (现期-基期)/基期', group: '资料-增长率', canBeQuestion: true },
+    { formula: '增长率 = 增长量/(现期-增长量)', group: '资料-增长率', canBeQuestion: true },
+    { formula: '倍数 = 增长率 + 1', group: '资料-增长率', canBeQuestion: true },
+    { formula: '成数: 20% = 2成', group: '资料-增长率', canBeQuestion: true },
+    { formula: '翻一番 = 2倍', group: '资料-增长率', canBeQuestion: true },
+    { formula: '乘积增长率: rA = rB + rC + rB×rC', group: '资料-增长率', canBeQuestion: true },
+    { formula: '增长率比较: 现期/基期≥2比较现期/基期', group: '资料-增长率', canBeQuestion: true },
+    { formula: '间隔增长率 = r₁ + r₂ + r₁×r₂', group: '资料-间隔', canBeQuestion: true },
+    { formula: 'r₁×r₂<10%时可忽略', group: '资料-间隔', canBeQuestion: true },
+    { formula: '间隔倍数 = 间隔增长率 + 1', group: '资料-间隔', canBeQuestion: true },
+    { formula: '间隔基期 = 现期/(1+间隔增长率)', group: '资料-间隔', canBeQuestion: true },
+    { formula: '间隔现期 = 基期×(1+间隔增长率)', group: '资料-间隔', canBeQuestion: true },
+    { formula: '(1+r)ⁿ = 末期值/初期值', group: '资料-年均', canBeQuestion: true },
+    { formula: 'r>10%: 平方数居中代入排除', group: '资料-年均', canBeQuestion: true },
+    { formula: '年份差相同时比较末期值/初期值', group: '资料-年均', canBeQuestion: true },
+    { formula: 'r₁ < 混合增长率 < r₂', group: '资料-混合', canBeQuestion: true },
+    { formula: '混合增长率居中偏向基期大的一边', group: '资料-混合', canBeQuestion: true },
+    { formula: '累计增长率: 累积不滑坡, 当月比累积多', group: '资料-混合', canBeQuestion: true },
+    { formula: '比重 = 部分/整体', group: '资料-比重', canBeQuestion: true },
+    { formula: '现期比重作差 = (部分A-部分B)/整体', group: '资料-比重', canBeQuestion: true },
+    { formula: '增长贡献率 = 部分增长量/整体增长量', group: '资料-比重', canBeQuestion: true },
+    { formula: '产值贡献率 = 部分总产量/整体总产量', group: '资料-比重', canBeQuestion: true },
+    { formula: '基期比重 = A/B × (1+b)/(1+a)', group: '资料-比重', canBeQuestion: true },
+    { formula: '两期比重差 = 现期比重 - 基期比重', group: '资料-比重', canBeQuestion: true },
+    { formula: '部分增速>整体增速: 比重上升', group: '资料-比重', canBeQuestion: true },
+    { formula: '部分增速<整体增速: 比重下降', group: '资料-比重', canBeQuestion: true },
+    { formula: '部分增速=整体增速: 比重不变', group: '资料-比重', canBeQuestion: true },
+    { formula: '平均数 = 总和/个数', group: '资料-平均数', canBeQuestion: true },
+    { formula: '平均增长 = (现期-基期)/时间间隔数', group: '资料-平均数', canBeQuestion: true },
+    { formula: '基期平均数 = A/B × (1+b)/(1+a)', group: '资料-平均数', canBeQuestion: true },
+    { formula: '平均数增长率 = (a-b)/(1+b)', group: '资料-平均数', canBeQuestion: true },
+    { formula: '现期倍数: A是B的几倍 = A/B', group: '资料-倍数', canBeQuestion: true },
+    { formula: '增长倍数: A比B多几倍 = A/B - 1', group: '资料-倍数', canBeQuestion: true },
+    { formula: '超过倍数: A超过B的n倍 → A > B×n', group: '资料-倍数', canBeQuestion: true },
+    { formula: 'A翻n番: A/B = 2ⁿ', group: '资料-倍数', canBeQuestion: true },
+    { formula: '基期倍数 = A/B × (1+b)/(1+a)', group: '资料-倍数', canBeQuestion: true },
+    { formula: 'A×9 = A×10 - A', group: '资料-速算', canBeQuestion: true },
+    { formula: 'A×11 = A×10 + A', group: '资料-速算', canBeQuestion: true },
+    { formula: 'A×5 = 10A÷2', group: '资料-速算', canBeQuestion: true },
+    { formula: 'A÷5 = 0.1A×2', group: '资料-速算', canBeQuestion: true },
+    { formula: 'A×25 = 100A÷4', group: '资料-速算', canBeQuestion: true },
+    { formula: 'A×125 = 1000A÷8', group: '资料-速算', canBeQuestion: true },
+    { formula: 'A×1.5 = A + A÷2', group: '资料-速算', canBeQuestion: true },
+    { formula: '首数相同尾数互补: 23×27 = 头×(头+1)|尾×尾', group: '资料-速算', canBeQuestion: true },
+    { formula: '1公顷 = 15亩 = 10000平方米', group: '资料-单位', canBeQuestion: true },
+    { formula: '1吨 = 1000kg = 2000斤', group: '资料-单位', canBeQuestion: true },
+    { formula: '人次 = 人 × 次数', group: '资料-单位', canBeQuestion: true },
+    { formula: '2月: 平年28天, 闰年29天', group: '资料-时间', canBeQuestion: true },
+    { formula: '30天: 4月、6月、9月、11月', group: '资料-时间', canBeQuestion: true },
+    { formula: '31天: 1月、3月、5月、7月、8月、10月、12月', group: '资料-时间', canBeQuestion: true },
+    { formula: '上半年平年181天, 闰年182天', group: '资料-时间', canBeQuestion: true },
+    { formula: '下半年平闰年相同, 都是184天', group: '资料-时间', canBeQuestion: true },
+    { formula: '十一五: 2006-2010年', group: '资料-时间', canBeQuestion: true },
+    { formula: '十二五: 2011-2015年', group: '资料-时间', canBeQuestion: true },
+    { formula: '十三五: 2016-2020年', group: '资料-时间', canBeQuestion: true },
+    { formula: '十四五: 2021-2025年', group: '资料-时间', canBeQuestion: true },
+    { formula: '12² = 144', group: '资料-平方', canBeQuestion: true },
+    { formula: '13² = 169', group: '资料-平方', canBeQuestion: true },
+    { formula: '14² = 196', group: '资料-平方', canBeQuestion: true },
+    { formula: '15² = 225', group: '资料-平方', canBeQuestion: true },
+    { formula: '16² = 256', group: '资料-平方', canBeQuestion: true },
+    { formula: '17² = 289', group: '资料-平方', canBeQuestion: true },
+    { formula: '18² = 324', group: '资料-平方', canBeQuestion: true },
+    { formula: '19² = 361', group: '资料-平方', canBeQuestion: true },
+    { formula: '21² = 441', group: '资料-平方', canBeQuestion: true },
+    { formula: '22² = 484', group: '资料-平方', canBeQuestion: true },
+    { formula: '23² = 529', group: '资料-平方', canBeQuestion: true },
+    { formula: '24² = 576', group: '资料-平方', canBeQuestion: true },
+    { formula: '25² = 625', group: '资料-平方', canBeQuestion: true },
+    { formula: '26² = 676', group: '资料-平方', canBeQuestion: true },
+    { formula: '27² = 729', group: '资料-平方', canBeQuestion: true },
+    { formula: '28² = 784', group: '资料-平方', canBeQuestion: true },
+    { formula: '29² = 841', group: '资料-平方', canBeQuestion: true },
+    { formula: '30² = 900', group: '资料-平方', canBeQuestion: true }
+  ];
+  var formulaAnswerOverrides={
+    '主体相邻: 捆绑法':'捆绑',
+    '主体不相邻: 插空法':'插空',
+    '物品分配: 隔板法':'隔板',
+    '分类概率: 相加':'相加',
+    '分步概率: 相乘':'相乘',
+    '反向公式: P = 1 - P反':'1 - P反',
+    '两集合: A+B-A∩B = 全部-都不满足':'A∩B',
+    '三集合(标准): A+B+C-AB-AC-BC+ABC = 总数-都不':'ABC',
+    '相邻两层比内层多8人':'8'
+  };
+  var formulaFillData=FORMULA_DATA.filter(function(item){return item.canBeQuestion;}).map(function(item){
+    var raw=item.formula, match=raw.match(/=\s*([^=]+)$/), answer=formulaAnswerOverrides[raw] || (match ? match[1].trim() : raw.split(':').pop().trim());
+    var group=item.group==='资料-平方'?'平方数':item.group;
+    var display=raw;
+    if (match) display=raw.slice(0,match.index)+'= ______';
+    else if (raw.indexOf(':')>=0) display=raw.slice(0,raw.lastIndexOf(':')+1)+' ______';
+    return {formula:display,answer:answer,source:raw,hint:'',group:group,canBeQuestion:true};
+  });
   var themes={numbers:Array.from({length:50},function(_,i){return String(i+1);}),symbols:['★','☆','♥','♦','♣','♠','▲','△','●','○','■','□','✿','❀','✪','✫','➤','➢','✉','✎','✓','✔'],animals:['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦','🐤','🐺','🐴','🦄']};
-  var defaults={bhf:{denoms:[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],count:5,swap:30,qs:[],i:0,right:0,start:0},calc:{mode:'mixed',difficulty:'twoDigit',count:10,qs:[],i:0,right:0,start:0},formula:{count:5,qs:[],i:0,right:0,start:0},schulte:{size:5,grid:[],target:1,errors:0,start:0,finished:false},memory:{theme:'numbers',difficulty:'easy',cards:[],flipped:[],moves:0,pairs:0,start:0,finished:false}};
+  var defaults={bhf:{denoms:[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],count:5,swap:30,qs:[],i:0,right:0,start:0},calc:{mode:'mixed',difficulty:'twoDigit',count:10,qs:[],i:0,right:0,start:0},formula:{count:5,filter:'all',qs:[],i:0,right:0,start:0},schulte:{size:5,grid:[],target:1,errors:0,start:0,finished:false},memory:{theme:'numbers',difficulty:'easy',cards:[],flipped:[],moves:0,pairs:0,start:0,finished:false}};
   var states={};
   Object.keys(defaults).forEach(function(k){ states[k]=load(k); });
+  if (states.formula.qs.some(function(item){return !item || !item.answer || !item.formula;})) {
+    states.formula.qs=[]; states.formula.i=0; states.formula.right=0;
+    save('formula');
+  }
   function load(k){ try { var v=JSON.parse(localStorage.getItem('training_'+k)||'null'); return Object.assign({},defaults[k],v||{}); } catch(e){ return Object.assign({},defaults[k]); } }
   function save(k){ try{ localStorage.setItem('training_'+k,JSON.stringify(states[k])); }catch(e){} }
   function shuffle(a){ for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var x=a[i];a[i]=a[j];a[j]=x;} return a; }
@@ -7295,21 +7571,32 @@ document.addEventListener('click', activateAudio);
   window.trainingSettings=function(){var k=activeTool, s=states[k], html='<div class="tool-panel"><h3>⚙️ '+titles[k]+'设置</h3>';
     if(k==='bhf')html+='<p>题量：<button class="btn btn-outline" onclick="setTrainingOption(\'count\',5)">5</button> <button class="btn btn-outline" onclick="setTrainingOption(\'count\',10)">10</button></p><p>交换概率：<input type="range" min="0" max="100" value="'+s.swap+'" oninput="setTrainingOption(\'swap\',Number(this.value))"> '+s.swap+'%</p><p>分母：'+s.denoms.map(function(d){return '<button class="btn '+(s.denoms.indexOf(d)>=0?'btn-primary':'btn-outline')+'" onclick="toggleDenom('+d+')">'+d+'</button>';}).join(' ')+'</p>';
     if(k==='calc')html+='<p>题型：'+['mixed','add','sub','mul','div'].map(function(m){return '<button class="btn '+(s.mode===m?'btn-primary':'btn-outline')+'" onclick="setTrainingOption(\'mode\',\''+m+'\')">'+({mixed:'混合',add:'加法',sub:'减法',mul:'乘法',div:'除法'}[m])+'</button>';}).join(' ')+'</p><p>难度：<button class="btn btn-outline" onclick="setTrainingOption(\'difficulty\',\'twoDigit\')">两位数</button> <button class="btn btn-outline" onclick="setTrainingOption(\'difficulty\',\'threeDigit\')">三位数</button></p><p>题量：<button class="btn btn-outline" onclick="setTrainingOption(\'count\',5)">5</button> <button class="btn btn-outline" onclick="setTrainingOption(\'count\',10)">10</button> <button class="btn btn-outline" onclick="setTrainingOption(\'count\',20)">20</button></p>';
-    if(k==='formula')html+='<p>题量：<button class="btn btn-outline" onclick="setTrainingOption(\'count\',5)">5</button> <button class="btn btn-outline" onclick="setTrainingOption(\'count\',10)">10</button></p>';
+    if(k==='formula'){
+      var formulaGroups=[['all','📂 全部'],['数量','🔢 数量关系'],['资料','📊 资料分析'],['平方数','📐 平方数']];
+      var subGroups=[];
+      formulaFillData.forEach(function(item){if(item.group.indexOf('数量-')===0||item.group.indexOf('资料-')===0){var group=item.group.split('-')[1];if(subGroups.indexOf(item.group)<0)subGroups.push(item.group);}});
+      html+='<p><strong>一级分类</strong></p><div class="tool-actions" style="justify-content:flex-start">'+formulaGroups.map(function(pair){return '<button class="btn '+(s.filter===pair[0]?'btn-primary':'btn-outline')+'" onclick="setFormulaFilter(\''+pair[0]+'\')">'+pair[1]+'</button>';}).join(' ')+'</div>';
+      if(s.filter==='数量'||s.filter==='资料') html+='<p style="margin-top:16px"><strong>二级分类</strong></p><div class="tool-actions" style="justify-content:flex-start">'+subGroups.filter(function(group){return group.indexOf(s.filter+'-')===0;}).map(function(group){var label=group.split('-')[1];return '<button class="btn '+(s.filter===group?'btn-primary':'btn-outline')+'" onclick="setFormulaFilter(\''+group+'\')">'+label+' ('+formulaFillData.filter(function(item){return item.group===group;}).length+')</button>';}).join(' ')+'</div>';
+      html+='<p style="margin-top:16px">当前分类：'+(s.filter==='all'?'全部':s.filter)+'，共 '+formulaFillData.filter(function(item){return s.filter==='all'||item.group===s.filter||item.group.indexOf(s.filter+'-')===0;}).length+' 个公式</p><p>题量：<button class="btn btn-outline" onclick="setTrainingOption(\'count\',5)">5</button> <button class="btn btn-outline" onclick="setTrainingOption(\'count\',10)">10</button> <button class="btn btn-outline" onclick="setTrainingOption(\'count\',20)">20</button></p>';
+    }
     if(k==='schulte')html+='<p>网格：'+[4,5,6,7,8,9].map(function(n){return '<button class="btn btn-outline" onclick="setTrainingOption(\'size\','+n+')">'+n+'×'+n+'</button>';}).join(' ')+'</p>';
     if(k==='memory')html+='<p>主题：'+Object.keys(themes).map(function(t){return '<button class="btn btn-outline" onclick="setTrainingOption(\'theme\',\''+t+'\')">'+({numbers:'数字',symbols:'符号',animals:'动物'}[t])+'</button>';}).join(' ')+'</p><p>难度：<button class="btn btn-outline" onclick="setTrainingOption(\'difficulty\',\'easy\')">简单 4×4</button> <button class="btn btn-outline" onclick="setTrainingOption(\'difficulty\',\'medium\')">中等 6×6</button> <button class="btn btn-outline" onclick="setTrainingOption(\'difficulty\',\'hard\')">困难 8×6</button></p>';
     root().innerHTML=html+'<div class="tool-actions"><button class="btn btn-primary" onclick="trainingReset()">✅ 应用并开始</button><button class="btn btn-outline" onclick="renderActiveTraining()">✕ 关闭</button></div></div>'; };
   window.renderActiveTraining=function(){render(activeTool);};
   window.setTrainingOption=function(key,val){states[activeTool][key]=val;save(activeTool);trainingSettings();};
+  window.setFormulaFilter=function(filter){states.formula.filter=filter;states.formula.qs=[];states.formula.i=0;save('formula');trainingSettings();};
   window.toggleDenom=function(d){var a=states.bhf.denoms,i=a.indexOf(d);if(i>=0&&a.length>1)a.splice(i,1);else if(i<0)a.push(d);a.sort(function(x,y){return x-y;});save('bhf');trainingSettings();};
   function renderBhf(){var s=states.bhf;if(!s.qs.length||s.i>=s.qs.length)newQuestions('bhf',function(){var pool=shuffle(s.denoms.slice()),out=[];for(var i=0;i<s.count;i++){if(!pool.length)pool=shuffle(s.denoms.slice());var d=pool.pop(),f=fractions[d-2],decimal=Math.random()<.5,swap=Math.random()*100<s.swap;out.push({q:decimal?f[1]:f[0],answer:decimal?(swap?f[1]:String(d)):(swap?String(d):f[1]),hint:decimal?'输入分母':'输入小数'});}return out;});var q=s.qs[s.i],body=header(s,s.qs.length)+'<div class="tool-panel"><div class="tool-question">'+q.q+'</div><p style="text-align:center" class="tool-muted">'+q.hint+'</p><div class="tool-row"><input id="trainingInput" class="tool-input" autofocus placeholder="输入答案" onkeydown="if(event.key===\'Enter\')submitTraining()"><button class="btn btn-primary" onclick="submitTraining()">✅ 确认</button><button class="btn btn-outline" onclick="skipTraining()">⏭️ 跳过</button></div><p id="trainingFeedback" style="text-align:center;min-height:28px"></p></div>';root().innerHTML=body;setTimeout(function(){var x=document.getElementById('trainingInput');if(x)x.focus();},0);}
   function calcGen(){var s=states.calc,modes=s.mode==='mixed'?['add','sub','mul','div']:[s.mode],out=[];for(var i=0;i<s.count;i++){var m=modes[rand(0,modes.length-1)],max=s.difficulty==='twoDigit'?99:999,a,b,ans,op;if(m==='add'){a=rand(s.difficulty==='twoDigit'?10:100,max);b=rand(10,max);ans=a+b;op='+';}else if(m==='sub'){a=rand(s.difficulty==='twoDigit'?20:200,max);b=rand(1,a-1);ans=a-b;op='−';}else if(m==='mul'){a=rand(s.difficulty==='twoDigit'?11:101,max);b=rand(2,9);ans=a*b;op='×';}else{b=rand(2,s.difficulty==='twoDigit'?9:99);var q=rand(1,30);a=b*q;ans=q;op='÷';}out.push({q:a+' '+op+' '+b+' = ?',answer:ans});}return out;}
   function renderCalc(){var s=states.calc;if(!s.qs.length||s.i>=s.qs.length)newQuestions('calc',calcGen);var q=s.qs[s.i];root().innerHTML=header(s,s.qs.length)+'<div class="tool-panel"><div class="tool-question">'+q.q+'</div><div class="tool-row"><input id="trainingInput" class="tool-input" inputmode="decimal" autofocus placeholder="输入答案" onkeydown="if(event.key===\'Enter\')submitTraining()"><button class="btn btn-primary" onclick="submitTraining()">✅ 确认</button><button class="btn btn-outline" onclick="skipTraining()">⏭️ 跳过</button></div><p id="trainingFeedback" style="text-align:center;min-height:28px"></p></div>';setTimeout(function(){var x=document.getElementById('trainingInput');if(x)x.focus();},0);}
-  function renderFormula(){var s=states.formula;if(!s.qs.length||s.i>=s.qs.length)newQuestions('formula',function(){return shuffle(formulas.slice()).slice(0,s.count).map(function(correct){var opts=shuffle([correct].concat(shuffle(formulas.filter(function(f){return f!==correct;})).slice(0,5)));return {prompt:'请选择与“'+correct.split(' = ')[0]+'”对应的公式',correct:correct,opts:opts};});});var q=s.qs[s.i];root().innerHTML=header(s,s.qs.length)+'<div class="tool-panel"><h3 style="text-align:center">'+esc(q.prompt)+'</h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px">'+q.opts.map(function(o,i){return '<button class="tool-option" onclick="chooseFormula('+i+')">'+String.fromCharCode(65+i)+'. '+esc(o)+'</button>';}).join('')+'</div><p id="trainingFeedback" style="text-align:center;min-height:28px"></p></div>';}
+  function formulaPool(){var filter=states.formula.filter||'all';return formulaFillData.filter(function(item){return filter==='all'||item.group===filter||item.group.indexOf(filter+'-')===0;});}
+  function renderFormula(){var s=states.formula,pool=formulaPool();if(!s.qs.length||s.i>=s.qs.length)newQuestions('formula',function(){return shuffle(pool.slice()).slice(0,s.count).map(function(item){return Object.assign({},item,{viewedAnswer:false,userAnswer:null,isCorrect:null});});});if(s.i>=s.qs.length){var detail='<div style="margin-top:20px;text-align:left;max-height:420px;overflow:auto"><strong>📋 答题明细</strong>'+s.qs.map(function(q,i){return '<div style="padding:10px;border-bottom:1px solid var(--border);color:'+(q.isCorrect?'var(--correct)':'var(--wrong)')+'">'+(i+1)+'. '+esc(q.formula)+(q.viewedAnswer?'<br><span style="color:var(--secondary)">👁️ 已查看答案</span>':'')+'<br>你的答案：'+esc(q.userAnswer||'未答')+'<br>正确答案：'+esc(q.answer)+'</div>';}).join('')+'</div>';root().innerHTML=result(s,s.qs.length,'公式填空',detail);return;}var q=s.qs[s.i];root().innerHTML=header(s,s.qs.length,(s.filter==='all'?'全部':s.filter))+'<div class="tool-panel"><div class="tool-question" style="font-size:clamp(24px,5vw,42px);white-space:normal;overflow-wrap:anywhere">'+esc(q.formula)+'</div><p style="text-align:center" class="tool-muted">'+(q.hint||'请输入公式空位中的答案')+'</p><div class="tool-row"><input id="trainingInput" class="tool-input" autocomplete="off" autofocus placeholder="输入答案" onkeydown="if(event.key===\'Enter\')submitTraining()"><button class="btn btn-primary" onclick="submitTraining()">✅ 确认</button><button class="btn btn-outline" onclick="showFormulaAnswer()" '+(q.viewedAnswer?'disabled':'')+'> '+(q.viewedAnswer?'已显示答案':'💡 显示答案')+'</button><button class="btn btn-outline" onclick="skipTraining()">⏭️ 跳过</button></div><p id="formulaAnswerDisplay" style="text-align:center;min-height:28px;color:var(--secondary);opacity:.75">'+(q.viewedAnswer?'答案：'+esc(q.answer):'')+'</p><p id="trainingFeedback" style="text-align:center;min-height:36px"></p></div>';setTimeout(function(){var input=document.getElementById('trainingInput');if(input)input.focus();},0);}
   function renderSchulte(){var s=states.schulte,n=s.size*s.size;if(!s.grid.length||s.finished){s.grid=shuffle(Array.from({length:n},function(_,i){return i+1;}));s.target=1;s.errors=0;s.finished=false;s.start=Date.now();save('schulte');}if(s.target>n){s.finished=true;save('schulte');root().innerHTML=result({right:n, start:s.start},n,'舒尔特表','<p>❌ 错误 '+s.errors+' 次</p>');return;}if(timers.schulte)clearInterval(timers.schulte);var size=Math.min(72,Math.floor((window.innerWidth-50)/s.size));root().innerHTML='<div class="tool-row" style="justify-content:space-between"><strong>目标：'+s.target+'</strong><span class="tool-muted">错误 '+s.errors+' 次</span><button class="btn btn-outline" onclick="trainingSettings()">⚙️ 设置</button></div><div class="tool-progress"><div style="width:'+Math.round((s.target-1)/n*100)+'%"></div></div><div class="tool-grid" style="grid-template-columns:repeat('+s.size+','+size+'px)">'+s.grid.map(function(v){return '<button class="tool-cell" style="width:'+size+'px" onclick="clickSchulte('+v+')">'+v+'</button>';}).join('')+'</div>';}
   function renderMemory(){var s=states.memory,conf={easy:[4,8],medium:[6,18],hard:[8,24]}[s.difficulty],cols=conf[0],pairs=conf[1];if(!s.cards.length||s.finished){var items=shuffle(themes[s.theme].slice()).slice(0,pairs);s.cards=shuffle(items.concat(items).map(function(content,i){return {content:content,pair:items.indexOf(content),matched:false};}));s.flipped=[];s.moves=0;s.pairs=0;s.finished=false;s.start=Date.now();save('memory');}if(s.pairs===pairs){s.finished=true;save('memory');root().innerHTML=result({right:pairs,start:s.start},pairs,'记忆翻牌','<p>🔄 '+s.moves+' 步完成</p>');return;}var width=Math.min(78,Math.floor((window.innerWidth-40)/cols));root().innerHTML='<div class="tool-row" style="justify-content:space-between"><strong>🃏 '+s.pairs+'/'+pairs+' 对</strong><span class="tool-muted">🔄 '+s.moves+' 步</span><button class="btn btn-outline" onclick="trainingSettings()">⚙️ 设置</button></div><div class="tool-grid" style="grid-template-columns:repeat('+cols+','+width+'px)">'+s.cards.map(function(c,i){var open=s.flipped.indexOf(i)>=0||c.matched;return '<button class="tool-card" style="width:'+width+'px" onclick="flipMemory('+i+')" '+(c.matched||s.flipped.length>=2?'disabled':'')+'>'+ (open?esc(c.content):'❓')+'</button>';}).join('')+'</div><p id="trainingFeedback" style="text-align:center;min-height:28px"></p>';}
-  window.submitTraining=function(){var s=states[activeTool],input=document.getElementById('trainingInput'),q=s.qs[s.i],val=input&&input.value.trim();if(!val)return;var ok=activeTool==='calc'?Math.abs(Number(val)-q.answer)<.01:val===q.answer;s.right+=ok?1:0;document.getElementById('trainingFeedback').innerHTML=ok?'✅ 正确':'❌ 正确答案：'+esc(q.answer);input.disabled=true;save(activeTool);setTimeout(function(){s.i++;render(activeTool);},700);};
-  window.skipTraining=function(){var s=states[activeTool];s.i++;save(activeTool);render(activeTool);};
+  function normalizeFormulaAnswer(value){return String(value).replace(/[\s]/g,'').replace(/×/g,'*').replace(/÷/g,'/').replace(/（/g,'(').replace(/）/g,')').replace(/−/g,'-');}
+  window.showFormulaAnswer=function(){var s=states.formula,q=s.qs[s.i];if(!q||q.viewedAnswer)return;q.viewedAnswer=true;var answer=document.getElementById('formulaAnswerDisplay'),button=document.querySelector('#toolFullscreenContent button[onclick="showFormulaAnswer()"]');if(answer)answer.textContent='答案：'+q.answer;if(button){button.textContent='已显示答案';button.disabled=true;}save('formula');};
+  window.submitTraining=function(){var s=states[activeTool],input=document.getElementById('trainingInput'),q=s.qs[s.i],val=input&&input.value.trim();if(!val)return;var rawCorrect=activeTool==='calc'?Math.abs(Number(val)-q.answer)<.01:activeTool==='formula'?normalizeFormulaAnswer(val)===normalizeFormulaAnswer(q.answer):val===q.answer;var ok=rawCorrect&&!(activeTool==='formula'&&q.viewedAnswer);q.userAnswer=val;q.isCorrect=ok;s.right+=ok?1:0;document.getElementById('trainingFeedback').innerHTML=ok?'<span style="color:var(--correct)">✅ 正确</span>':q.viewedAnswer&&rawCorrect?'<span style="color:var(--secondary)">👁️ 已查看答案，本题不计入正确</span>':'<span style="color:var(--wrong)">❌ 错误，正确答案：'+esc(q.answer)+'</span>';input.disabled=true;save(activeTool);setTimeout(function(){s.i++;render(activeTool);},1500);};
+  window.skipTraining=function(){var s=states[activeTool],q=s.qs[s.i];q.userAnswer='跳过';q.isCorrect=false;s.i++;save(activeTool);render(activeTool);};
   window.chooseFormula=function(i){var s=states.formula,q=s.qs[s.i],ok=q.opts[i]===q.correct;s.right+=ok?1:0;document.getElementById('trainingFeedback').innerHTML=ok?'✅ 正确':'❌ 正确答案：'+esc(q.correct);save('formula');setTimeout(function(){s.i++;render('formula');},800);};
   window.clickSchulte=function(n){var s=states.schulte;if(n===s.target){s.target++;}else{s.errors++;}save('schulte');renderSchulte();};
   window.flipMemory=function(i){var s=states.memory;if(s.flipped.length>=2||s.cards[i].matched)return;s.flipped.push(i);s.moves++;renderMemory();if(s.flipped.length===2){var a=s.cards[s.flipped[0]],b=s.cards[s.flipped[1]];if(a.pair===b.pair){a.matched=b.matched=true;s.pairs++;s.flipped=[];save('memory');renderMemory();}else{setTimeout(function(){s.flipped=[];save('memory');renderMemory();},650);}}};
