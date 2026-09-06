@@ -1,933 +1,4 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="referrer" content="no-referrer">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Helium题库 · 三分区刷题</title>
-<style>/* 最终统一 - PC手机完全一致 */
-/* 手机窄屏时保持PC布局，横向滚动 */
-.zone-tabs,
-.module-bar {
-    min-width: 0 !important;
-    width: 100% !important;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    flex-wrap: nowrap !important;
-}
-/* 电脑端分区标签恢复 */
-.zone-tabs {
-    justify-content: center !important;
-    flex-wrap: wrap !important;
-}
-/* 电脑端（屏幕宽）两种模式统一 */
-@media (min-width: 769px) {
-    .pp-card,
-    .mobile-mode .pp-card {
-        width: 700px !important;
-        max-width: 700px !important;
-        height: 80px !important;
-        min-height: 80px !important;
-        font-size: 13px !important;
-        margin-left: auto !important;
-        margin-right: auto !important;
-        text-align: center !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        
-    }
-}
-@media (min-width: 769px) {
-    .filter-bar {
-        display: flex !important;
-        flex-wrap: wrap !important;
-        gap: 6px !important;
-        padding: 8px !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-        width: 100% !important;
-        margin: 0 0 14px !important;
-    }
-    .zone-tab {
-    flex: 1 !important;
-    min-width: 180px !important;
-    flex-basis: 0% !important;
-    flex-grow: 1 !important;
-    flex-shrink: 1 !important;
-}
-}
-/* 手机端（屏幕窄）两种模式统一 */
-@media (max-width: 768px) {
-    .pp-card,
-    .mobile-mode .pp-card {
-        width: 100% !important;
-        max-width: 100% !important;
-        font-size: 18px !important;
-    }
-    .pc-mode .filter-bar select,
-  .pc-mode .filter-bar input#sourceFilter,
-.pc-mode .filter-bar button[onclick*="clearFilters"] {
-    border: 2px solid #999 !important;
-}
-    .zone-tabs {
-        flex-wrap: nowrap !important;
-        gap: 4px !important;
-        justify-content: space-between !important;
-    }
-    .zone-stats {
-    display: grid !important;
-    grid-template-columns: repeat(2, 1fr) !important;
-    grid-template-rows: repeat(2, auto) !important;
-    gap: 4px !important;
-    padding: 0 8px !important;
-}
-.upload-zone select,
-.upload-zone button {
-    flex: 0 0 80px !important;
-    width: 80px !important;
-    max-width: 80px !important;
-    min-width: 80px !important;
-    text-align: center !important;
-    text-align-last: center !important;
-    font-size: 11px !important;
-    white-space: nowrap !important;
-    box-sizing: border-box !important;
-}
-.zone-stats span {
-    width: 100% !important;
-    box-sizing: border-box !important;
-    text-align: center !important;
-    margin: 0 !important;
-    font-size: 15px !important;
-    padding: 8px 4px !important;
-}
-}
-    .zone-tab {
-        flex: 1 1 0% !important;
-        min-width: 0 !important;
-        font-size: 13px !important;
-        padding: 10px 4px !important;
-    }
-    .filter-bar,
-.mobile-mode .filter-bar {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 6px !important;
-    padding: 8px !important;
-    width: 100% !important;
-}
-.pc-mode .filter-bar,
-.mobile-mode .filter-bar,
-.filter-bar {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
-}
-.filter-bar select,
-.filter-bar input#sourceFilter,
-.mobile-mode .filter-bar select,
-.mobile-mode .filter-bar input#sourceFilter,
-.filter-bar button[onclick*="clearFilters"] {
-    width: 100% !important;
-    min-height: 44px !important;
-    height: 44px !important;
-    font-size: 11px !important;
-    border: 1px solid #ccc !important;
-    border-radius: 6px !important;
-    text-align: center !important;
-    text-align-last: center !important;
-    box-sizing: border-box !important;
-}
-  #sourceFilter {
-    cursor: pointer !important;
-  }
-    .zone-tab .z-count {
-        font-size: 11px !important;
-    }
-    .pp-card:last-child .pp-label {
-        display: none !important;
-    }
-    .pp-card:last-child .pp-date-input,
-.pp-card:last-child .pp-mini-btn {
-    display: inline-block !important;
-    margin: 0 2px !important;
-    vertical-align: middle !important;
-}
-    .pp-card:last-child #examCountdown {
-        font-size: 25px !important;
-        font-weight: bold !important;
-        display: block !important;
-        text-align: center !important;
-        margin: 0 auto 4px !important;
-    }
-/* 手机端卡片布局 */
-.pp-card:last-child {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    text-align: center !important;
-}
 
-.pp-card:last-child #examCountdown {
-    font-size: 25px !important;
-    font-weight: bold !important;
-    display: block !important;
-    text-align: center !important;
-    margin: 0 auto 4px !important;
-}
-
-.pp-card:last-child .pp-date-input,
-.pp-card:last-child .pp-mini-btn {
-    margin: 0 2px !important;
-}
-
-.pp-card:first-child {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    align-items: center !important;
-    justify-content: center !important;
-    text-align: center !important;
-}
-
-.pp-card:first-child span {
-    text-align: center !important;
-    margin: 0 4px !important;
-}
-/* 今日刷题和考试倒计时卡片优化 */
-.header {
-    padding-left: 12px !important;
-    padding-right: 12px !important;
-}
-/* 筛选栏布局调整 */
-.filter-bar .ratio-label {
-    grid-column: 1 / span 3 !important;
-    display: flex !important;
-    justify-content: center !important;
-    width: 100% !important;
-}
-.header-pp {
-    width: 100% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 8px !important;
-}
-/* AI简化解析每句话一行 */
-.q-ai-result {
-    white-space: pre-line !important;
-    line-height: 1.8 !important;
-}
-/* 电脑端上传区横向分布 */
-.upload-zone {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    gap: 4px !important;
-    padding: 10px 14px !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-}
-
-.upload-zone select,
-.upload-zone input,
-.upload-zone button {
-    flex: 1 !important;
-    margin: 0 2px !important;
-    height: 44px !important;
-    min-height: 44px !important;
-    font-size: 13px !important;
-    border: 2px solid #999 !important;
-    border-radius: 6px !important;
-    text-align: center !important;
-    box-sizing: border-box !important;
-}
-
-/* 电脑端统计区域分布 */
-.zone-stats {
-    justify-content: space-between !important;
-    gap: 8px !important;
-    padding: 0 14px !important;
-    width: 100% !important;
-}
-
-.zone-stats span {
-    flex: 1 !important;
-    text-align: center !important;
-    white-space: nowrap !important;
-}
-.zone-tab {
-    font-size: 23px !important;
-    padding: 16px !important;
-    flex: 1 !important;
-}
-
-.module-btn {
-    min-width: 210px !important;
-    min-height: 59px !important;
-    font-size: 11px !important;
-}
-/* 电脑端两种模式统一 */
-.mobile-mode .filter-bar {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 8px !important;
-    padding: 10px 14px !important;
-    width: 100% !important;
-    justify-content: center !important;
-    align-items: center !important;
-}
-
-.mobile-mode .filter-bar select,
-.mobile-mode .filter-bar input#sourceFilter {
-    width: 100% !important;
-    max-width: none !important;
-    min-height: 44px !important;
-    height: 44px !important;
-    font-size: 13px !important;
-    border: 2px solid #999 !important;
-    border-radius: 5px !important;
-    text-align: center !important;
-    text-align-last: center !important;
-    box-sizing: border-box !important;
-}
-
-.mobile-mode .filter-bar button[onclick*="clearFilters"] {
-    width: 100% !important;
-    max-width: none !important;
-    min-height: 44px !important;
-    height: 44px !important;
-    border: 2px solid #999 !important;
-    border-radius: 5px !important;
-    box-sizing: border-box !important;
-}
-
-/* 统计区域两种模式统一 */
-.pp-card span {
-    font-size: 18px !important;
-}
-
-.pp-card .pp-value {
-    font-size: 20px !important;
-}
-
-.pp-goal-input {
-    width: 80px !important;
-    font-size: 18px !important;
-    min-height: 36px !important;
-    text-align: center !important;
-}
-
-#dailyStatus {
-    font-size: 18px !important;
-    font-weight: bold !important;
-    color: #fff !important;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.5) !important;
-}
-/* 修复横向滚动 */
-body {
-    overflow-x: auto !important;
-}
-
-.container {
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-}
-.module-btn {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    text-align: center !important;
-    white-space: normal !important;
-    overflow: visible !important;
-    line-height: 1.4 !important;
-    padding: 8px 6px !important;
-    min-width: 90px !important;
-    width: auto !important;
-    gap: 2px !important;
-    font-size: 11px !important;
-}
-* { box-sizing: border-box; }
-:root{
-  --bg-gradient: #f0f7ff;
-  --main:#5b9bd5;
-  --deep:#3a7ab0;
-  --mid:#8fc1ed;
-  --light:#eef4fc;
-  --bg:#f2f7fd;
-  --card:#ffffff;
-  --secondary:#718096;
-  --on-main:#ffffff;
-  --correct:#48bb78;
-  --wrong:#fc8181;
-  --shadow:0 1px 3px rgba(0,0,0,0.06);
-  --shadow-strong:0 2px 8px rgba(0,0,0,0.10);
-  --fs: 16px;
-}
-body { font-family: -apple-system, "Microsoft YaHei", sans-serif; padding: 20px; background: var(--bg); margin: 0; color: #2d3748; font-size: var(--fs); }
-html, body { width:100%; max-width:100%; margin:0; padding:0; box-sizing:border-box; }
-.container { width:100%; max-width:1180px; margin:0 auto; box-sizing:border-box; }
-#content { width:100%; box-sizing:border-box; }
-.header { position: relative; text-align: center; padding: 26px 64px 22px; background: var(--deep); color: #fff; border-radius: 14px; margin-bottom: 16px; box-shadow: var(--shadow); }
-.header h1 { margin: 0; font-size: 30px; font-weight: 800; font-family: Georgia, "Times New Roman", "Songti SC", serif; background: linear-gradient(135deg, #ffe8b8 0%, #ffd9b3 25%, #ffffff 50%, #c9e4ff 75%, #b9d9ff 100%); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: titleShine 4s linear infinite; letter-spacing: 1.5px; }
-.header p { display: none; }
-.header-controls { position: absolute; top: 14px; right: 14px; display: flex; gap: 6px; align-items: center; z-index: 10; }
-.mode-toggle { background: rgba(255,255,255,0.16); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 8px; padding: 8px 12px; font-size: 13px; cursor: pointer; transition: .15s; white-space: nowrap; }
-.mode-toggle:hover { background: rgba(255,255,255,0.28); }
-.font-btn { background: rgba(255,255,255,0.16); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 8px; padding: 6px 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: .15s; min-width: 36px; text-align: center; }
-.font-btn:hover { background: rgba(255,255,255,0.28); }
-
-/* 标题下方的进度面板（小卡片样式，今日刷题 + 倒计时并排） */
-.header-pp { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
-.header-pp .pp-card { background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.30); border-radius: 14px; padding: 10px 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: #fff; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
-.header-pp .pp-label { font-weight: bold; color: #fff; opacity: 0.92; }
-.header-pp .pp-value { font-weight: 800; font-size: 17px; color: #fff; }
-.header-pp .pp-goal-input { background: rgba(255,255,255,0.22); border: 1px solid rgba(255,255,255,0.40); border-radius: 8px; padding: 4px 8px; font-size: 13px; color: #fff; width: 58px; text-align: center; outline: none; }
-.header-pp .pp-goal-input::placeholder { color: rgba(255,255,255,0.6); }
-.header-pp .pp-date-input { background: rgba(255,255,255,0.22); border: 1px solid rgba(255,255,255,0.40); border-radius: 8px; padding: 4px 8px; font-size: 13px; color: #fff; color-scheme: dark; outline: none; }
-.header-pp .pp-mini-btn { background: rgba(255,255,255,0.22); border: 1px solid rgba(255,255,255,0.30); border-radius: 8px; padding: 4px 10px; font-size: 12px; color: #fff; cursor: pointer; transition: .15s; }
-.header-pp .pp-mini-btn:hover { background: rgba(255,255,255,0.38); }
-
-.pp-card:last-child {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    text-align: center !important;
-}
-
-/* 分区标签 */
-.zone-tabs { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
-.zone-tab { flex: 1; min-width: 180px; padding: 16px; border: none; border-radius: 14px; cursor: pointer; font-weight: bold; font-size: 15px; background: #fff; color: var(--deep); box-shadow: var(--shadow); transition: .2s; text-align:center; }
-.zone-tab:hover { transform: translateY(-2px) scale(1.01); box-shadow: var(--shadow-strong); }
-.zone-tab .z-count { display: block; font-weight: normal; font-size: 13px; color: var(--secondary); margin-top: 4px; }
-.zone-tab.active { background: linear-gradient(135deg, var(--mid), var(--main)); color: var(--on-main); box-shadow: var(--shadow-strong); transform: translateY(-2px); }
-.zone-tab.active .z-count { color:var(--on-main); opacity:.92; }
-
-/* 分区统计 */
-.zone-stats { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin: 4px 0 14px; }
-.zone-stats span { background: #fff; color: var(--deep); padding: 8px 18px; border-radius: 22px; font-size: 14px; font-weight: bold; box-shadow: var(--shadow); border:2px solid var(--light); }
-.progress-panel { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; margin: 4px 0 14px; padding: 10px 14px; background: #fff; border-radius: 12px; box-shadow: var(--shadow); border:2px solid var(--light); font-size: 13px; }
-.pp-item { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.pp-label { font-weight: bold; color: var(--deep); }
-.pp-value { font-weight: bold; color: var(--main); font-size: 15px; }
-.pp-goal-input { width: 56px; padding: 3px 6px; border: 1px solid var(--light); border-radius: 6px; font-size: 13px; text-align: center; }
-.pp-date-input { padding: 3px 6px; border: 1px solid var(--light); border-radius: 6px; font-size: 13px; }
-.pp-mini-btn { background: var(--light); border: none; border-radius: 6px; padding: 3px 8px; font-size: 12px; cursor: pointer; color: var(--deep); }
-.pp-mini-btn:hover { background: var(--mid); color: var(--on-main); }
-.q-fav { cursor: pointer; font-size: 16px; margin-left: 6px; user-select: none; display: inline-block; }
-.q-unmark { background: var(--light); border: 1px solid var(--light); border-radius: 6px; padding: 2px 8px; font-size: 12px; cursor: pointer; margin-left: 8px; color: var(--deep); }
-.q-unmark:hover { background: var(--wrong); color: #fff; }
-#zoneAccuracy { background: linear-gradient(135deg, var(--mid), var(--main)); color:var(--on-main); border:none; }
-
-/* 子模块筛选 */
-.module-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-.module-btn { padding: 10px 16px; border: none; border-radius: 12px; font-weight: bold; font-size: 13px; cursor: pointer; background: #fff; color: var(--deep); box-shadow: var(--shadow); flex: 1; min-width: 90px; text-align: center; transition: .2s; }
-.module-btn:hover { transform: translateY(-1px) scale(1.02); box-shadow: var(--shadow-strong); }
-.module-btn.active { background: linear-gradient(135deg, var(--mid), var(--main)); box-shadow: var(--shadow-strong); color: var(--on-main); }
-.module-btn .count { display: block; font-weight: normal; font-size: 11px; color:var(--secondary); opacity:.8; }
-
-/* 上传区 */
-.upload-zone { background: #fff; border: 2px dashed var(--mid); border-radius: 14px; padding: 18px; margin-bottom: 14px; box-shadow: var(--shadow); display:flex; gap:12px; flex-wrap:wrap; align-items:center; position: relative; z-index: 1; }
-.upload-zone.drag { border-color: var(--main); background: var(--bg); }
-.upload-zone select, .upload-zone input[type=file]{ padding: 8px 12px; border: 2px solid var(--light); border-radius: 8px; font-size: 13px; outline:none; background:#fff; color:var(--deep); }
-.upload-zone select:focus { border-color: var(--main); }
-.upload-hint { font-size: 12px; color:var(--secondary); flex-basis:100%; margin-top:2px; }
-
-/* 文件列表 */
-.file-list { background: #fff; border-radius: 14px; padding: 14px 18px; margin: 12px 0; box-shadow: var(--shadow); }
-.file-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--light); font-size: 13px; }
-.file-item:last-child { border-bottom: none; }
-.file-item .meta { color:var(--secondary); font-size:12px; margin-left:10px; }
-.file-item .del-btn { background: none; border: none; color: var(--main); cursor: pointer; font-size: 16px; }
-.module-tag { font-size: 11px; padding: 2px 10px; border-radius: 12px; background: var(--card); color: var(--deep); margin-left: 8px; }
-.zone-tag { font-size:11px; padding:2px 10px; border-radius:12px; background:var(--card); color:var(--secondary); margin-left:8px; border:1px solid var(--light); }
-/* 文件标签页 */
-.file-tabs { display: flex; gap: 8px; flex-wrap: wrap; align-items: stretch; margin-top: 8px; }
-.file-tab { position: relative; display: flex; flex-direction: column; justify-content: center; padding: 8px 30px 8px 14px; border: 2px solid var(--light); border-radius: 16px; background: #fff; cursor: pointer; font-size: 13px; font-weight: bold; color: var(--deep); box-shadow: var(--shadow); transition: .18s ease; text-align: left; max-width: 220px; pointer-events: auto; }
-.file-tab:hover { border-color: var(--main); transform: translateY(-2px) scale(1.01); box-shadow: var(--shadow-strong); }
-.file-tab.active { background: linear-gradient(135deg, var(--mid), var(--main)); color: var(--on-main); border-color: var(--main); }
-.file-tab .ft-count { font-weight: normal; font-size: 11px; opacity: .85; margin-top: 2px; }
-.file-tab .ft-del { position: absolute; top: 4px; right: 4px; width: 18px; height: 18px; line-height: 16px; text-align: center; border: none; border-radius: 50%; background: rgba(0,0,0,0.06); color: inherit; cursor: pointer; font-size: 13px; padding: 0; }
-.file-tab.active .ft-del { background: rgba(255,255,255,0.25); }
-.file-tab .ft-del:hover { background: var(--deep); color: #fff; }
-.file-info { margin: 10px 0 4px; padding: 10px 14px; background: #fff; border-radius: 12px; box-shadow: var(--shadow); font-size: 13px; color: var(--deep); border-left: 4px solid var(--main); }
-.file-info b { color: var(--deep); }
-
-/* 筛选 / 控制栏 */
-.filter-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; background: #fff; padding: 10px 14px; border-radius: 12px; margin-bottom: 14px; box-shadow: var(--shadow); }
-.filter-bar select, .filter-bar input { padding: 7px 10px; border: 2px solid var(--light); border-radius: 8px; font-size: 13px; outline: none; background: #fff; color: var(--deep); }
-.filter-bar select:focus, .filter-bar input:focus { border-color: var(--main); }
-.ratio-label { font-size: 13px; color:var(--secondary); display:flex; align-items:center; gap:4px; white-space:nowrap; }
-.ratio-input { width: 58px; padding: 7px 8px; }
-.btn { padding: 8px 16px; border: none; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: bold; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all .18s ease; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
-.btn-primary { background: linear-gradient(135deg, var(--mid), var(--main)); color: var(--on-main); }
-.btn-primary:hover { background: var(--deep); color: #fff; transform: translateY(-1px) scale(1.03); box-shadow: 0 4px 14px rgba(74,144,217,0.35); }
-.btn-outline { background: #fff; border: 2px solid var(--main); color: var(--deep); }
-.btn-outline:hover { background: var(--main); color: var(--on-main); transform: translateY(-1px) scale(1.03); box-shadow: 0 4px 12px rgba(74,144,217,0.25); }
-.btn-danger { background: linear-gradient(135deg, #fc8181, #f56565); color: #fff; }
-.btn-danger:hover { background: linear-gradient(135deg, #f56565, #e53e3e); color: #fff; transform: translateY(-1px) scale(1.03); box-shadow: 0 4px 12px rgba(245,101,101,0.35); }
-
-.controls { display:flex; gap:10px; flex-wrap:wrap; margin: 12px 0; align-items:center; }
-.search-box { flex: 1; padding: 8px 14px; font-size: 14px; border: 2px solid var(--light); border-radius: 8px; outline:none; min-width:140px; color:var(--deep); }
-.search-box:focus { border-color: var(--main); }
-
-/* 题目卡片 */
-.question { background: #fff; padding: 22px; margin-bottom: 18px; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: none; border-left: 5px solid var(--mid); transition: box-shadow .2s; }
-.question.visible { display: block; }
-.question.visible:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.10); }
-.q-title { font-weight: bold; color: var(--deep); margin-bottom: 6px; font-size: 15px; display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
-.q-title .q-source { color:var(--secondary); font-weight: normal; font-size: 12px; }
-.q-content { font-size: 15px; line-height: 1.8; margin-bottom: 12px; }
-.q-options .option { padding: 8px 14px; margin: 5px 0; background: var(--bg); border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: .15s; }
-.q-options .option:hover { background: var(--light); border-color: var(--main); transform: translateX(3px); }
-.q-options .option.correct { background: rgba(72,187,120,0.12); border-color: var(--correct); }
-.q-options .option.wrong { background: rgba(252,129,129,0.14); border-color: var(--wrong); }
-.q-options .option.disabled { cursor: default; }
-.q-options .option.disabled:hover { background: var(--bg); border-color: transparent; }
-.q-answer { color: var(--correct); font-weight: bold; display: none; margin: 0; }
-.q-answer.show { display: inline-block; }
-.q-verdict { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 8px 0 4px; }
-.q-solution { background: var(--bg); padding: 12px; border-radius: 8px; margin-top: 10px; border-left: 4px solid var(--main); display: none; }
-.q-solution.show { display: block; }
-/* 题目图片：最简单、GPU 合成层无关的样式，确保 iOS/Edge 正常显示 */
-/* 说明：① display:block 仅把布局从 inline 改为 block（不隐藏图片）；② max-width:100% + height:auto
-   覆盖 <img> 自带的 width="632px" height="244px" 内联表现属性（HTML 表现属性优先级低于任何 CSS，
-   无需 !important），窄屏自动缩放不溢出；③ 绝不含 transform/translateZ/will-change —— 这些会把
-   图片提升为独立 GPU 合成层，导致 WebKit 在图片加载完成后不刷新纹理、图片始终空白。
-   图片的真正显示靠 renderQuestions 末尾的「原生加载 + 公共代理兜底」方案（见 JS）。 */
-.q-content img, .q-solution img { display: block; max-width: 100%; height: auto; -webkit-touch-callout: none; }
-/* 自定义确认弹窗（替代原生 confirm）：iOS“添加到主屏幕”独立模式 / 部分 App 内置浏览器会静默禁用
-   confirm()/alert()，导致删除文件、清空分区、重置进度、导入备份等依赖 confirm 的操作点不动（函数直接 return）。
-   用页面内弹窗可彻底规避该问题。 */
-.confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 20px; }
-.confirm-overlay.show { display: flex; }
-.confirm-box { background: #fff; border-radius: 16px; padding: 22px; max-width: 340px; width: 100%; box-shadow: 0 10px 40px rgba(0,0,0,0.25); }
-.confirm-msg { font-size: 16px; line-height: 1.6; color: var(--deep); margin-bottom: 18px; }
-.confirm-btns { display: flex; gap: 10px; }
-.confirm-btns .btn { flex: 1; min-height: 46px; font-size: 15px; }
-.q-result { display:inline-block; padding: 3px 12px; border-radius: 6px; font-weight: bold; }
-.q-result.correct { background: rgba(72,187,120,0.12); color: var(--correct); }
-.q-result.wrong { background: rgba(252,129,129,0.14); color: var(--wrong); }
-.pagination { display:flex; justify-content:center; gap:6px; flex-wrap:wrap; margin:16px 0; }
-.pagination button { padding: 5px 12px; border:1px solid var(--light); border-radius:6px; background:#fff; cursor:pointer; font-size:13px; color:var(--deep); }
-.pagination button.active { background: var(--main); color:var(--on-main); border-color: var(--main); }
-.pagination button:disabled { opacity:.4; cursor:not-allowed; }
-.page-meta { text-align:center; color:var(--secondary); font-size:13px; margin:8px 0; }
-.hidden { display:none; }
-
-/* ============ PC / 手机 模式 ============ */
-/* PC模式：选项横向两列 */
-.pc-mode .q-options .option { display: inline-block; width: 48%; vertical-align: top; margin: 1%; box-sizing: border-box; }
-/* 手机模式:纵向堆叠、放大字号与点击区域(适配 iPhone 6.1–6.3") */
-/* ===== 字体缩放（A+/A− 按钮，通过 --fs 变量联动 calc）===== */
-/* PC 模式：覆盖有显式 font-size 的目标元素，默认 --fs:16px 时还原图原始大小 */
-.q-title { font-size: calc(var(--fs) - 1px); }
-.q-title .q-source { font-size: calc(var(--fs) - 4px); }
-.q-content { font-size: calc(var(--fs) - 1px); }
-.zone-tab { font-size: calc(var(--fs) - 1px); }
-.zone-tab .z-count { font-size: calc(var(--fs) - 3px); }
-.zone-stats span { font-size: calc(var(--fs) - 2px); }
-.module-btn { font-size: calc(var(--fs) - 3px); }
-.module-btn .count { font-size: calc(var(--fs) - 5px); }
-.file-tab { font-size: calc(var(--fs) - 3px); }
-.file-tab .ft-count { font-size: calc(var(--fs) - 3px); }
-.pagination button { font-size: calc(var(--fs) - 3px); }
-/* 手机模式覆盖（specificity 高于上面 PC 规则）*/
-/* ====== 资料分析材料 ====== */
-.q-material { background:#f0f4f8; border-radius:8px; padding:14px 18px; margin-bottom:14px; border-left:4px solid var(--main); font-size:14px; line-height:1.8; }
-.q-material img { max-width:90%; height:auto; display:block; margin:8px auto; border-radius:6px; padding:4px; background:#fff; border:1px solid #e2e8f0; }
-
-/* ====== 左上角计时统计 ====== */
-#timerStats { position:fixed !important; top:80px !important; left:auto !important; bottom:auto !important; right:20px !important; transform:none !important; background:rgba(255,255,255,0.15) !important; backdrop-filter:blur(20px) !important; -webkit-backdrop-filter:blur(20px) !important; color:#1a202c !important; padding:10px 16px !important; border-radius:14px !important; font-size:13px !important; z-index:999 !important; display:flex !important; flex-direction:column !important; gap:4px !important; align-items:flex-start !important; box-shadow:0 4px 20px rgba(0,0,0,0.08) !important; border:1px solid rgba(255,255,255,0.3) !important; min-width:100px !important; font-weight:500 !important; cursor:move !important; user-select:none !important; -webkit-user-select:none !important; }
-
-/* ====== 长按排除选项 ====== */
-.q-options .option.excluded { opacity:0.35 !important; background:#e2e8f0 !important; border-color:#cbd5e0 !important; transition:all 0.2s ease !important; text-decoration:line-through; }
-
-/* ====== 返回顶部按钮 ====== */
-#backToTop { position:fixed; bottom:150px; right:10px; z-index:999; background:var(--main); color:#fff; border:none; border-radius:50%; width:44px; height:44px; font-size:18px; cursor:pointer; box-shadow:0 2px 12px rgba(0,0,0,0.15); transition:all 0.3s ease; opacity:0; pointer-events:none; }
-#backToTop.visible { opacity:1; pointer-events:auto; }
-#backToTop:hover { transform:translateY(-2px) scale(1.05); }
-
-/* ====== 皮肤/墨水屏/AI设置 按钮 ====== */
-#skinToggleBtn, #inkToggleBtn, #aiSettingsBtn { position:fixed; z-index:9998; background:var(--main); color:#fff; border:none; border-radius:50%; width:44px; height:44px; font-size:18px; cursor:pointer; box-shadow:0 4px 16px rgba(0,0,0,0.15); transition:all 0.3s ease; -webkit-tap-highlight-color:transparent; }
-#skinToggleBtn { right:10px; bottom:10px; }
-#inkToggleBtn { right:10px; bottom:80px; }
-#aiSettingsBtn { left:10px; bottom:10px; font-size:20px; }
-#skinToggleBtn:hover, #inkToggleBtn:hover, #aiSettingsBtn:hover { transform:translateY(-2px) scale(1.05); }
-
-/* ====== 图片诊断按钮（🔧） ====== */
-#dbgBtn {
-    position: fixed;
-    left: 10px;
-    bottom: 150px;
-    top: auto;
-    right: auto;
-    width: 44px;
-    height: 44px;
-    padding: 0;
-    background: transparent;
-    color: #000;
-    border: 1px solid rgba(0,0,0,0.2);
-    border-radius: 50%;
-    font-size: 18px;
-    cursor: pointer;
-    z-index: 9997;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* ====== 皮肤面板 ====== */
-#skinPanel { position:fixed; right:20px; bottom:130px; z-index:9999; background:#fff; border-radius:12px; padding:12px; box-shadow:0 8px 32px rgba(0,0,0,0.2); display:none; flex-direction:column; gap:8px; min-width:140px; }
-#skinPanel.show { display:flex; }
-.skin-opt { padding:10px 14px; border-radius:8px; border:2px solid var(--light); background:#fff; cursor:pointer; font-size:14px; color:var(--deep); transition:.15s; text-align:center; }
-.skin-opt:hover { border-color:var(--main); }
-.skin-opt.active { background:linear-gradient(135deg,var(--mid),var(--main)); color:#fff; border-color:var(--main); }
-
-/* ====== AI 配置面板 ====== */
-#aiPanel { position:fixed; left:20px; bottom:70px; z-index:9999; background:#fff; border-radius:12px; padding:14px; box-shadow:0 8px 32px rgba(0,0,0,0.2); display:none; flex-direction:column; gap:8px; min-width:280px; max-width:320px; }
-#aiPanel.show { display:flex; }
-#aiPanel label { font-size:13px; color:var(--deep); font-weight:bold; }
-#aiPanel select, #aiPanel input { padding:8px 10px; border:2px solid var(--light); border-radius:8px; font-size:13px; outline:none; background:#fff; color:var(--deep); }
-#aiPanel input { width:100%; box-sizing:border-box; }
-
-/* ====== AI 简化解析按钮与结果 ====== */
-.q-ai-btn { margin-top:8px; padding:6px 14px; background:linear-gradient(135deg,#a78bfa,#7c3aed); color:#fff; border:none; border-radius:8px; font-size:13px; cursor:pointer; transition:.15s; font-weight:bold; }
-.q-ai-btn:hover { transform:translateY(-1px) scale(1.02); box-shadow:0 4px 12px rgba(124,58,237,0.35); }
-.q-ai-btn:disabled { opacity:0.6; cursor:wait; }
-.q-ai-result { margin-top:10px; padding:12px; background:linear-gradient(135deg,#faf5ff,#f3e8ff); border-left:4px solid #7c3aed; border-radius:8px; font-size:14px; line-height:1.7; display:none; }
-.q-ai-result.show { display:block; }
-.q-chat-btn { margin-top:8px; margin-left:8px; padding:6px 14px; background:linear-gradient(135deg,#60a5fa,#3b82f6); color:#fff; border:none; border-radius:8px; font-size:13px; cursor:pointer; transition:.15s; font-weight:bold; }
-.q-chat-btn:hover { transform:translateY(-1px) scale(1.02); box-shadow:0 4px 12px rgba(59,130,246,0.35); }
-.q-chat-box { margin-top:10px; padding:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; display:none; }
-.q-chat-box.show { display:block; }
-.q-chat-messages { max-height:300px; overflow-y:auto; margin-bottom:10px; }
-.q-chat-msg { margin-bottom:10px; padding:8px 12px; border-radius:8px; font-size:14px; line-height:1.6; }
-.q-chat-user { background:#dbeafe; text-align:right; }
-.q-chat-ai { background:#f1f5f9; }
-.q-chat-input { display:flex; gap:8px; }
-.q-chat-input textarea { flex:1; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px; resize:vertical; min-height:40px; }
-.q-chat-input button { padding:8px 16px; background:#3b82f6; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:bold; }
-.q-chat-input button:disabled { opacity:0.6; cursor:wait; }
-
-.chat-history-panel {
-    position:fixed; right:0; top:0; width:350px; max-width:90vw; height:100vh;
-    background:#fff; box-shadow:-4px 0 20px rgba(0,0,0,0.15); z-index:9999;
-    transform:translateX(100%); transition:transform .3s; display:flex; flex-direction:column;
-}
-.chat-history-panel.show { transform:translateX(0); }
-.chat-history-header {
-    padding:16px; background:linear-gradient(135deg,#60a5fa,#3b82f6); color:#fff;
-    font-weight:bold; display:flex; justify-content:space-between; align-items:center;
-}
-.chat-history-close { cursor:pointer; font-size:20px; opacity:0.8; }
-.chat-history-list { flex:1; overflow-y:auto; padding:12px; }
-.chat-history-item {
-    padding:12px; margin-bottom:8px; background:#f8fafc; border:1px solid #e2e8f0;
-    border-radius:8px; cursor:pointer; transition:.15s;
-}
-.chat-history-item:hover { background:#eff6ff; border-color:#60a5fa; }
-.chat-history-item-title { font-weight:bold; font-size:13px; margin-bottom:4px; color:#1e40af; }
-.chat-history-item-preview { font-size:12px; color:#64748b; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.chat-history-empty { text-align:center; padding:40px; color:#94a3b8; }
-.chat-history-export-btn {
-    padding:6px 12px; background:rgba(255,255,255,0.2); color:#fff;
-    border:1px solid rgba(255,255,255,0.4); border-radius:6px; cursor:pointer; font-size:12px; font-weight:bold;
-}
-.chat-history-export-btn:hover { background:rgba(255,255,255,0.3); }
-.chat-history-btn {
-    position:fixed; left:10px; bottom:80px; padding:8px 14px;  /* 从10px改为80px，在AI配置按钮上方 */
-    background:linear-gradient(135deg,#60a5fa,#3b82f6); color:#fff; border:none;
-    border-radius:20px; font-size:13px; cursor:pointer; font-weight:bold;
-    z-index:9998; box-shadow:0 2px 8px rgba(59,130,246,0.3);
-}
-.chat-history-btn:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(59,130,246,0.4); }
-
-/* ====== 计时面板 RESET 按钮 ====== */
-.timer-reset-btn {
-    display: block;
-    margin: 6px auto 0;
-    padding: 2px 8px;
-    background: transparent;
-    color: #000;
-    border: 1px solid rgba(0,0,0,0.4);
-    border-radius: 4px;
-    font-size: 10px;
-    font-weight: 400;
-    font-family: system-ui, -apple-system, sans-serif;
-    letter-spacing: 0.5px;
-    line-height: normal;
-    cursor: pointer;
-    opacity: 0.8;
-    width: auto;
-}
-
-/* ====== 今日刷题 RESET 按钮（与计时面板样式统一） ====== */
-.daily-reset-btn {
-    display: inline-block;
-    margin-left: 8px;
-    padding: 2px 8px;
-    background: transparent;
-    color: #000;
-    border: 1px solid rgba(0,0,0,0.4);
-    border-radius: 4px;
-    font-size: 10px;
-    font-weight: 400;
-    font-family: system-ui, -apple-system, sans-serif;
-    letter-spacing: 0.5px;
-    line-height: normal;
-    cursor: pointer;
-    opacity: 0.8;
-    width: auto;
-}
-
-/* 手机端 RESET 字体强制与 PC 端完全一致：覆盖 .mobile-mode * 的 !important 放大，
-   确保 PC/手机都是 10px / 400 / system-ui / 0.5px / 2px 8px，不加粗、不改字号 */
-.timer-reset-btn,
-.daily-reset-btn {
-    font-size: 10px !important;
-    font-weight: 400 !important;
-    font-family: system-ui, -apple-system, sans-serif !important;
-    letter-spacing: 0.5px !important;
-    line-height: normal !important;
-    padding: 2px 8px !important;
-}
-.q-ai-loading { color:#7c3aed; font-style:italic; }
-.q-ai-error { color:#dc2626; }
-
-/* ====== 墨水屏模式（纸质书风格，保留分区色）====== */
-body.ink-mode { background:#f5f0e8 !important; color:#2c2c2c !important; }
-body.ink-mode .question, body.ink-mode .file-list, body.ink-mode .filter-bar, body.ink-mode .upload-zone, body.ink-mode .file-info, body.ink-mode .module-btn, body.ink-mode .zone-stats span, body.ink-mode .progress-panel, body.ink-mode .q-material, body.ink-mode .q-options .option { background:#fcf9f4 !important; color:#2c2c2c !important; border-color:#d4cdc0 !important; }
-body.ink-mode .q-content, body.ink-mode .q-title, body.ink-mode .q-solution, body.ink-mode .pp-label, body.ink-mode .zone-tab { color:#2c2c2c !important; }
-body.ink-mode .header { background:#ede6d6 !important; }
-/* 墨水屏保留分区激活色 */
-body.ink-mode .zone-tab[data-zone="gk"].active { background:#4a90d9 !important; color:#fff !important; border-color:#4a90d9 !important; }
-body.ink-mode .zone-tab[data-zone="mk"].active { background:#f5a623 !important; color:#fff !important; border-color:#f5a623 !important; }
-body.ink-mode .zone-tab[data-zone="sy"].active { background:#f7c948 !important; color:#2d3748 !important; border-color:#f7c948 !important; }
-
-/* ====== 暗夜皮肤 ====== */
-body.skin-dark { background:#1a202c !important; color:#e2e8f0 !important; }
-body.skin-dark .question, body.skin-dark .file-list, body.skin-dark .filter-bar, body.skin-dark .upload-zone, body.skin-dark .file-info, body.skin-dark .module-btn, body.skin-dark .zone-stats span, body.skin-dark .progress-panel, body.skin-dark .q-material, body.skin-dark .q-options .option { background:#2d3748 !important; color:#e2e8f0 !important; border-color:#4a5568 !important; }
-body.skin-dark .header { background:#2d3748 !important; }
-body.skin-dark .header h1 { background:linear-gradient(135deg,#fff,#a78bfa,#60a5fa) !important; -webkit-background-clip:text !important; background-clip:text !important; }
-body.skin-dark .q-content, body.skin-dark .q-title, body.skin-dark .q-solution, body.skin-dark .pp-label { color:#e2e8f0 !important; }
-
-/* ====== 护眼皮肤 ====== */
-body.skin-eye { background:#c7edcc !important; color:#2d3748 !important; }
-body.skin-eye .question, body.skin-eye .file-list, body.skin-eye .filter-bar, body.skin-eye .upload-zone, body.skin-eye .file-info, body.skin-eye .module-btn, body.skin-eye .zone-stats span, body.skin-eye .progress-panel, body.skin-eye .q-material { background:#e8f5e9 !important; color:#2d3748 !important; border-color:#a5d6a7 !important; }
-
-/* ====== 暖阳皮肤 ====== */
-body.skin-warm { background:#fff4e6 !important; color:#5c3d1a !important; }
-body.skin-warm .question, body.skin-warm .file-list, body.skin-warm .filter-bar, body.skin-warm .upload-zone, body.skin-warm .file-info, body.skin-warm .module-btn, body.skin-warm .zone-stats span, body.skin-warm .progress-panel, body.skin-warm .q-material { background:#fff9f0 !important; color:#5c3d1a !important; border-color:#f4d4a8 !important; }
-
-/* ====== 进度面板字体加深 ====== */
-.header-pp .pp-label { color:#fff !important; opacity:1 !important; font-weight:bold !important; text-shadow:0 1px 2px rgba(0,0,0,0.3); }
-.header-pp .pp-value { text-shadow:0 1px 2px rgba(0,0,0,0.3); }
-
-/* 标题流光动画 */
-@keyframes titleShine { to { background-position:200% center; } }
-
-/* 手机用 PC 模式时强制统一分区标签（真电脑端非触摸不受影响）*/
-/* 诊断：手机端 PC 模式下「事业单位」标签视觉偏小——三个分区 CSS 本一致，差异来自
-   手机渲染字体度量/flex 内容长度。用 !important 强制统一尺寸，去 transform 消除视觉跳动。*/
-.pc-mode.pc-touch .zone-tab {
-    flex: 1 !important;
-    min-width: 120px !important;
-    padding: 16px 20px !important;
-    font-size: 16px !important;
-    font-weight: 600 !important;
-    border-radius: 14px !important;
-    height: auto !important;
-    min-height: 70px !important;
-    text-align: center !important;
-    transform: none !important;
-    transition: none !important;
-}
-.pc-mode.pc-touch .zone-tab.active {
-    transform: none !important;
-}
-/* ========== 手机端适配修复 ========== */
-html, body {
-    width: 100vw !important;
-    max-width: 100vw !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    box-sizing: border-box !important;
-    overflow-x: auto !important;
-}
-
-.container {
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-}
-
-#content {
-    width: 100%;
-    box-sizing: border-box;
-}
-/* 卡片统一宽度 */
-
-/* RESET按钮统一 */
-.timer-reset-btn,
-.daily-reset-btn {
-    font-size: 10px !important;
-    font-weight: 400 !important;
-    font-family: system-ui, -apple-system, sans-serif !important;
-    letter-spacing: 0.5px !important;
-    line-height: normal !important;
-    padding: 2px 8px !important;
-}
-/* A+ A− 圆形按钮 */
-.font-btn {
-    width: 36px !important;
-    height: 36px !important;
-    border-radius: 50% !important;
-    padding: 0 !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    font-size: 14px !important;
-    font-weight: bold !important;
-}
-/* 省份筛选下拉选项缩小 */
-#provinceFilter option {
-    font-size: 5px !important;
-    padding: 0 !important;
-    min-height: 8px !important;
-    line-height: 1 !important;
-}
-
-</style>
-</head>
-<body class="pc-mode">
-<!-- 自定义确认弹窗（替代原生 confirm，避免 iOS 独立模式/内置浏览器禁用对话框导致删除等操作失效） -->
-<div id="confirmOverlay" class="confirm-overlay">
-  <div class="confirm-box">
-    <div class="confirm-msg" id="confirmMsg"></div>
-    <div class="confirm-btns">
-      <button id="confirmNo" class="btn btn-outline" type="button">取消</button>
-      <button id="confirmYes" class="btn btn-danger" type="button">确定</button>
-    </div>
-  </div>
-</div>
-<div class="container">
-    <div class="header">
-        <div class="header-controls">
-            <button class="font-btn" onclick="fontZoom(-2)" title="缩小字体">A−</button>
-            <button class="font-btn" onclick="fontZoom(2)" title="放大字体">A+</button>
-            <button id="modeToggle" class="mode-toggle" onclick="toggleMode()">📱 切换到手机</button>
-        </div>
-        <h1>Helium题库</h1>
-        <!-- 进度面板：今日刷题 + 考试倒计时（小卡片并排） -->
-        <div class="header-pp" id="progressPanel">
-            <div class="pp-card">
-                <span class="pp-label">📅 今日刷题</span>
-                <span class="pp-value" id="dailyCount">0</span> / <span id="dailyGoal" style="color:#fff;opacity:.85;">50</span>
-                <input type="number" class="pp-goal-input" id="dailyGoalInput" min="1" max="9999" value="50" onchange="setDailyGoal(this.value)" title="设置每日目标题数">
-                <span id="dailyStatus"></span>
-                <span class="pp-label" style="margin-left:8px;border-left:1px solid rgba(255,255,255,0.3);padding-left:8px;">⏱总</span><span class="pp-value" id="totalTimeSpan">0秒</span>
-            </div>
-            <div class="pp-card">
-                <span class="pp-label">🎯 考试倒计时</span>
-                <span class="pp-value" id="examCountdown">未设置</span>
-                <input type="date" class="pp-date-input" id="examDateInput" onchange="setExamDate(this.value)" title="设置考试日期（YYYY-MM-DD）">
-                <button type="button" class="pp-mini-btn" onclick="clearExamDate()">清除</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 分区标签 -->
-    <div class="zone-tabs" id="zoneTabs"></div>
-
-    <!-- 分区统计 -->
-    <div class="zone-stats" id="zoneStats">
-        <span id="zoneTotal">📝 总 0 题</span>
-        <span id="zoneDone">✅ 已做 0 题</span>
-        <span id="zoneCorrect">🎯 正确 0 题</span>
-        <span id="zoneAccuracy">📈 正确率 0%</span>
-    </div>
-
-    <!-- 子模块筛选 -->
-    <div class="module-bar" id="moduleBar"></div>
-
-    <!-- 上传区 -->
-    <div class="upload-zone" id="uploadZone">
-        <select id="zoneSelect">
-            <option value="auto">分区：自动识别</option>
-            <option value="gk">国考/省考</option>
-            <option value="mk">粉笔模考</option>
-            <option value="sy">事业单位</option>
-        </select>
-        <select id="moduleSelect">
-            <option value="auto">子模块：自动识别</option>
-            <option value="常识判断">常识判断</option>
-            <option value="言语理解">言语理解</option>
-            <option value="数量关系">数量关系</option>
-            <option value="判断推理">判断推理</option>
-            <option value="资料分析">资料分析</option>
-        </select>
-        <input type="file" id="fileInput" accept=".json" multiple style="display:none;">
-        <button type="button" class="btn btn-primary">📁 选择文件</button>
-    </div>
-
-    <!-- 文件列表（标签页形式） -->
-    <div id="fileListContainer" class="file-list hidden">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <span style="font-weight:bold;font-size:14px;color:var(--deep);">📂 已上传文件（<span id="zoneNameLabel"></span>）— 点击标签切换题库</span>
-            <button class="btn btn-danger" style="padding:4px 12px;font-size:12px;" onclick="clearAllFiles()">🗑️ 清空本分区</button>
-        </div>
-        <div id="fileTabs" class="file-tabs"></div>
-        <div id="fileInfo" class="file-info" style="display:none;"></div>
-    </div>
-
-    <!-- 筛选栏 -->
-    <div class="filter-bar" id="filterBar">
-        <select id="yearFilter"><option value="all">📅 全部年份</option></select><select id="provinceFilter"><option value="all">📍 全部省份</option></select>
-        <input id="sourceFilter" list="sourceOptions" type="text" placeholder="📚 全部来源" autocomplete="off"><datalist id="sourceOptions"></datalist>
-        <select id="statusFilter">
-            <option value="all">全部状态</option>
-            <option value="unanswered">只显示未做</option>
-            <option value="answered">只显示已做</option>
-            <option value="wrong">只显示错题</option>
-            <option value="correct">只显示做对</option>
-            <option value="favorite">⭐ 只显示收藏</option>
-        </select>
-        <select id="sortFilter">
-            <option value="default">默认顺序</option>
-            <option value="ratioDesc">正确率从高到低</option>
-            <option value="ratioAsc">正确率从低到高</option>
-        </select> <select id="moduleFilter"><option value="all">📂 全部模块</option></select> <select id="subTypeFilter"><option value="all">📋 全部题型</option></select> <select id="leafTypeFilter"><option value="all">📋 全部细分题型</option></select> <button class="btn btn-outline" onclick="clearFilters()">✕ 清除筛选</button>
-        <label class="ratio-label">正确率
-            <input type="number" id="minRatioInput" min="0" max="100" placeholder="0" class="ratio-input"> ~
-            <input type="number" id="maxRatioInput" min="0" max="100" placeholder="100" class="ratio-input">%
-        </label>
-    </div>
-
-    <!-- 控制栏 -->
-    <div class="controls" id="controls" style="display:none;">
-        <input type="text" class="search-box" id="searchBox" placeholder="🔍 搜索题目...">
-        <button class="btn btn-primary" onclick="exportFiltered()">📤 导出筛选结果</button>
-        <button class="btn btn-outline" onclick="viewWrongSet()">📒 错题集(<span id="wrongCount">0</span>)</button>
-        <button class="btn btn-outline" onclick="exportWrong()">📕 导出错题本</button>
-        <button class="btn btn-outline" onclick="resetProgress()">🔄 重置进度</button>
-        <button class="btn btn-outline" onclick="window.print()">🖨️ 打印</button>
-        <button class="btn btn-primary" onclick="exportBackup()">💾 导出备份</button>
-        <button class="btn btn-outline" onclick="document.getElementById('backupInput').click()">📥 导入备份</button>
-        <input type="file" id="backupInput" accept="application/json,.json" style="display:none;" onchange="importBackup(this)">
-    </div>
-
-    <div id="content"></div>
-    <div class="page-meta" id="pageMeta" style="display:none;"></div>
-    <div class="pagination" id="pagination" style="display:none;"></div>
-    <div id="noResult" style="text-align:center;padding:40px;color:var(--secondary);display:none;">没有找到匹配的题目</div>
-</div>
-
-<script>
 // ============================================================
 // 常量与状态
 // ============================================================
@@ -971,6 +42,7 @@ let activeZone = 'gk';
 let activeFile = '__all__';   // '__all__' 表示显示本分区全部文件合并
 let currentPage = 1;
 let filteredQuestions = [];
+const multiChoiceSelections = Object.create(null);
 let restoredStudyPosition = null;
 let filterState = {
   module:'all', year:'all', province:'all', source:'all', subType:'all', leafType:'all', search:'',
@@ -1026,15 +98,33 @@ function loadStudyPosition(){
     const raw=localStorage.getItem(STUDY_POSITION_KEY);
     if(!raw) return;
     const value=JSON.parse(raw);
-    if(value && ['gk','mk','sy'].includes(value.zone)) restoredStudyPosition=value;
+    if(value && ['gk','mk','sy'].includes(value.zone)){
+      if(value.filterState && typeof value.filterState==='object' && !Array.isArray(value.filterState)){
+        filterState=Object.assign(filterState, value.filterState);
+      }
+      restoredStudyPosition=value;
+    }
   }catch(e){}
 }
 function saveStudyPosition(){
   try{
+    const questions=Array.from(document.querySelectorAll('#content .question'));
+    let current=questions[0]||null;
+    questions.forEach(function(question){
+      if(question.getBoundingClientRect().top<=window.innerHeight*0.35) current=question;
+    });
+    const indexInPage=current ? questions.indexOf(current) : -1;
+    const questionIndex=Math.max(0, (currentPage-1)*PAGE_SIZE+Math.max(0,indexInPage));
+    const fallbackQuestion=filteredQuestions[questionIndex];
+    const questionKey=(current&&current.id ? current.id.slice(2) : '') || (fallbackQuestion&&fallbackQuestion._key) || null;
+    const savedFilterState=JSON.parse(JSON.stringify(filterState));
     localStorage.setItem(STUDY_POSITION_KEY, JSON.stringify({
       zone:activeZone,
       page:currentPage,
-      questionIndex:Math.max(0, (currentPage-1)*PAGE_SIZE)
+      questionIndex:questionIndex,
+      questionKey:questionKey,
+      scrollY:window.scrollY,
+      filterState:savedFilterState
     }));
   }catch(e){}
 }
@@ -1048,7 +138,11 @@ function showStudyPositionRestored(){
 function setupStudyPositionTracking(){
   if(window.__studyPositionTracking) return;
   window.__studyPositionTracking=true;
+  let saveTimer=0;
   window.addEventListener('scroll', function(){
+    if(saveTimer) return;
+    saveTimer=setTimeout(function(){
+      saveTimer=0;
     const questions=Array.from(document.querySelectorAll('#content .question'));
     if(!questions.length) return;
     let current=questions[0];
@@ -1057,7 +151,8 @@ function setupStudyPositionTracking(){
     });
     const indexInPage=questions.indexOf(current);
     const globalIndex=(currentPage-1)*PAGE_SIZE+Math.max(0,indexInPage);
-    try{ localStorage.setItem(STUDY_POSITION_KEY, JSON.stringify({zone:activeZone, page:currentPage, questionIndex:globalIndex})); }catch(e){}
+    saveStudyPosition();
+    }, 120);
   }, {passive:true});
 }
 
@@ -1333,6 +428,14 @@ function handleFiles(fileListArr){
                   q.category = moduleMap[q.category];
               }
           });
+          
+          // 为每道题生成唯一ID（用于导出/导入匹配）
+          questions.forEach(function(q) {
+              if (!q._qid) {
+                  q._qid = generateQuestionId(q);
+              }
+          });
+          
           const obj={ id, fileName:file.name, zone, module, uploadTime:Date.now(), size:file.size, questions:questions, answered:{} };
           db[zone][id]=obj;
           index[zone].push({id, fileName:file.name, zone, module, uploadTime:obj.uploadTime, size:file.size, count:questions.length});
@@ -1364,6 +467,14 @@ function handleFiles(fileListArr){
 fileInput.addEventListener('change', e=> handleFiles(e.target.files));
 // 打开文件选择框：先清空 value，保证“再次选择同一文件”也必定触发 change 事件
 function openFilePicker(){ try{ fileInput.value=''; fileInput.click(); }catch(err){} }
+const uploadButton = document.getElementById('uploadButton');
+if(uploadButton){
+  uploadButton.addEventListener('click', function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    openFilePicker();
+  });
+}
 // 整个上传区可点击打开选择框（下拉框除外，否则点下拉会误触发文件框）；忽略 fileInput 自身冒泡，避免递归
 uploadZone.addEventListener('click', e=>{
   const t=e.target;
@@ -1437,7 +548,7 @@ const qs=getZoneQuestions(activeZone, '__all__');
   if(activeFile && activeFile!=='__all__' && db[activeZone][activeFile]){
     const f=db[activeZone][activeFile];
     let fdone=0, fcorr=0;
-    if(f.answered) for(const k in f.answered){ const a=f.answered[k]; if(a!==undefined&&a!==null){ fdone++; const qi=parseInt(String(k).split('_q')[1]); const q=f.questions[qi]; if(q){ if(typeof a==='string'){ if(getCorrectLetter(q)===a) fcorr++; } else { if(a) fcorr++; } } } }
+    if(f.answered) for(const k in f.answered){ const a=f.answered[k]; if(a!==undefined&&a!==null){ fdone++; const qi=parseInt(String(k).split('_q')[1]); const q=f.questions[qi]; if(q && isAnsweredCorrect({...q,_answered:a})) fcorr++; } }
     const facc=fdone? (fcorr/fdone*100).toFixed(1):'0.0';
     fi.style.display='block';
     fi.innerHTML='当前文件：<b>'+escapeHtml(f.fileName)+'</b> · '+zoneName(f.zone)+' · '+f.module+' · 共 <b>'+f.questions.length+'</b> 题 · 已做 <b>'+fdone+'</b> 题 · 正确率 <b>'+facc+'%</b>';
@@ -1473,41 +584,193 @@ function showConfirm(message, onYes){
   noBtn.onclick=function(){ cleanup(); };
 }
 
+function showInlineConfirm(panel, message, onYes){
+  if(!panel){ showConfirm(message, onYes); return; }
+  const old=panel.querySelector('.inline-confirm-overlay');
+  if(old) old.remove();
+  const overlay=document.createElement('div');
+  overlay.className='inline-confirm-overlay';
+  const box=document.createElement('div');
+  box.className='inline-confirm-box';
+  const title=document.createElement('div');
+  title.className='confirm-title'; title.textContent='⚠️ 确认清空';
+  const msg=document.createElement('div');
+  msg.className='confirm-message'; msg.textContent=message;
+  const actions=document.createElement('div');
+  actions.className='confirm-actions';
+  const no=document.createElement('button');
+  no.className='btn btn-outline'; no.type='button'; no.textContent='取消';
+  const yes=document.createElement('button');
+  yes.className='btn btn-danger'; yes.type='button'; yes.textContent='确定清除';
+  actions.appendChild(no); actions.appendChild(yes);
+  box.appendChild(title); box.appendChild(msg); box.appendChild(actions);
+  overlay.appendChild(box); panel.appendChild(overlay);
+  function cleanup(){ overlay.remove(); document.removeEventListener('keydown', onKey); }
+  function onKey(event){ if(event.key==='Escape'){ cleanup(); } else if(event.key==='Enter'){ cleanup(); onYes&&onYes(); } }
+  no.onclick=cleanup;
+  yes.onclick=function(){ cleanup(); onYes&&onYes(); };
+  document.addEventListener('keydown', onKey);
+}
+
 function renderModuleBar(){
-  const qs=getZoneQuestions(activeZone, '__all__');
-  const counts={all: qs.length};
-  qs.forEach(q=>{ 
-    let m = getQuestionBigCategory(q);
-    m = normalizeModuleName(m);
-    if (!counts[m]) counts[m] = 0;
-    counts[m]++; 
-  });
-  let html=`<button class="module-btn ${filterState.module==='all'?'active':''}" data-module="all">📂 全部<span class="count">${counts.all} 题</span></button>`;
-  MODS.forEach(m=>{ html+=`<button class="module-btn ${filterState.module===m?'active':''}" data-module="${m}">${m}<span class="count">${counts[m] || 0} 题</span></button>`; });
-  moduleBar.innerHTML=html;
-  moduleBar.querySelectorAll('.module-btn').forEach(b=>{
-    b.onclick=function(){
-      moduleBar.querySelectorAll('.module-btn').forEach(x=>x.classList.remove('active'));
+  var qs = getFilterBaseQuestions();
+  var counts = {all: qs.length};
+
+  if (activeZone === 'mk') {
+    qs.forEach(function(q){
+      var moduleName = q.category || q.bigCategory || q.module || '';
+      if (moduleName) {
+        var moduleMap = {
+          '言语理解与表达': '言语理解与表达',
+          '言语理解': '言语理解与表达',
+          '判断推理': '判断推理',
+          '数量关系': '数量关系',
+          '资料分析': '资料分析',
+          '常识判断': '常识判断',
+          '政治理论': '常识判断'
+        };
+        var normalized = moduleMap[moduleName] || moduleName;
+        if (['言语理解与表达','判断推理','数量关系','资料分析','常识判断'].indexOf(normalized) !== -1) {
+          if (!counts[normalized]) counts[normalized] = 0;
+          counts[normalized]++;
+        }
+      }
+    });
+  } else {
+    qs.forEach(function(q){ 
+      var m = getQuestionBigCategory(q);
+      m = normalizeModuleName(m);
+      if (!counts[m]) counts[m] = 0;
+      counts[m]++; 
+    });
+  }
+
+  var html = '<button class="module-btn ' + (filterState.module === 'all' ? 'active' : '') + '" data-module="all">📂 全部<span class="count">' + (counts.all || 0) + ' 题</span></button>';
+
+  if (activeZone === 'mk') {
+    var moduleOrder = ['常识判断', '言语理解与表达', '数量关系', '判断推理', '资料分析'];
+    moduleOrder.forEach(function(m){
+      var count = counts[m] || 0;
+      html += '<button class="module-btn ' + (filterState.module === m ? 'active' : '') + '" data-module="' + m + '">' + m + '<span class="count">' + count + ' 题</span></button>';
+    });
+  } else {
+    MODS.forEach(function(m){ 
+      html += '<button class="module-btn ' + (filterState.module === m ? 'active' : '') + '" data-module="' + m + '">' + m + '<span class="count">' + (counts[m] || 0) + ' 题</span></button>'; 
+    });
+  }
+
+  moduleBar.innerHTML = html;
+
+  moduleBar.querySelectorAll('.module-btn').forEach(function(b){
+    b.onclick = function(){
+      moduleBar.querySelectorAll('.module-btn').forEach(function(x){ x.classList.remove('active'); });
       this.classList.add('active');
-      filterState.module=this.dataset.module;
-      filterState.subType='all';
-      filterState.leafType='all';
-      currentPage=1; saveView();
+      filterState.module = this.dataset.module;
+      filterState.subType = 'all';
+      filterState.leafType = 'all';
+      if (activeZone === 'mk') {
+        filterState.sortBy = 'default';
+      }
+      currentPage = 1;
+      saveView();
       window.updateSubTypeFilter();
       renderQuestions();
     };
   });
 }
 
-function updateFilterOptions(){
-  const years=new Set(), sources=new Set();
- getZoneQuestions(activeZone, '__all__').forEach(q=>{
-    const src=q.source||'';
-    if(src){ sources.add(src); const ym=src.match(/(\d{4})年/); if(ym) years.add(ym[1]); }
-  });
-yearFilter.innerHTML='<option value="all">📅 全部年份</option>'+[...years].sort(function(a,b){return b-a;}).map(y=>`<option value="${y}">${y}年</option>`).join('');
-  sourceValues=[...sources].sort();
-  renderSourceSuggestions();
+function updateFilterOptions() {
+    var years = new Set();
+    var sourceCount = {};
+
+    getZoneQuestions(activeZone, '__all__').forEach(function(q) {
+        var src = q.source || '';
+        if (src) {
+            var cleanSrc = src;
+
+            if (activeZone === 'mk') {
+                cleanSrc = cleanSrc.replace(/[（(][^）)]*[）)]/, '').trim();
+            }
+            cleanSrc = cleanSrc.replace(/第\d+题$/, '').trim();
+            cleanSrc = cleanSrc.replace(/\s+$/, '');
+
+            if (!sourceCount[cleanSrc]) sourceCount[cleanSrc] = 0;
+            sourceCount[cleanSrc]++;
+
+            var yearMatch = src.match(/(\d{4})年/);
+            if (yearMatch) years.add(yearMatch[1]);
+        }
+    });
+
+    if (activeZone === 'mk' && years.size < 2) {
+        var files = db.mk || {};
+        Object.keys(files).forEach(function(fileId) {
+            var f = files[fileId];
+            if (f && f.fileName) {
+                var match = f.fileName.match(/(202[5-7])/);
+                if (match) years.add(match[1]);
+            }
+        });
+    }
+
+    if (years.size === 0) {
+        ['2027', '2026', '2025'].forEach(function(y) { years.add(y); });
+    }
+
+    var yearArray = [...years].sort(function(a, b) { return b - a; });
+    yearFilter.innerHTML = '<option value="all">📅 全部年份</option>' + 
+        yearArray.map(function(y) {
+            return '<option value="' + y + '">' + y + '年</option>';
+        }).join('');
+
+    yearFilter.value = 'all';
+    filterState.year = 'all';
+
+    function extractYearForSort(source) {
+        var match = source.match(/(\d{4})/);
+        return match ? parseInt(match[1], 10) : 0;
+    }
+
+    function extractSeasonForSort(source) {
+        var match = source.match(/第([一二三四五六七八九十百千万]+)季/);
+        if (!match) return 0;
+        var numStr = match[1];
+        var map = {'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10,'百':100,'千':1000,'万':10000};
+        if (numStr.includes('十')) {
+            var parts = numStr.split('十');
+            var left = parts[0] ? (map[parts[0]] || 0) : 0;
+            var right = parts[1] ? (map[parts[1]] || 0) : 0;
+            return left * 10 + right;
+        }
+        return map[numStr] || 0;
+    }
+
+    var uniqueSources;
+    if (activeZone === 'mk') {
+        uniqueSources = Object.keys(sourceCount).sort(function(a, b) {
+            var yearA = extractYearForSort(a);
+            var yearB = extractYearForSort(b);
+            if (yearA !== yearB) return yearB - yearA;
+
+            var seasonA = extractSeasonForSort(a);
+            var seasonB = extractSeasonForSort(b);
+            if (seasonA !== seasonB) return seasonB - seasonA;
+
+            return a.localeCompare(b);
+        });
+    } else {
+        uniqueSources = Object.keys(sourceCount).sort(function(a, b) {
+            var yearA = extractYearForSort(a);
+            var yearB = extractYearForSort(b);
+            if (yearA !== yearB) return yearB - yearA;
+            return a.localeCompare(b);
+        });
+    }
+
+    window.sourceValues = uniqueSources;
+    window._sourceCount = sourceCount;
+
+    renderSourceSuggestions();
 }
 function sourceMatchesProvince(source, province){
   if(!province || province==='all') return true;
@@ -1518,12 +781,23 @@ function sourceMatchesProvince(source, province){
   return source.includes(province);
 }
 function renderSourceSuggestions(query){
-  if(!sourceOptions) return;
-  const keyword=String(query||'').trim().toLowerCase();
-  const matches=sourceValues.filter(function(source){
-    return sourceMatchesProvince(source, sourceProvince) && (!keyword || source.toLowerCase().includes(keyword));
-  }).slice(0,200);
-  sourceOptions.innerHTML=matches.map(function(source){ return '<option value="'+escapeHtml(source)+'"></option>'; }).join('');
+  if (!sourceOptions) return;
+  var sourceCount = window._sourceCount || {};
+  var keyword = String(query || '').trim().toLowerCase();
+
+  var matches = (window.sourceValues || []).filter(function(source) {
+    var provinceMatch = sourceMatchesProvince(source, sourceProvince);
+    var keywordMatch = !keyword || source.toLowerCase().includes(keyword);
+    return provinceMatch && keywordMatch;
+  });
+
+  var html = matches.map(function(source) {
+    var count = sourceCount[source] || 0;
+    return '<option value="' + escapeHtml(source) + '">' +
+           escapeHtml(source) + '（' + count + '题）</option>';
+  }).join('');
+
+  sourceOptions.innerHTML = html;
 }
 function setSelectValue(sel, val){ if([...sel.options].some(o=>o.value===val)) sel.value=val; else sel.value='all'; }
 function applyFilterStateToUI(){
@@ -1549,11 +823,10 @@ function renderFileList(){
   // iOS Safari 会把点击派发到外层按钮，导致删除按钮点不动。改用 <div role="button"> 承载切换，
   // 内层删除保留为真正的 <button>，移动端才能可靠触发 click。
   // 切换逻辑改由 fileTabs 上的【事件委托】触发（见 bindFileTabSwitch）：用 data-file 标记，
-  // 兼容 iOS/Edge 上“div 上的 click 偶发不合成”的问题（同时绑定 click 与 touchend 兜底，防双触发）。
+  // 兼容 iOS/Edge 上“div 上的 click 偶发不合成”的问题（同时绑定 click、touchend 与键盘事件）。
   const tabAttrs=(id, extra='')=>{
     const active=activeFile===id?' active':'';
-    // onclick 兜底：与 #fileTabs 上的事件委托双保险。tabJustTouched 守卫已防 touchend+click 双触发。
-    return `class="file-tab${active}" data-file="${id}" role="button" tabindex="0"${extra} onclick="switchFile('${id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchFile('${id}');}"`;
+    return `class="file-tab${active}" data-file="${id}" role="button" tabindex="0"${extra}`;
   };
   let html=`<div ${tabAttrs('__all__')}>
     <span>📂 全部文件（${list.length}）</span>
@@ -1603,6 +876,13 @@ function bindFileTabSwitch(){
     if(tabJustTouched) return; // 已由 touchend 触发，忽略随后合成的 click
     const id=pick(e); if(id!==null) switchFile(id);
   });
+  fileTabs.addEventListener('keydown', function(e){
+    if(e.key!=='Enter' && e.key!==' ') return;
+    const tab=e.target.closest('.file-tab');
+    if(!tab || e.target.closest('.ft-del')) return;
+    e.preventDefault();
+    switchFile(tab.dataset.file);
+  });
 }
 // ============================================================
 // 筛选 + 排序
@@ -1635,6 +915,53 @@ function matchModule(q, selectedModule){
   const selected=normalizeModuleName(String(selectedModule));
   return value===selected;
 }
+function extractYear(source) {
+    if (!source) return 0;
+    var src = String(source);
+    
+    // 1. 优先匹配 "2026年" 格式
+    var match = src.match(/(\d{4})年/);
+    if (match) {
+        return parseInt(match[1], 10);
+    }
+    
+    // 2. 匹配 "2026下半年" 或 "2026上半年" 格式（没有"年"字）
+    var match2 = src.match(/(\d{4})(?:年)?(?:上|下)半年/);
+    if (match2) {
+        return parseInt(match2[1], 10);
+    }
+    
+    // 3. 匹配单独的 4 位数字（可能是年份）
+    var match3 = src.match(/(20\d{2})/);
+    if (match3) {
+        var year = parseInt(match3[1], 10);
+        if (year >= 2015 && year <= 2030) {
+            return year;
+        }
+    }
+    
+    return 0;
+}
+function extractSeasonNum(source){
+  if(!source) return 0;
+  var match=String(source).match(/第([零〇一二三四五六七八九十百千万两]+)季/);
+  if(!match) return 0;
+  var numStr=match[1];
+  var map={'零':0,'〇':0,'一':1,'二':2,'两':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10,'百':100,'千':1000,'万':10000};
+  if(numStr.indexOf('百')!==-1){
+    var parts=numStr.split('百');
+    var head=parts[0] ? (map[parts[0]]||0) : 0;
+    var tail=parts[1] ? (map[parts[1]]||0) : 0;
+    return head*100 + tail;
+  }
+  if(numStr.indexOf('十')!==-1){
+    var parts2=numStr.split('十');
+    var head2=parts2[0] ? (map[parts2[0]]||0) : 1;
+    var tail2=parts2[1] ? (map[parts2[1]]||0) : 0;
+    return head2*10 + tail2;
+  }
+  return map[numStr] || 0;
+}
 function getFiltered(){
   let qs=getZoneQuestions(activeZone, '__all__');
   const kw=(filterState.search||'').toLowerCase().trim();
@@ -1661,9 +988,12 @@ function getFiltered(){
     qs=qs.filter(q=>testProvince(q.source||'')===filterState.province);
   }
 
-  // 来源
+  // 来源（改为包含匹配，所有分区生效）
   if(filterState.source && filterState.source!=='all'){
-    qs=qs.filter(q=>(q.source||'')===filterState.source);
+    var sourceValue = filterState.source;
+    qs=qs.filter(function(q){
+      return (q.source || '').includes(sourceValue);
+    });
   }
 
   // 做题状态
@@ -1682,8 +1012,49 @@ function getFiltered(){
   if(isNaN(min)) min=0; if(isNaN(max)) max=100;
   if(min>max){ const t=min; min=max; max=t; }
   if(min>0||max<100) qs=qs.filter(q=>{ const r=Number(q.correctRatio||0); return r>=min&&r<=max; });
-  if(filterState.sortBy==='ratioDesc') qs.sort((a,b)=>Number(b.correctRatio||0)-Number(a.correctRatio||0));
-  else if(filterState.sortBy==='ratioAsc') qs.sort((a,b)=>Number(a.correctRatio||0)-Number(b.correctRatio||0));
+  if (activeZone === 'mk') {
+    if (filterState.sortBy === 'ratioDesc') {
+      qs.sort(function(a, b) {
+        return Number(b.correctRatio || 0) - Number(a.correctRatio || 0);
+      });
+    } else if (filterState.sortBy === 'ratioAsc') {
+      qs.sort(function(a, b) {
+        return Number(a.correctRatio || 0) - Number(b.correctRatio || 0);
+      });
+    } else {
+      qs.sort(function(a, b) {
+        var sourceA = a.source || '';
+        var sourceB = b.source || '';
+
+        var yearA = extractYear(sourceA);
+        var yearB = extractYear(sourceB);
+        var seasonA = extractSeasonNum(sourceA);
+        var seasonB = extractSeasonNum(sourceB);
+
+        var isSecondHalfA = sourceA.includes('下半年');
+        var isSecondHalfB = sourceB.includes('下半年');
+
+        if (yearA !== yearB) return yearB - yearA;
+
+        if (isSecondHalfA && !isSecondHalfB) return -1;
+        if (!isSecondHalfA && isSecondHalfB) return 1;
+
+        if (seasonA !== seasonB) return seasonB - seasonA;
+
+        return 0;
+      });
+    }
+  } else {
+    if(filterState.sortBy==='ratioDesc') qs.sort((a,b)=>Number(b.correctRatio||0)-Number(a.correctRatio||0));
+    else if(filterState.sortBy==='ratioAsc') qs.sort((a,b)=>Number(a.correctRatio||0)-Number(b.correctRatio||0));
+    else {
+      qs.sort(function(a,b){
+        var yearA=extractYear(a.source||'');
+        var yearB=extractYear(b.source||'');
+        return yearB-yearA;
+      });
+    }
+  }
   return qs;
 }
 
@@ -1691,17 +1062,76 @@ function getOptions(item){
   if(item.accessories&&item.accessories.length) for(const a of item.accessories) if(a.options&&a.options.length) return a.options;
   return item.options||[];
 }
+function normalizeAnswerLetters(value){
+  if(value===undefined||value===null||value==='') return [];
+  if(Array.isArray(value)) return value.map(function(v){ return String(v).trim().toUpperCase(); }).filter(function(v){ return /^[A-F]$/.test(v); });
+  if(typeof value==='string'){
+    const s=value.trim();
+    if(!s) return [];
+    if(/^[A-F]$/i.test(s)) return [s.toUpperCase()];
+    const letters=[];
+    const parts=s.split(/[，,;；\s]+/).map(function(v){ return v.trim(); }).filter(Boolean);
+    for(let i=0;i<parts.length;i++){
+      const matches=(parts[i].match(/[A-F]/gi)||[]).map(function(ch){ return ch.toUpperCase(); });
+      for(let j=0;j<matches.length;j++) letters.push(matches[j]);
+    }
+    if(letters.length) return letters.filter(function(v,idx,arr){ return arr.indexOf(v)===idx; });
+    return (s.match(/[A-F]/gi)||[]).map(function(v){ return v.toUpperCase(); }).filter(function(v,idx,arr){ return arr.indexOf(v)===idx; });
+  }
+  if(typeof value==='object'){
+    if(Array.isArray(value.answers)&&value.answers.length) return normalizeAnswerLetters(value.answers);
+    if(Array.isArray(value.choices)&&value.choices.length) return normalizeAnswerLetters(value.choices);
+    if(value.choice!==undefined) return normalizeAnswerLetters(value.choice);
+  }
+  return [];
+}
+function normalizeChoiceLetters(value, opts){
+  const ltrs=['A','B','C','D','E','F'];
+  const values=Array.isArray(value) ? value : String(value).split(/[，,;；\s]+/).filter(Boolean);
+  const letters=[];
+  for(const entry of values){
+    const text=String(entry).trim();
+    if(/^\d+$/.test(text)){
+      const index=Number(text);
+      if(index>=0 && index<opts.length && index<ltrs.length) letters.push(ltrs[index]);
+    }else letters.push(...normalizeAnswerLetters(text));
+  }
+  return letters.filter((letter,index,list)=>list.indexOf(letter)===index);
+}
+function isMultipleChoice(item){
+  if(!item) return false;
+  const choice=item.correctAnswer && typeof item.correctAnswer==='object' ? item.correctAnswer.choice : undefined;
+  if(Array.isArray(choice) && choice.length>1) return true;
+  if(typeof choice==='string' && /[,，;；]/.test(choice)) return true;
+  const rawType=item.type ?? item.questionType ?? item.qType ?? item.answerType ?? item.multiple;
+  const typeText=typeof rawType==='string' ? rawType.toLowerCase() : '';
+  if(typeText.includes('多选') || typeText.includes('multiple') || typeText.includes('checkbox')) return true;
+  const answerValue=item.correctAnswer ?? item.answer ?? item.correct ?? item.rightAnswer ?? item.key;
+  if(Array.isArray(answerValue) && answerValue.length>1) return true;
+  if(typeof answerValue==='string' && /[,，;；]/.test(answerValue)) return true;
+  if(answerValue && typeof answerValue==='object'){
+    const list=Array.isArray(answerValue.choices)?answerValue.choices:Array.isArray(answerValue.answers)?answerValue.answers:[];
+    if(list.length>1) return true;
+  }
+  return false;
+}
 function getCorrectLetter(item){
   const opts=getOptions(item), ltrs=['A','B','C','D','E','F'];
-  // 兼容多种字段名：correctAnswer / answer / correct / rightAnswer / key
   let c=item.correctAnswer;
   if(c===undefined||c===null||c==='') c=item.answer;
   if(c===undefined||c===null||c==='') c=item.correct;
   if(c===undefined||c===null||c==='') c=item.rightAnswer;
   if(c===undefined||c===null||c==='') c=item.key;
+  if(c && typeof c==='object' && c.choice!==undefined){
+    const choiceLetters=normalizeChoiceLetters(c.choice, opts);
+    if(choiceLetters.length>1) return choiceLetters;
+    if(choiceLetters.length===1) return choiceLetters[0];
+  }
   if(c===undefined||c===null||c===''){
-    for(let i=0;i<opts.length;i++){ const o=opts[i]; if(o&&(o.isCorrect===true||o.correct===true)) return ltrs[i]; }
-    // 兜底：从解析文本中提取答案字母（如“故正确答案为A”“答案选B”“因此选C”）
+    const correctLetters=[];
+    for(let i=0;i<opts.length;i++){ const o=opts[i]; if(o&&(o.isCorrect===true||o.correct===true)) correctLetters.push(ltrs[i]); }
+    if(correctLetters.length>1) return correctLetters;
+    if(correctLetters.length===1) return correctLetters[0];
     const sol=item.solution||'';
     if(sol){
       const pats=[
@@ -1713,9 +1143,15 @@ function getCorrectLetter(item){
         /答案[为是为：:、\s]{1,3}([A-F])(?![A-F])/
       ];
       for(const p of pats){ const mm=sol.match(p); if(mm) return mm[1].toUpperCase(); }
+      const allMatches=(sol.match(/[A-F]/gi)||[]).map(function(v){ return v.toUpperCase(); }).filter(function(v,idx,arr){ return arr.indexOf(v)===idx; });
+      if(allMatches.length>1) return allMatches;
+      if(allMatches.length===1) return allMatches[0];
     }
     return '';
   }
+  const letters=normalizeAnswerLetters(c);
+  if(letters.length>1) return letters;
+  if(letters.length===1) return letters[0];
   const normStr=(v)=>{ if(typeof v!=='string') return null; v=v.trim();
     if(/^[A-F]$/i.test(v)) return v.toUpperCase();
     const m=v.match(/[A-F]/i); return m? m[0].toUpperCase(): null; };
@@ -1725,20 +1161,35 @@ function getCorrectLetter(item){
     if(Array.isArray(c)&&c.length){ const rr=normStr(c[0]); if(rr) return rr; }
     if(c.choice!==undefined){
       const v=c.choice;
-      const rr=normStr(v); if(rr) return rr;                                   // 字母 "A"
-      if(typeof v==='number'&&v>=0&&v<opts.length) return ltrs[v];            // 数字索引 0
-      if(typeof v==='string'&&!isNaN(parseInt(v))){ const i=parseInt(v); if(i>=0&&i<opts.length) return ltrs[i]; }  // 数字字符串 "0"
+      const rr=normStr(v); if(rr) return rr;
+      if(typeof v==='number'&&v>=0&&v<opts.length) return ltrs[v];
+      if(typeof v==='string'&&!isNaN(parseInt(v))){ const i=parseInt(v); if(i>=0&&i<opts.length) return ltrs[i]; }
     }
   }
   return '';
 }
+function getSelectedLetters(item){
+  if(!item) return [];
+  const memorySelection=item._key && multiChoiceSelections[item._key];
+  const source = memorySelection || (item._draftSelection !== undefined && item._draftSelection !== null ? item._draftSelection : item._answered);
+  return normalizeAnswerLetters(source);
+}
 function isAnsweredCorrect(item){
   const a=item._answered;
   if(a===undefined||a===null) return null;
-  if(typeof a==='string') return getCorrectLetter(item)===a;   // 新格式：存的是所选字母
-  return !!a;                                                   // 旧格式：存的是布尔
+  const correctLetters = normalizeAnswerLetters(getCorrectLetter(item));
+  const submittedLetters = normalizeAnswerLetters(a);
+  if(Array.isArray(a) || correctLetters.length>1 || submittedLetters.length>1){
+    const normalizedCorrect = correctLetters.slice().sort();
+    const normalizedSubmitted = submittedLetters.slice().sort();
+    if(normalizedCorrect.length !== normalizedSubmitted.length) return false;
+    return normalizedCorrect.every(function(letter, index){ return letter === normalizedSubmitted[index]; });
+  }
+  if(typeof a==='string') return getCorrectLetter(item)===a.toUpperCase();
+  if(typeof a==='boolean') return !!a;
+  return false;
 }
-function selectedLetter(item){ const a=item._answered; return (typeof a==='string')?a:''; }
+function selectedLetter(item){ const letters=getSelectedLetters(item); return letters.join(','); }
 // 回收上一批题目生成的 Blob URL（切换/翻页时旧 <img> 已被 innerHTML 替换，其 blob 不再需要）
 function revokeBlobUrls(){
   for(let i=0;i<blobUrls.length;i++){ try{ URL.revokeObjectURL(blobUrls[i]); }catch(e){} }
@@ -1850,15 +1301,65 @@ function tryProxyImage(img, originalSrc, idx){
   img.src = nextSrc;
 }
 
+function restoreScrollPosition(scrollY){
+  scrollY=Number(scrollY)||0;
+  try{ window.scrollTo({top:scrollY,behavior:'instant'}); }
+  catch(e){ window.scrollTo(0,scrollY); }
+  const deviation=window.scrollY-scrollY;
+  if(Math.abs(deviation)>30){
+    try{ window.scrollTo({top:scrollY,behavior:'instant'}); }
+    catch(e){ window.scrollTo(0,scrollY); }
+  }
+  return deviation;
+}
+function releasePendingScrollLock(){
+  if(!window.__pendingScrollKey) return;
+  const scrollY=Number(window.__pendingScrollY)||0;
+  const htmlStyle=window.__pendingHtmlStyle||{};
+  const bodyStyle=window.__pendingBodyStyle||{};
+  document.documentElement.style.overflow=htmlStyle.overflow||'';
+  document.documentElement.style.position=htmlStyle.position||'';
+  document.documentElement.style.top=htmlStyle.top||'';
+  document.documentElement.style.width=htmlStyle.width||'';
+  document.body.style.overflow=bodyStyle.overflow||'';
+  document.body.style.position=bodyStyle.position||'';
+  document.body.style.top=bodyStyle.top||'';
+  document.body.style.width=bodyStyle.width||'';
+  restoreScrollPosition(scrollY);
+  setTimeout(function(){
+    const actual=window.scrollY, deviation=actual-scrollY;
+    if(Math.abs(deviation)>30) restoreScrollPosition(scrollY);
+    if(typeof scrollDiagWrite==='function') scrollDiagWrite(Math.abs(deviation)>30?'jump':'info','恢复滚动: 期望:'+scrollY+' → 实际:'+actual+' 偏差:'+deviation+'px');
+    window.__pendingScrollKey=null; window.__pendingScrollY=null; window.__pendingScrollPage=null;
+    window.__pendingHtmlStyle=null; window.__pendingBodyStyle=null;
+  },100);
+  setTimeout(function(){ if('scrollRestoration' in history) history.scrollRestoration='auto'; },300);
+}
+
 function renderQuestions(){
+  if(window.__pendingScrollKey){
+    const scrollY=Number(window.__pendingScrollY)||0;
+    const htmlStyle=window.__pendingHtmlStyle||{};
+    const bodyStyle=window.__pendingBodyStyle||{};
+    document.documentElement.style.overflow='hidden';
+    document.documentElement.style.position='fixed';
+    document.documentElement.style.top='-'+scrollY+'px';
+    document.documentElement.style.width='100%';
+    document.body.style.overflow='hidden';
+    document.body.style.position='fixed';
+    document.body.style.top='-'+scrollY+'px';
+    document.body.style.width='100%';
+  }
   revokeBlobUrls();   // 切换/翻页时回收上一批 Blob URL，避免内存泄漏
-  filteredQuestions=getFiltered();
+  filteredQuestions = getFiltered();
+  // 模考分区的排序已在 getFiltered() 中处理，这里不再覆盖
   const total=filteredQuestions.length;
   if(!total){
     content.innerHTML = (index[activeZone]&&index[activeZone].length) ? '<div style="text-align:center;padding:40px;color:var(--secondary);">🔍 没有匹配的题目</div>' : '<div style="text-align:center;padding:40px;color:var(--secondary);">📂 上传 JSON 文件开始刷题</div>';
     pageMeta.style.display='none'; pagination.style.display='none'; noResult.style.display='none';
     controls.style.display=(index[activeZone]&&index[activeZone].length)?'flex':'none';
     renderZoneStats();
+    if(window.__pendingScrollKey) requestAnimationFrame(function(){ requestAnimationFrame(releasePendingScrollLock); });
     return;
   }
   controls.style.display='flex';
@@ -1892,23 +1393,34 @@ function renderQuestions(){
     if(materialHtml) html+=materialHtml;
     html+=`<div class="q-content">${contentHtml}</div>`;
     if(options&&options.length){
-      html+='<div class="q-options">';
+      const multiple=isMultipleChoice(item);
+      const selectedLetters=getSelectedLetters(item);
+      html+=`<div class="q-options${multiple ? ' q-options-multiple' : ''}">`;
       options.forEach((opt,j)=>{
         const letter=optLtrs[j]||String.fromCharCode(65+j);
-        const isCorr=letter===correctLetter;
+        const isCorr = multiple ? (Array.isArray(correctLetter) ? correctLetter.includes(letter) : correctLetter===letter) : (letter===correctLetter);
         let cls='option';
+        if(multiple) cls+=' option-multiple';
         if(hasAnswered) cls+=' disabled';
-        if(hasAnswered&&isCorr) cls+=' correct selected';
-        if(hasAnswered&&letter===selectedLetter(item)&&!isCorr) cls+=' wrong selected';
-        html+=`<div class="${cls}" data-letter="${letter}" data-key="${key}" onclick="selectOption('${key}','${letter}')">${letter}. ${opt}</div>`;
+        if(multiple && selectedLetters.includes(letter)) cls+=' selected';
+        if(hasAnswered&&isCorr) cls+=' correct selected selected-correct';
+        if(hasAnswered && !isCorr && selectedLetters.includes(letter)) cls+=' wrong selected selected-wrong';
+        html+=`<div class="${cls}" data-letter="${letter}" data-key="${key}" onclick="selectOption('${key}','${letter}',event)">${multiple ? '☑' : ''} ${letter}. ${opt}</div>`;
       });
       html+='</div>';
+      if(multiple){
+        const countText = '已选 ' + selectedLetters.length + ' 项';
+        const submitButton = hasAnswered ? '' : `<button type="button" class="q-multi-submit" onclick="submitMultipleChoice('${key}')" ${selectedLetters.length ? '' : 'disabled'}>确认答案</button>`;
+        html+=`<div class="q-multi-status">${countText}</div>${submitButton}`;
+      }
     }
     if(hasAnswered){
       const inWrong = !!(wrongSet[activeZone]&&wrongSet[activeZone][key]);
       const unmarkBtn = inWrong ? ` <button type="button" class="q-unmark" onclick="event.stopPropagation();unmarkWrong('${key}')" title="从错题集移除">➖ 取消错题标记</button>` : '';
-      html+=`<div class="q-verdict"><span class="q-answer show">✅ 正确答案: ${correctLetter}</span><span class="q-result ${isCorrect?'correct':'wrong'}">${isCorrect?'✅ 正确':'❌ 错误'}</span>${unmarkBtn}</div>`;
-    } else {
+      const userAnswer=selectedLetter(item);
+      const answerText = Array.isArray(correctLetter) ? correctLetter.join(',') : correctLetter;
+      html+=`<div class="q-verdict"><span class="q-answer show">${isCorrect?'✅ 回答正确':'✅ 正确答案：'+answerText}</span>${!isCorrect&&userAnswer?`<span class="q-user-answer">❌ 你的答案：${userAnswer}</span>`:''}${unmarkBtn}</div>`;
+    } else if(!isMultipleChoice(item)) {
       html+=`<div class="q-answer">✅ 正确答案: ${correctLetter}</div>`;
     }
     if(solutionHtml) html+=`<div class="q-solution${hasAnswered?' show':''}"><strong>💡 解析</strong><br>${solutionHtml}</div>`;
@@ -1916,6 +1428,38 @@ function renderQuestions(){
     html+='</div>';
   }
   content.innerHTML=html;
+  if(window.__pendingScrollKey){
+    const scrollY=Number(window.__pendingScrollY)||0;
+    restoreScrollPosition(scrollY);
+    requestAnimationFrame(function(){
+      restoreScrollPosition(scrollY);
+      setTimeout(function(){
+        const htmlStyle=window.__pendingHtmlStyle||{};
+        const bodyStyle=window.__pendingBodyStyle||{};
+        document.documentElement.style.overflow=htmlStyle.overflow||'';
+        document.documentElement.style.position=htmlStyle.position||'';
+        document.documentElement.style.top=htmlStyle.top||'';
+        document.documentElement.style.width=htmlStyle.width||'';
+        document.body.style.overflow=bodyStyle.overflow||'';
+        document.body.style.position=bodyStyle.position||'';
+        document.body.style.top=bodyStyle.top||'';
+        document.body.style.width=bodyStyle.width||'';
+        restoreScrollPosition(scrollY);
+        setTimeout(function(){
+          const actual=window.scrollY;
+          const deviation=actual-scrollY;
+          if(Math.abs(deviation)>30) restoreScrollPosition(scrollY);
+          if(typeof scrollDiagWrite==='function') scrollDiagWrite(Math.abs(deviation)>30?'jump':'info','恢复滚动: 期望:'+scrollY+' → 实际:'+actual+' 偏差:'+deviation+'px');
+          window.__pendingScrollKey=null;
+          window.__pendingScrollY=null;
+          window.__pendingScrollPage=null;
+          window.__pendingHtmlStyle=null;
+          window.__pendingBodyStyle=null;
+        },100);
+      },50);
+    });
+    setTimeout(function(){ if('scrollRestoration' in history) history.scrollRestoration='auto'; },300);
+  }
   saveStudyPosition();
   restoreAIHistoryForVisibleQuestions();
   // 图片注入：normalize 协议（file://→https://）+ forceJpegUrl + 代理兜底。
@@ -1933,9 +1477,46 @@ function renderQuestions(){
   renderZoneStats();
 }
 
-function selectOption(key, letter){
+function selectOption(key, letter, event){
+  if(event){ event.preventDefault(); event.stopPropagation(); }
   const item=filteredQuestions.find(q=>q._key===key);
   if(!item || item._answered!==undefined) return;
+  if(isMultipleChoice(item)){
+    const target = event && event.currentTarget ? event.currentTarget : document.querySelector('.option[data-key="'+key+'"][data-letter="'+letter+'"]');
+    const selected = getSelectedLetters(item);
+    const idx = selected.indexOf(letter);
+    if(idx>=0) selected.splice(idx,1); else selected.push(letter);
+    item._draftSelection = selected.slice().sort();
+    multiChoiceSelections[key] = item._draftSelection.slice();
+    if(target){ target.classList.toggle('selected', selected.includes(letter)); }
+    const questionEl = target ? target.closest('.question') : document.getElementById('q-'+key);
+    if(questionEl){
+      const statusEl = questionEl.querySelector('.q-multi-status');
+      if(statusEl) statusEl.textContent = '已选 ' + selected.length + ' 项';
+      const submitBtn = questionEl.querySelector('.q-multi-submit');
+      if(submitBtn) submitBtn.disabled = selected.length === 0;
+    }
+    return;
+  }
+  const savedScrollY=window.scrollY;
+  window.__pendingScrollKey=key;
+  window.__pendingScrollY=savedScrollY;
+  window.__pendingScrollPage=currentPage;
+  window.__scrollDiagRestoreStarted=Date.now();
+  if('scrollRestoration' in history) history.scrollRestoration='manual';
+  if(typeof scrollDiagWrite==='function') scrollDiagWrite('select','key: '+key+' scroll: '+savedScrollY);
+  const htmlStyle={overflow:document.documentElement.style.overflow,position:document.documentElement.style.position,top:document.documentElement.style.top,width:document.documentElement.style.width};
+  const bodyStyle={overflow:document.body.style.overflow,position:document.body.style.position,top:document.body.style.top,width:document.body.style.width};
+  window.__pendingHtmlStyle=htmlStyle;
+  window.__pendingBodyStyle=bodyStyle;
+  document.documentElement.style.overflow='hidden';
+  document.documentElement.style.position='fixed';
+  document.documentElement.style.top='-'+savedScrollY+'px';
+  document.documentElement.style.width='100%';
+  document.body.style.overflow='hidden';
+  document.body.style.position='fixed';
+  document.body.style.top='-'+savedScrollY+'px';
+  document.body.style.width='100%';
   const f=db[activeZone][item._fileId];
   if(f){ if(!f.answered) f.answered={}; f.answered[key]=letter; saveFile(activeZone, item._fileId); }
   // 错题集：答错自动加入，答对自动移除
@@ -1945,6 +1526,28 @@ function selectOption(key, letter){
   else { delete wrongSet[activeZone][key]; }                                            // 选对不震动
   saveWrong();
   recordAnswerTiming();   // 计时统计：累加用时 + 已答题数
+  incDaily();
+  renderQuestions();
+}
+function submitMultipleChoice(key){
+  const item=filteredQuestions.find(q=>q._key===key);
+  if(!item) return;
+  const selected=getSelectedLetters(item);
+  if(!selected.length){ alert('请至少选择一个选项'); return; }
+  const correct=normalizeAnswerLetters(getCorrectLetter(item));
+  const selectedSet=selected.slice().sort();
+  const correctSet=correct.slice().sort();
+  const isCorrect=correctSet.length===selectedSet.length && correctSet.every(function(letter,index){ return letter===selectedSet[index]; });
+  item._answered=selectedSet.slice();
+  item._draftSelection=null;
+  delete multiChoiceSelections[key];
+  const f=db[activeZone][item._fileId];
+  if(f){ if(!f.answered) f.answered={}; f.answered[key]=selectedSet.slice(); saveFile(activeZone,item._fileId); }
+  if(!wrongSet[activeZone]) wrongSet[activeZone]={};
+  if(isCorrect) delete wrongSet[activeZone][key];
+  else { wrongSet[activeZone][key]=true; if(navigator.vibrate) navigator.vibrate(15); }
+  saveWrong();
+  recordAnswerTiming();
   incDaily();
   renderQuestions();
 }
@@ -1980,6 +1583,9 @@ function clearAllFiles(){
 function resetProgress(){
   showConfirm('重置本分区所有做题进度？已作答记录将清空。', ()=>{
     Object.values(db[activeZone]).forEach(f=>{ f.answered={}; saveFile(activeZone, f.id); });
+    timerData={answered:0,totalSec:0,startedAt:0,questionStart:0,pos:(timerData&&timerData.pos)||null};
+    saveTimerData();
+    renderTimerStats();
     renderAll();
   });
 }
@@ -2032,6 +1638,138 @@ function buildExportItem(q){
     status: q._answered!==undefined ? (isAnsweredCorrect(q)?'正确':'错误') : '未做'
   };
 }
+
+function findQuestionByKey(key){
+  for (const zone of ['gk', 'mk', 'sy']) {
+    const zoneData = db[zone] || {};
+    for (const fileId of Object.keys(zoneData)) {
+      const fileData = zoneData[fileId];
+      if (!fileData || !Array.isArray(fileData.questions)) continue;
+      for (let qi = 0; qi < fileData.questions.length; qi++) {
+        const q = fileData.questions[qi];
+        if (q && ('f' + fileId + '_q' + qi) === key) {
+          if (!q._key) q._key = 'f' + fileId + '_q' + qi;
+          return q;
+        }
+      }
+    }
+  }
+  return null;
+}
+function normalizeQuestionText(value){
+  return String(value||'').replace(/<[^>]*>/g,'').replace(/\s+/g,'').trim();
+}
+function findQuestionByContent(content){
+  const target=normalizeQuestionText(content);
+  if(!target) return null;
+  let partial=null;
+  for(const zone of ['gk','mk','sy']){
+    const zoneData=db[zone]||{};
+    for(const fileId of Object.keys(zoneData)){
+      const questions=zoneData[fileId]&&zoneData[fileId].questions;
+      if(!Array.isArray(questions)) continue;
+      for(let qi=0;qi<questions.length;qi++){
+        const question=questions[qi];
+        const current=normalizeQuestionText(question&&question.content);
+        if(!current) continue;
+        const match={question,key:'f'+fileId+'_q'+qi,zone,fileId,qi};
+        if(current===target) return match;
+        if(!partial&&(current.includes(target)||target.includes(current))) partial=match;
+      }
+    }
+  }
+  return partial;
+}
+function findQuestionByQidPart(qid){
+  const target=String(qid||'').trim();
+  if(!target) return null;
+  for(const zone of ['gk','mk','sy']){
+    const zoneData=db[zone]||{};
+    for(const fileId of Object.keys(zoneData)){
+      const questions=zoneData[fileId]&&zoneData[fileId].questions;
+      if(!Array.isArray(questions)) continue;
+      for(let qi=0;qi<questions.length;qi++){
+        const question=questions[qi];
+        const current=String(question&&question._qid||'');
+        if(current&&(current.startsWith(target)||current.endsWith(target)||target.startsWith(current)||target.endsWith(current))) return {question,key:'f'+fileId+'_q'+qi,zone,fileId,qi};
+      }
+    }
+  }
+  return null;
+}
+
+function buildQuestionInfoText(item){
+  const q = item || {};
+  const options = getOptions(q);
+  let text = '============================================================\n📝 题目信息\n============================================================\n\n';
+  text += '📌 题干：\n' + (q.content || '无题干') + '\n\n';
+  text += '📋 选项：\n';
+  if (options.length) {
+    options.forEach(function(opt, idx){
+      text += '  ' + String.fromCharCode(65 + idx) + '. ' + (opt || '') + '\n';
+    });
+  } else {
+    text += '  无选项\n';
+  }
+  text += '\n✅ 正确答案：' + (getCorrectLetter(q) || '未知') + '\n';
+  return text;
+}
+
+function buildChatExportText(messages, question){
+  const safeMessages = Array.isArray(messages) ? messages.filter(Boolean) : [];
+  const simplifyMessages = safeMessages.filter(function(msg){ return msg && msg.type === 'simplify'; });
+  const chatMessages = safeMessages.filter(function(msg){ return !(msg && msg.type === 'simplify'); });
+  let text = '';
+  if (question) {
+    text += buildQuestionInfoText(question);
+    const aiSimplify = simplifyMessages.length ? simplifyMessages[simplifyMessages.length - 1].content : '';
+    text += '\n🤖 AI 简化解析：\n' + (aiSimplify || '暂无 AI 简化解析') + '\n\n';
+  }
+  text += '------------------------------------------------------------\n💬 对话记录\n------------------------------------------------------------\n\n';
+  if (!chatMessages.length && !simplifyMessages.length) {
+    text += '暂无对话记录\n';
+    return text;
+  }
+  let index = 1;
+  chatMessages.forEach(function(msg){
+    const role = msg.role === 'user' ? '🙋 用户' : '🤖 AI';
+    text += role + ' (' + index + ')：\n' + (msg.content || '') + '\n\n';
+    index++;
+  });
+  simplifyMessages.forEach(function(msg){
+    text += '🤖 AI (' + index + ')：\n' + (msg.content || '') + '\n\n';
+    index++;
+  });
+  return text + '============================================================\n导出时间：' + new Date().toLocaleString() + '\n============================================================\n';
+}
+
+// ============================================================
+// 题目唯一ID生成函数（用于备份/恢复匹配）
+// ============================================================
+function generateQuestionId(q){
+  // 提取题目关键信息（内容前100字 + 选项 + 正确答案）
+  const content = ((q.content||'').slice(0, 100) + (q.question||'').slice(0, 100)).slice(0, 100);
+  const options = getOptions(q);
+  const optionsStr = JSON.stringify(options.slice(0, 4));  // 只用前4个选项
+  const answer = getCorrectLetter(q);
+  
+  // 构造稳定的字符串进行哈希
+  const str = JSON.stringify({
+    c: content,
+    o: optionsStr,
+    a: answer
+  });
+  
+  // 简单哈希函数
+  let hash = 0;
+  for(let i = 0; i < str.length; i++){
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash = hash & hash;  // Convert to 32-bit integer
+  }
+  
+  return 'q_' + Math.abs(hash).toString(36);
+}
+
 function buildExportName(tag){
   const parts=[tag||'', zoneName(activeZone)];
   if(filterState.module!=='all') parts.push(filterState.module);
@@ -2061,9 +1799,179 @@ function exportWrong(){
   downloadJSON(wrongs, buildExportName('错题本'));
 }
 // 全量数据备份（含三分区文件 + 做题进度）
-function exportBackup(){
-  const backup={ _type:'helium_quiz_backup', version:1, exportTime:new Date().toISOString(), index, db, view:{activeZone, activeFile} };
-  downloadJSON(backup, 'Helium题库_数据备份_'+new Date().toISOString().slice(0,10)+'.json');
+async function exportBackup(){
+  // 统计所有分区中做过多少题
+  let totalAnswered = 0;
+  const answeredByZone = {};
+  const dataByZone = { gk: {}, mk: {}, sy: {} };
+  
+  ['gk', 'mk', 'sy'].forEach(zone => {
+    answeredByZone[zone] = 0;
+    
+    // 遍历该分区所有文件
+    Object.keys(db[zone] || {}).forEach(fileId => {
+      const fileData = db[zone][fileId];
+      if (!fileData || !fileData.questions) return;
+      
+      const answeredQuestions = [];
+      
+      // 遍历该文件的所有题目，只导出做过的题
+      fileData.questions.forEach((q, qi) => {
+        const key = 'f' + fileId + '_q' + qi;
+        const userAnswer = fileData.answered && fileData.answered[key];
+        
+        if (userAnswer !== undefined && userAnswer !== null) {
+          answeredByZone[zone]++;
+          totalAnswered++;
+          
+          // 确保题目有 _qid
+          if (!q._qid) {
+            q._qid = generateQuestionId(q);
+          }
+          
+          // 构建导出数据（只包含关键信息）
+          const isCorrect = getCorrectLetter(q) === userAnswer;
+          answeredQuestions.push({
+            qid: q._qid,
+            answer: userAnswer,
+            isCorrect: isCorrect,
+            content: q.content || '',
+            options: getOptions(q),
+            correctAnswer: getCorrectLetter(q),
+            bigCategory: q.category || '',
+            subCategory: q.subType || '',
+            leafCategory: q.leafType || ''
+          });
+        }
+      });
+      
+      // 如果该文件有做过的题，则保存
+      if (answeredQuestions.length > 0) {
+        if (!dataByZone[zone]) dataByZone[zone] = {};
+        dataByZone[zone][fileId] = {
+          fileName: fileData.fileName || '未命名文件',
+          module: fileData.module || '未分类',
+          questions: answeredQuestions
+        };
+      }
+    });
+  });
+  
+  // 如果没有做过任何题，提示并返回
+  if (totalAnswered === 0) {
+    alert('📭 当前没有做过任何题目，无需备份');
+    return;
+  }
+  
+  // 读取错题集、收藏、做题次数
+  const wrongSetData = { gk: {}, mk: {}, sy: {} };
+  const favoritesData = { gk: {}, mk: {}, sy: {} };
+  const attemptsData = {};
+  let chatHistory = {};
+  
+  try {
+    chatHistory = await loadAllChats();
+    Object.keys(chatHistory).forEach(key => {
+      if (!chatHistory[key] || !Array.isArray(chatHistory[key]) || chatHistory[key].length === 0) {
+        delete chatHistory[key];
+      }
+    });
+  } catch (e) {
+    console.warn('导出对话记录失败:', e);
+    chatHistory = {};
+  }
+  
+  ['gk', 'mk', 'sy'].forEach(zone => {
+    // 构建 qid 到 key 的映射
+    const qidToKeys = {};
+    Object.keys(db[zone] || {}).forEach(fileId => {
+      const fileData = db[zone][fileId];
+      if (!fileData || !fileData.questions) return;
+      
+      fileData.questions.forEach((q, qi) => {
+        const key = 'f' + fileId + '_q' + qi;
+        const userAnswer = fileData.answered && fileData.answered[key];
+        
+        if (userAnswer !== undefined && userAnswer !== null) {
+          if (!q._qid) q._qid = generateQuestionId(q);
+          qidToKeys[q._qid] = key;
+        }
+      });
+    });
+    
+    // 导出该分区的错题集（只导出做过的题中的错题）
+    if (wrongSet[zone]) {
+      Object.keys(qidToKeys).forEach(qid => {
+        const key = qidToKeys[qid];
+        if (wrongSet[zone][key]) {
+          wrongSetData[zone][qid] = true;
+        }
+      });
+    }
+    
+    // 导出该分区的收藏（只导出做过的题中的收藏）
+    if (favorites[zone]) {
+      Object.keys(qidToKeys).forEach(qid => {
+        const key = qidToKeys[qid];
+        if (favorites[zone][key]) {
+          favoritesData[zone][qid] = true;
+        }
+      });
+    }
+  });
+  
+  // 读取做题次数数据
+  try {
+    const attemptKey = 'qz_question_attempts_v1';
+    const attempts = JSON.parse(localStorage.getItem(attemptKey) || '{}');
+    
+    // 只导出做过的题的做题次数
+    ['gk', 'mk', 'sy'].forEach(zone => {
+      Object.keys(db[zone] || {}).forEach(fileId => {
+        const fileData = db[zone][fileId];
+        if (!fileData || !fileData.questions) return;
+        
+        fileData.questions.forEach((q, qi) => {
+          const key = 'f' + fileId + '_q' + qi;
+          const userAnswer = fileData.answered && fileData.answered[key];
+          
+          if (userAnswer !== undefined && userAnswer !== null) {
+            if (!q._qid) q._qid = generateQuestionId(q);
+            if (attempts[key]) {
+              attemptsData[q._qid] = attempts[key];
+            }
+          }
+        });
+      });
+    });
+  } catch (e) {}
+  
+  const chatCount = Object.values(chatHistory).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
+  
+  // 构建完整备份对象
+  const backup = {
+    _type: 'helium_quiz_backup_v2',
+    version: 2,
+    exportTime: new Date().toISOString(),
+    totalAnswered: totalAnswered,
+    data: dataByZone,
+    wrongSet: wrongSetData,
+    favorites: favoritesData,
+    attempts: attemptsData,
+    chatHistory: chatHistory,
+    view: { activeZone, activeFile }
+  };
+  
+  // 计算文件大小（估计）
+  const backupStr = JSON.stringify(backup);
+  const fileSize = Math.round(backupStr.length / 1024);
+  
+  // 弹出确认框
+  const confirmMsg = `将导出 ${totalAnswered} 道做过的题目，含 ${chatCount} 条AI对话记录（约 ${fileSize} KB），确认继续？`;
+  showConfirm(confirmMsg, () => {
+    downloadJSON(backup, 'Helium题库_做题备份_' + new Date().toISOString().slice(0, 10) + '.json');
+    alert(`✅ 备份导出成功！已导出 ${totalAnswered} 道题目的做题记录，含 ${chatCount} 条AI对话记录。`);
+  });
 }
 function importBackup(input){
   const file=input.files[0]; if(!file) return;
@@ -2075,17 +1983,204 @@ function importBackup(input){
   };
   reader.readAsText(file);
 }
-// 导入备份：兼容三种来源
-//  1) 本应用完整备份：{_type, version, exportTime, index, db, view}（含题目与进度，可完整恢复）
-//  2) 手机端备份对象：{_type, version, exportTime, index:{gk,mk,sy}}（可能仅含文件清单，题目需另外上传）
+// 导入备份：兼容新版 v2（做题记录）和旧版格式（完整备份）
+//  1) 新版格式 v2：{_type: 'helium_quiz_backup_v2', version: 2, data: {...}, wrongSet, favorites, attempts}（仅做题记录，文件小）
+//  2) 旧版完整备份：{_type: 'helium_quiz_backup', version: 1, index, db, view}（含全部题目，文件大）
 //  3) 电脑版数组格式：[{fileName, module, partition, questions, answered}]
-function importBackupFromObject(data){
+async function importBackupFromObject(data){
   if(!data || typeof data!=='object'){ alert('数据格式错误（需为题目数组或备份对象）'); return; }
+  
+  // ========== 新版 v2 格式导入（做题记录匹配模式）==========
+  if(data._type === 'helium_quiz_backup_v2' && data.version === 2 && data.data){
+    alert('检测到新版做题备份格式，正在恢复...');
+    
+    // 第一步：扫描当前数据库，建立 qid → {zone, fileId, qi} 的映射
+    const qidMap = {};  // qid → {zone, fileId, qi}
+    const keyMap = {};  // key → {zone, fileId, qi}（用于导入时更新答案）
+    
+    ['gk', 'mk', 'sy'].forEach(zone => {
+      Object.keys(db[zone] || {}).forEach(fileId => {
+        const fileData = db[zone][fileId];
+        if (!fileData || !fileData.questions) return;
+        
+        fileData.questions.forEach((q, qi) => {
+          // 为题目生成/读取 qid
+          if (!q._qid) q._qid = generateQuestionId(q);
+          
+          const qid = q._qid;
+          const key = 'f' + fileId + '_q' + qi;
+          
+          qidMap[qid] = { zone, fileId, qi, key };
+          keyMap[key] = { zone, fileId, qi, qid };
+        });
+      });
+    });
+    
+    // 第二步：遍历备份数据，用 qid 匹配并恢复做题记录
+    let matchedCount = 0, skippedCount = 0;
+    const backupData = data.data || {};
+    
+    ['gk', 'mk', 'sy'].forEach(zone => {
+      Object.keys(backupData[zone] || {}).forEach(fileId => {
+        const fileBackup = backupData[zone][fileId];
+        if (!fileBackup || !fileBackup.questions) return;
+        
+        fileBackup.questions.forEach(qBackup => {
+          const qid = qBackup.qid;
+          if (!qid) return;
+          
+          const match = qidMap[qid];
+          if (match) {
+            // 匹配成功：恢复答案
+            const currentFileData = db[match.zone][match.fileId];
+            if (!currentFileData.answered) currentFileData.answered = {};
+            
+            // 恢复用户答案
+            currentFileData.answered[match.key] = qBackup.answer;
+            matchedCount++;
+          } else {
+            // 匹配失败：记录跳过
+            skippedCount++;
+          }
+        });
+      });
+    });
+    
+    // 第三步：恢复错题集标记（用 qid 匹配）
+    let wrongSetRestored = 0;
+    if (data.wrongSet) {
+      ['gk', 'mk', 'sy'].forEach(zone => {
+        if (!wrongSet[zone]) wrongSet[zone] = {};
+        
+        Object.keys(data.wrongSet[zone] || {}).forEach(qid => {
+          const match = qidMap[qid];
+          if (match) {
+            wrongSet[match.zone][match.key] = true;
+            wrongSetRestored++;
+          }
+        });
+      });
+    }
+    
+    // 第四步：恢复收藏标记（用 qid 匹配）
+    let favoritesRestored = 0;
+    if (data.favorites) {
+      ['gk', 'mk', 'sy'].forEach(zone => {
+        if (!favorites[zone]) favorites[zone] = {};
+        
+        Object.keys(data.favorites[zone] || {}).forEach(qid => {
+          const match = qidMap[qid];
+          if (match) {
+            favorites[match.zone][match.key] = true;
+            favoritesRestored++;
+          }
+        });
+      });
+    }
+    
+    // 第五步：恢复做题次数（用 qid 匹配）
+    let attemptsRestored = 0;
+    const attemptKey = 'qz_question_attempts_v1';
+    try {
+      const attempts = JSON.parse(localStorage.getItem(attemptKey) || '{}');
+      
+      if (data.attempts) {
+        Object.keys(data.attempts).forEach(qid => {
+          const match = qidMap[qid];
+          if (match) {
+            attempts[match.key] = data.attempts[qid];
+            attemptsRestored++;
+          }
+        });
+      }
+      
+      localStorage.setItem(attemptKey, JSON.stringify(attempts));
+    } catch (e) {}
+
+    // 第六步：恢复 AI 对话记录（用 qid 匹配并合并去重）
+    let chatRestored = 0;
+    if (data.chatHistory && typeof data.chatHistory === 'object') {
+      try {
+        const existingChats = await loadAllChats();
+        const newChats = { ...existingChats };
+        Object.keys(data.chatHistory).forEach(function(qid) {
+          const messages = Array.isArray(data.chatHistory[qid]) ? data.chatHistory[qid] : [];
+          const backupQuestion = Object.values(backupData).reduce(function(found, files) {
+            if(found) return found;
+            return Object.values(files||{}).reduce(function(foundFile, fileBackup) {
+              if(foundFile) return foundFile;
+              return (fileBackup.questions||[]).find(function(question) { return question && question.qid===qid; })||null;
+            }, null);
+          }, null);
+          let match = qidMap[qid];
+          if(!match){
+            const keyMessage = messages.find(function(message){ return message && message.questionKey; });
+            if(keyMessage){
+              const keyed=findQuestionByKey(keyMessage.questionKey);
+              if(keyed) match={question:keyed,key:keyMessage.questionKey};
+            }
+          }
+          if(!match){
+            const contentMessage = messages.find(function(message){ return message && message.questionContent; });
+            match=findQuestionByContent((contentMessage&&contentMessage.questionContent)||(backupQuestion&&backupQuestion.content));
+          }
+          if(!match) match=findQuestionByQidPart(qid);
+          if (!match) return;
+          const key = match.key;
+          if (!key || !messages.length) return;
+          if (!newChats[key]) newChats[key] = [];
+          messages.forEach(function(msg) {
+            if (!msg || typeof msg !== 'object') return;
+            const exists = newChats[key].some(function(existing) {
+              return existing && typeof existing === 'object' &&
+                (existing.role || '') === (msg.role || '') &&
+                String(existing.content || '') === String(msg.content || '') &&
+                (existing.type || '') === (msg.type || '');
+            });
+            if (!exists) {
+              newChats[key].push(msg);
+              chatRestored++;
+            }
+          });
+        });
+        await idbSet(CHAT_DB_KEY, newChats);
+      } catch (e) {
+        console.warn('恢复对话记录失败:', e);
+      }
+    }
+    
+    // 第七步：保存恢复结果
+    ['gk', 'mk', 'sy'].forEach(z => {
+      (index[z] || []).forEach(m => {
+        saveFile(z, m.id);
+      });
+    });
+    saveWrong();
+    saveFav();
+    
+    const v = data.view || null;
+    if (v && v.activeZone) {
+      activeZone = v.activeZone;
+      if (v.activeFile !== undefined) activeFile = v.activeFile;
+    }
+    applyZoneTheme(activeZone);
+    currentPage = 1;
+    saveView();
+    renderAll();
+    
+    // 显示恢复结果
+    const resultMsg = `✅ 恢复完成！\n匹配成功 ${matchedCount} 题，跳过 ${skippedCount} 题（未找到对应题目）\n恢复错题集 ${wrongSetRestored} 题；恢复收藏 ${favoritesRestored} 题；恢复做题次数 ${attemptsRestored} 题；恢复AI对话 ${chatRestored} 条`;
+    alert(resultMsg);
+    return;
+  }
+  
+  // ========== 旧版完整备份格式导入 ==========
   let newIndex={gk:[],mk:[],sy:[]};
   let newDb={gk:{},mk:{},sy:{}};
   let fromLabel='';
-  // —— 备份对象格式（本应用 / 手机端）——
+  
   if(data._type==='helium_quiz_backup' && data.index){
+    alert('检测到旧版备份格式，正在导入...');
     fromLabel='备份对象';
     const zoneMap={'gk':'gk','mk':'mk','sy':'sy','国考省考':'gk','国考/省考':'gk','粉笔模考':'mk','事业单位':'sy'};
     Object.keys(data.index).forEach(zoneKey=>{
@@ -2103,6 +2198,14 @@ function importBackupFromObject(data){
         const moduleName=f.module||'未分类';
         const uploadTime=f.uploadTime||Date.now();
         const size=f.size||0;
+        
+        // 为加载的题目生成 _qid
+        if (questions && Array.isArray(questions)) {
+          questions.forEach(q => {
+            if (!q._qid) q._qid = generateQuestionId(q);
+          });
+        }
+        
         newIndex[zone].push({id, fileName, zone, module:moduleName, uploadTime, size, count:(questions.length||f.count||0)});
         newDb[zone][id]={id, fileName, zone, module:moduleName, uploadTime, size, questions, answered};
       });
@@ -2120,6 +2223,12 @@ function importBackupFromObject(data){
       const answered=(item.answered&&typeof item.answered==='object')?item.answered:{};
       const fileName=item.fileName||'未命名文件';
       const moduleName=item.module||'未分类';
+      
+      // 为加载的题目生成 _qid
+      questions.forEach(q => {
+        if (!q._qid) q._qid = generateQuestionId(q);
+      });
+      
       newIndex[zone].push({id, fileName, zone, module:moduleName, uploadTime:Date.now(), size:0, count:questions.length});
       newDb[zone][id]={id, fileName, zone, module:moduleName, uploadTime:Date.now(), size:0, questions, answered};
     });
@@ -2127,6 +2236,7 @@ function importBackupFromObject(data){
   else {
     alert('数据格式错误（需为题目数组或备份对象）'); return;
   }
+  
   // 统计可恢复的题目数（以实际载入题库的题目为准，避免清单格式虚报）
   let totalQ=0, totalFiles=0;
   ['gk','mk','sy'].forEach(z=>{ Object.keys(newDb[z]).forEach(id=>{ totalFiles++; totalQ+=(newDb[z][id].questions.length||0); }); });
@@ -2177,11 +2287,18 @@ sourceFilter.addEventListener('keydown', (e)=>{
     sourceFilter.blur();
   }
 });
-sourceFilter.addEventListener('change', ()=>{
-  const value=sourceFilter.value.trim();
-  if(value && sourceValues.includes(value) && sourceMatchesProvince(value, sourceProvince)) filterState.source=value;
-  else { filterState.source='all'; sourceFilter.value=''; }
-  currentPage=1; saveView(); renderQuestions();
+sourceFilter.addEventListener('change', function() {
+  var value = this.value.trim();
+  if (value && window.sourceValues && window.sourceValues.includes(value)) {
+    filterState.source = value;
+  } else {
+    filterState.source = 'all';
+    this.value = '';
+  }
+  currentPage = 1;
+  saveView();
+  refreshFilterCounters();
+  renderQuestions();
 });
 statusFilter.addEventListener('change', ()=>{ filterState.status=statusFilter.value; currentPage=1; saveView(); renderQuestions(); });
 sortFilter.addEventListener('change', ()=>{ filterState.sortBy=sortFilter.value; currentPage=1; saveView(); renderQuestions(); });
@@ -2266,6 +2383,12 @@ function recordAnswerTiming(){
 }
 function renderTimerStats(){
   const ts=document.getElementById('timerStats'); if(!ts) return;
+  const isComputer = !('ontouchstart' in window) && window.innerWidth > 768;
+  if(isComputer){
+    ts.onclick=null;
+    ts.style.pointerEvents='auto';
+    ts.style.cursor='default';
+  }
   const total=timerData.totalSec;
   const avg=timerData.answered?Math.round(total/timerData.answered):0;
   ts.innerHTML='📝 已答 '+timerData.answered+'<br>⏰ 总 '+fmtTime(total)+'<br>📊 均 '+fmtTime(avg);
@@ -2279,6 +2402,7 @@ ts.style.left='auto'; ts.style.right='20px'; ts.style.top='80px'; ts.style.botto
   resetBtn.textContent = 'RESET';
   resetBtn.onclick = function(e) {
     e.stopPropagation();
+    e.preventDefault();
     showConfirm('确定要重置计时统计吗？', function() {
       timerData = {
         answered: 0,
@@ -2411,7 +2535,7 @@ const AI_KEY='qz_ai_config';
 const AI_HISTORY_DB_NAME='aiChatHistoryDB';
 const AI_HISTORY_STORE='chats';
 let aiHistoryDb=null;
-let aiConfig={provider:'', apiKey:'', model:''};
+let aiConfig={provider:'', apiKey:'', model:'', enableSearch:false};
 const AI_ENDPOINTS={
   deepseek:{url:'https://api.deepseek.com/chat/completions', model:'deepseek-chat'},
   qwen:{url:'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', model:'qwen-turbo'},
@@ -2420,10 +2544,13 @@ const AI_ENDPOINTS={
 };
 function loadAIConfig(){
   try{ const r=localStorage.getItem(AI_KEY); if(r) aiConfig=JSON.parse(r); }catch(e){}
-  if(!aiConfig||typeof aiConfig!=='object') aiConfig={provider:'',apiKey:'',model:''};
+  if(!aiConfig||typeof aiConfig!=='object') aiConfig={provider:'',apiKey:'',model:'',enableSearch:false};
+  aiConfig.enableSearch = !!aiConfig.enableSearch;
   const p=document.getElementById('aiProvider'); if(p && aiConfig.provider) p.value=aiConfig.provider;
   const k=document.getElementById('aiKey'); if(k) k.value=aiConfig.apiKey||'';
   const m=document.getElementById('aiModel'); if(m) m.value=aiConfig.model||'';
+  const toggle=document.getElementById('aiSearchToggle');
+  if(toggle) toggle.checked = aiConfig.enableSearch || false;
 }
 function saveAIConfig(){ try{ localStorage.setItem(AI_KEY, JSON.stringify(aiConfig)); }catch(e){} }
 function formatAIResponse(text){ return String(text||'').replace(/。/g, '。\n'); }
@@ -2487,6 +2614,7 @@ function saveAISettings(){
   aiConfig.provider=document.getElementById('aiProvider').value;
   aiConfig.apiKey=(document.getElementById('aiKey').value||'').trim();
   aiConfig.model=(document.getElementById('aiModel').value||'').trim();
+  aiConfig.enableSearch = document.getElementById('aiSearchToggle')?.checked || false;
   saveAIConfig();
   toggleAIPanel();
   alert('AI 配置已保存');
@@ -2520,7 +2648,10 @@ async function simplifySolution(key, btn){
     if(!text) throw new Error('返回格式异常');
     const formattedText=formatAIResponse(text);
     result.innerHTML='<strong>🤖 AI 简化解析</strong><br>'+escapeHtml(formattedText).replace(/\n/g,'<br>');
-    saveAIHistoryMessage(key, {role:'assistant', type:'simplify', content:text, at:Date.now()});
+    saveAIHistoryMessage(key, {
+      role:'assistant', type:'simplify', content:text,
+      questionContent:item.content||'', questionOptions:getOptions(item), at:Date.now()
+    });
   }catch(e){
     result.innerHTML='<span class="q-ai-error">❌ AI 调用失败：'+e.message+'（可能是 CORS/网络/API Key 无效）</span>';
   }finally{
@@ -2608,15 +2739,23 @@ async function sendChatMessage(key) {
     msgsDiv.scrollTop = msgsDiv.scrollHeight;
   }
   try {
+    const enableSearch = aiConfig.enableSearch || false;
+    const requestBody = {
+      model: aiConfig.model || ep.model,
+      messages: aiMessages,
+      temperature: 0.2,
+      max_tokens: 200
+    };
+    if (aiConfig.provider === 'deepseek' && enableSearch) {
+      requestBody.enable_search = true;
+    }
+    if (aiConfig.provider === 'qwen' && enableSearch) {
+      requestBody.search = true;
+    }
     const resp = await fetch(ep.url, {
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + aiConfig.apiKey},
-      body: JSON.stringify({
-        model: aiConfig.model || ep.model,
-        messages: aiMessages,
-        temperature: 0.2,
-        max_tokens: 200
-      })
+      body: JSON.stringify(requestBody)
     });
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const data = await resp.json();
@@ -2638,24 +2777,24 @@ async function sendChatMessage(key) {
 
 async function exportAllChats() {
   const allChats = await loadAllChats();
-  const keys = Object.keys(allChats);
-  if (!keys.length) { alert('暂无对话记录'); return; }
-  let exportText = '# AI 答疑对话记录\n\n';
-  exportText += '导出时间：' + new Date().toLocaleString() + '\n\n';
-  exportText += '='.repeat(50) + '\n\n';
-  keys.forEach(function(key, index) {
-    const messages = allChats[key];
-    const item = filteredQuestions.find(function(q) { return q._key === key; });
-    const title = item ? (item.content || '').substring(0, 100) : key;
-    exportText += '## 题目 ' + (index + 1) + '\n';
-    exportText += title + '\n\n';
-    messages.forEach(function(msg, msgIndex) {
-      const role = msg.role === 'user' ? '🙋 用户' : '🤖 AI';
-      exportText += role + ' (' + (msgIndex + 1) + '):\n';
-      exportText += msg.content + '\n\n';
-    });
-    exportText += '-'.repeat(50) + '\n\n';
+  const keys = Object.keys(allChats).filter(function(key){
+    const messages = Array.isArray(allChats[key]) ? allChats[key] : [];
+    return messages.length > 0;
   });
+  if (!keys.length) { alert('暂无对话记录'); return; }
+  let exportText = '============================================================\n📤 AI 对话记录导出\n============================================================\n\n';
+  exportText += '导出时间：' + new Date().toLocaleString() + '\n';
+  exportText += '总对话数：' + keys.length + '\n';
+  exportText += '有效题目数：' + keys.length + '\n\n';
+  keys.forEach(function(key, index) {
+    const messages = Array.isArray(allChats[key]) ? allChats[key] : [];
+    const item = findQuestionByKey(key) || filteredQuestions.find(function(q) { return q._key === key; });
+    const questionText = buildChatExportText(messages, item);
+    exportText += '============================================================\n题目 ' + (index + 1) + '\n============================================================\n\n';
+    exportText += questionText;
+    exportText += '\n';
+  });
+  exportText += '============================================================\n导出完成\n============================================================\n';
   const blob = new Blob([exportText], {type: 'text/plain;charset=utf-8'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -2665,6 +2804,71 @@ async function exportAllChats() {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+// 对话记录管理功能：保留为全局函数，动态面板刷新后仍可调用。
+async function copyAllChats() {
+  try {
+    const allChats=await loadAllChats();
+    const keys=Object.keys(allChats&&typeof allChats==='object'?allChats:{}).filter(function(key){
+      const messages = Array.isArray(allChats[key]) ? allChats[key] : [];
+      return messages.length > 0;
+    });
+    if(!keys.length){ alert('暂无对话可复制'); return; }
+    let text='============================================================\n📝 全部 AI 对话记录\n============================================================\n\n';
+    text += '导出时间：' + new Date().toLocaleString() + '\n';
+    text += '总对话数：' + keys.length + '\n';
+    text += '有效题目数：' + keys.length + '\n\n';
+    keys.forEach(function(key,index){
+      const messages=Array.isArray(allChats[key])?allChats[key]:[];
+      const item = findQuestionByKey(key) || filteredQuestions.find(function(q){ return q._key === key; });
+      text += '============================================================\n题目 ' + (index + 1) + '\n============================================================\n\n';
+      text += buildChatExportText(messages, item);
+      text += '\n';
+    });
+    text += '============================================================\n复制完成\n============================================================\n';
+    if(navigator.clipboard&&navigator.clipboard.writeText) await navigator.clipboard.writeText(text);
+    else {
+      const textarea=document.createElement('textarea');
+      textarea.value=text; textarea.style.cssText='position:fixed;left:-9999px;top:0;';
+      document.body.appendChild(textarea); textarea.select();
+      if(!document.execCommand('copy')) throw new Error('复制失败');
+      textarea.remove();
+    }
+    const button=document.querySelector('.btn-copy-all');
+    if(button){ button.textContent='✅ 已复制'; setTimeout(function(){ button.textContent='📋 复制全部对话'; },2000); }
+  }catch(e){ alert('复制失败：'+e.message); }
+}
+
+async function clearAllChats() {
+  const allChats=await idbGet(CHAT_DB_KEY);
+  if(!Object.keys(allChats&&typeof allChats==='object'?allChats:{}).length){ alert('暂无对话可清空'); return; }
+  const panel=document.querySelector('.chat-history-panel');
+  showInlineConfirm(panel, '确定要清空所有题目的全部对话记录吗？\n此操作不可撤销！', async function(){
+    await idbSet(CHAT_DB_KEY,{});
+    await refreshChatHistoryPanel();
+    alert('✅ 已清空全部对话');
+  });
+}
+
+async function refreshChatHistoryPanel() {
+  const panel=document.querySelector('.chat-history-panel');
+  if(!panel) return;
+  const allChats=await idbGet(CHAT_DB_KEY);
+  const keys=Object.keys(allChats&&typeof allChats==='object'?allChats:{});
+  const header=panel.querySelector('.chat-history-header span');
+  if(header) header.textContent='💬 对话记录 ('+keys.length+')';
+  const list=panel.querySelector('.chat-history-list');
+  if(!list) return;
+  if(!keys.length){ list.innerHTML='<div class="chat-history-empty">暂无对话记录</div>'; return; }
+  list.innerHTML=keys.map(function(key){
+    const messages=Array.isArray(allChats[key])?allChats[key]:[];
+    const firstUser=messages.find(function(message){ return message.role==='user'; });
+    const preview=firstUser?(firstUser.content||'').substring(0,50):'对话记录';
+    const item=filteredQuestions.find(function(question){ return question._key===key; });
+    const title=item?(item.content||'').substring(0,30):key;
+    return '<div class="chat-history-item" onclick="location.hash=\'q-'+key+'\'; this.closest(\'.chat-history-panel\').remove();"><div class="chat-history-item-title">'+title+'...</div><div class="chat-history-item-preview">'+preview+'... ('+messages.length+'条消息)</div></div>';
+  }).join('');
 }
 
 async function openChatHistory() {
@@ -2938,11 +3142,24 @@ if (window.renderQuestions) window.renderQuestions();
   renderAll();
   if(restoredStudyPosition){
     setTimeout(function(){
-      const target=document.getElementById('q-'+(filteredQuestions[restoredStudyPosition.questionIndex]||{})._key);
-      if(target) target.scrollIntoView({block:'start'});
-      showStudyPositionRestored();
-      restoredStudyPosition=null;
-    }, 0);
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){
+          const position=restoredStudyPosition;
+          const fallbackQuestion=filteredQuestions[position.questionIndex];
+          const target=document.getElementById('q-'+(position.questionKey||((fallbackQuestion||{})._key||'')));
+          const scrollY=Number(position.scrollY);
+          if(target){
+            target.scrollIntoView({block:'center',behavior:'instant'});
+            const rect=target.getBoundingClientRect();
+            if(rect.top<0||rect.bottom>window.innerHeight) target.scrollIntoView({block:'center',behavior:'instant'});
+          }else if(Number.isFinite(scrollY)){
+            window.scrollTo({top:Math.max(0,scrollY),behavior:'instant'});
+          }
+          showStudyPositionRestored();
+          restoredStudyPosition=null;
+        });
+      });
+    }, 300);
   }
   renderProgressPanel();
   renderTimerStats();                  // 左上角计时 + 顶部总用时
@@ -3006,47 +3223,422 @@ function toggleNoHack(on){
   renderQuestions();
   diagnoseImages();
 }
-</script>
-<!-- 图片诊断调试工具（调试用，定位完成后可整段删除） -->
-<button id="dbgBtn" type="button" onclick="toggleDebug()">🔧</button>
-<div id="dbgPanel" style="display:none;position:fixed;left:0;right:0;bottom:0;max-height:55%;overflow:auto;background:#0b1020;color:#4ade80;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;padding:10px 12px;z-index:99998;border-top:2px solid #2563eb;box-sizing:border-box;">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;color:#fff;font-size:12px;">
-    <strong>图片诊断（iPhone Edge）</strong>
-    <label style="font-size:12px;"><input type="checkbox" id="dbgNoHack" onchange="toggleNoHack(this.checked)"> 仅原生img（关JS处理）</label>
-  </div>
-  <pre id="dbgOut" style="white-space:pre-wrap;margin:0;color:#4ade80;"></pre>
-  <div id="dbgLog" style="margin-top:6px;color:#a7f3d0;border-top:1px dashed #334155;padding-top:6px;"></div>
-</div>
 
-<!-- 左上角计时统计 -->
-<div id="timerStats"></div>
-<!-- AI 设置按钮 + 配置面板 -->
-<button id="aiSettingsBtn" type="button" onclick="toggleAIPanel()" title="AI 配置">⚙️</button>
-<div id="aiPanel">
-  <label>AI 服务商</label>
-  <select id="aiProvider">
-    <option value="deepseek">DeepSeek</option>
-    <option value="qwen">通义千问</option>
-    <option value="zhipu">智谱 GLM</option>
-    <option value="openai">OpenAI</option>
-  </select>
-  <label>API Key</label>
-  <input type="password" id="aiKey" placeholder="sk-...">
-  <label>模型（可选，留空用默认）</label>
-  <input type="text" id="aiModel" placeholder="如 deepseek-chat">
-  <button class="btn btn-primary" type="button" onclick="saveAISettings()">保存配置</button>
-</div>
-<!-- 返回顶部 / 墨水屏 / 皮肤 按钮 -->
-<button id="backToTop" type="button" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="返回顶部">↑</button>
-<button id="inkToggleBtn" type="button" onclick="toggleInkMode()" title="墨水屏模式">📖</button>
-<button id="skinToggleBtn" type="button" onclick="toggleSkinPanel()" title="皮肤切换">🎨</button>
-<div id="skinPanel">
-  <div class="skin-opt" data-skin="default" onclick="selectSkin('default')">原版</div>
-  <div class="skin-opt" data-skin="dark" onclick="selectSkin('dark')">暗夜</div>
-  <div class="skin-opt" data-skin="eye" onclick="selectSkin('eye')">护眼</div>
-  <div class="skin-opt" data-skin="warm" onclick="selectSkin('warm')">暖阳</div>
-  <div class="skin-opt" data-skin="ink" onclick="selectSkin('ink')">墨水屏</div>
-</div>
-</style>
-</body>
-</html>
+// ============================================================
+// 增量功能：对话操作、做题次数、详情查看
+// 仅通过新增监听器和动态元素增强现有界面，不改动原有业务函数。
+// ============================================================
+(function setupIncrementalFeatures(){
+  const ATTEMPT_KEY='qz_question_attempts_v1';
+  const newClasses={
+    copy:'new-chat-copy-btn', clear:'new-chat-clear-btn', count:'new-question-attempts',
+    detail:'new-chat-detail-panel', detailClose:'new-chat-detail-close', detailButton:'new-chat-detail-btn'
+  };
+
+  function readAttempts(){
+    try{
+      const value=JSON.parse(localStorage.getItem(ATTEMPT_KEY)||'{}');
+      return value && typeof value==='object' ? value : {};
+    }catch(e){ return {}; }
+  }
+  function incrementAttempt(key){
+    const attempts=readAttempts();
+    attempts[key]=(Number(attempts[key])||0)+1;
+    try{ localStorage.setItem(ATTEMPT_KEY, JSON.stringify(attempts)); }catch(e){}
+  }
+  function renderAttemptCounts(){
+    const attempts=readAttempts();
+    document.querySelectorAll('#content .question').forEach(function(question){
+      const title=question.querySelector('.q-title');
+      if(!title) return;
+      const key=question.id.replace(/^q-/,'');
+      let count=title.querySelector('.'+newClasses.count);
+      if(!count){
+        count=document.createElement('span');
+        count.className=newClasses.count;
+        title.appendChild(document.createTextNode(' '));
+        title.appendChild(count);
+      }
+      const nextText='做过'+(Number(attempts[key])||0)+'次';
+      if(count.textContent!==nextText) count.textContent=nextText;
+      count.title='本题累计答题次数';
+    });
+  }
+
+  function copyText(text){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      return navigator.clipboard.writeText(text);
+    }
+    return new Promise(function(resolve,reject){
+      const input=document.createElement('textarea');
+      input.value=text; input.setAttribute('readonly','');
+      input.style.cssText='position:fixed;left:-9999px;top:0;opacity:0;';
+      document.body.appendChild(input); input.select();
+      try{ document.execCommand('copy') ? resolve() : reject(new Error('复制失败')); }
+      catch(e){ reject(e); }
+      input.remove();
+    });
+  }
+  function messageText(messages){
+    return messages.map(function(message){
+      const role=message.role==='user'?'用户':'AI';
+      return role+'：'+(message.content||'');
+    }).join('\n');
+  }
+  function getCurrentChatKey(box){
+    return (box.id||'').replace(/^chat-/,'');
+  }
+  function deleteChatHistory(key){
+    return loadAllChats().then(function(allChats){
+      delete allChats[key];
+      return idbSet(CHAT_DB_KEY, allChats);
+    }).then(function(){
+      return openAIHistoryDb();
+    }).then(function(d){
+      return new Promise(function(resolve){
+        const tx=d.transaction(AI_HISTORY_STORE,'readwrite');
+        tx.objectStore(AI_HISTORY_STORE).delete(key);
+        tx.oncomplete=function(){ resolve(true); };
+        tx.onerror=function(){ resolve(false); };
+      });
+    });
+  }
+  function clearCurrentChat(box){
+    const key=getCurrentChatKey(box);
+    if(!key) return;
+    showConfirm('确定清空当前题目的全部对话记录吗？', function(){
+      deleteChatHistory(key).then(function(){
+        renderChatBox(key, []);
+        enhanceChatBox(box);
+      });
+    });
+  }
+  function copyCurrentChat(box, button){
+    const key=getCurrentChatKey(box);
+    Promise.all([loadAllChats(), getAIHistory(key)]).then(function(values){
+      const chat=Array.isArray(values[0][key]) ? values[0][key] : [];
+      const simplify=Array.isArray(values[1]) ? values[1].filter(function(message){ return message && message.type==='simplify'; }) : [];
+      const question = findQuestionByKey(key) || filteredQuestions.find(function(item){ return item._key===key; });
+      const text=buildChatExportText(chat.concat(simplify), question);
+      if(!chat.length && !simplify.length){ button.textContent='📋 暂无对话'; setTimeout(function(){ button.textContent='📋 复制对话'; },1200); return; }
+      return copyText(text).then(function(){
+        button.textContent='✅ 已复制';
+        setTimeout(function(){ button.textContent='📋 复制对话'; },1200);
+      });
+    }).catch(function(){
+      button.textContent='❌ 复制失败';
+      setTimeout(function(){ button.textContent='📋 复制对话'; },1200);
+    });
+  }
+  function enhanceChatBox(box){
+    if(!box || box.querySelector('.'+newClasses.copy)) return;
+    box.dataset.newChatEnhanced='1';
+    const key=getCurrentChatKey(box);
+    const top=document.createElement('div');
+    top.className='new-chat-actions-top';
+    const copy=document.createElement('button');
+    copy.type='button'; copy.className=newClasses.copy; copy.textContent='📋 复制对话';
+    copy.addEventListener('click',function(){ copyCurrentChat(box,copy); });
+    top.appendChild(copy);
+    box.insertBefore(top,box.firstChild);
+    const clear=document.createElement('button');
+    clear.type='button'; clear.className=newClasses.clear; clear.textContent='🗑 清空对话';
+    clear.addEventListener('click',function(){ clearCurrentChat(box); });
+    box.appendChild(clear);
+    if(key) box.setAttribute('data-new-chat-key',key);
+  }
+  function normalizeAIResult(result){
+    if(!result || result.dataset.newAIFormat==='1' || !result.textContent.includes('AI 简化解析')) return;
+    const normalized=result.innerHTML.replace(/(?:<br\s*\/?>(?:\s|&nbsp;)*){2,}/gi,'<br>');
+    if(normalized!==result.innerHTML) result.innerHTML=normalized;
+    result.dataset.newAIFormat='1';
+  }
+  function enhanceVisibleContent(){
+    document.querySelectorAll('#content .q-chat-box').forEach(enhanceChatBox);
+    document.querySelectorAll('#content .q-ai-result').forEach(normalizeAIResult);
+    renderAttemptCounts();
+  }
+  function openChatDetail(key){
+    const old=document.querySelector('.'+newClasses.detail);
+    if(old) old.remove();
+    Promise.all([loadAllChats(), getAIHistory(key)]).then(function(values){
+      const currentQuestion=filteredQuestions.find(function(item){ return item._key===key; });
+      const chatMessages=values[0][key]||[];
+      const chatSimplify=chatMessages.filter(function(m){ return m.type==='simplify'; });
+      const historySimplify=values[1].filter(function(m){ return m.type==='simplify'; });
+      const messages=chatMessages.filter(function(m){ return m.type!=='simplify'; })
+        .concat(historySimplify.length ? historySimplify : chatSimplify);
+      const panel=document.createElement('div');
+      panel.className=newClasses.detail;
+      const close=document.createElement('button');
+      close.type='button'; close.className=newClasses.detailClose; close.textContent='✕';
+      close.addEventListener('click',function(){ panel.remove(); });
+      const title=document.createElement('div'); title.className='new-chat-detail-title'; title.textContent='对话详细内容';
+      panel.appendChild(close); panel.appendChild(title);
+      if(!messages.length){
+        const empty=document.createElement('div'); empty.textContent='暂无对话记录'; panel.appendChild(empty);
+      }else{
+        messages.forEach(function(message){
+          const row=document.createElement('div'); row.className='new-chat-detail-message';
+          if(message.type==='simplify'){
+            const questionContent=message.questionContent || (currentQuestion && currentQuestion.content) || '';
+            const questionOptions=message.questionOptions || [];
+            const optionsFromMessage=Array.isArray(questionOptions) ? questionOptions : [];
+            let options=[];
+            if(optionsFromMessage.some(function(option){ return typeof option==='string'; })) options=optionsFromMessage;
+            else {
+              const accessory=optionsFromMessage.find(function(option){ return option && Array.isArray(option.options); });
+              if(accessory) options=accessory.options;
+            }
+            if(!options.length && currentQuestion) options=getOptions(currentQuestion);
+            if(questionContent){
+              const question=document.createElement('div');
+              question.className='msg-question';
+              question.textContent='📝 题干：'+questionContent;
+              row.appendChild(question);
+            }
+            if(Array.isArray(options) && options.length){
+              const optionsBox=document.createElement('div');
+              optionsBox.className='msg-options';
+              optionsBox.textContent='📋 选项：';
+              options.forEach(function(option,index){
+                const optionLine=document.createElement('div');
+                optionLine.textContent=String.fromCharCode(65+index)+'. '+option;
+                optionsBox.appendChild(optionLine);
+              });
+              row.appendChild(optionsBox);
+            }else{
+              const noOptions=document.createElement('div');
+              noOptions.className='msg-options msg-options-empty';
+              noOptions.textContent='📋 选项：暂无选项';
+              row.appendChild(noOptions);
+            }
+            const ai=document.createElement('div');
+            ai.className='msg-ai';
+            ai.textContent='🤖 AI解析：'+(message.content||'');
+            row.appendChild(ai);
+          }else{
+            row.textContent=(message.role==='user'?'用户：':'AI：')+(message.content||'');
+          }
+          panel.appendChild(row);
+        });
+      }
+      document.body.appendChild(panel);
+    });
+  }
+  function enhanceHistoryPanel(panel){
+    if(panel.dataset.newHistoryEnhanced==='1') return;
+    panel.dataset.newHistoryEnhanced='1';
+    panel.querySelectorAll('.chat-history-item').forEach(function(item){
+      const match=(item.getAttribute('onclick')||'').match(/q-([^'\\]+)/);
+      if(!match) return;
+      const key=match[1]; item.setAttribute('data-new-chat-key',key);
+      const detail=document.createElement('button');
+      detail.type='button'; detail.className=newClasses.detailButton; detail.textContent='查看详情';
+      detail.addEventListener('click',function(e){ e.stopPropagation(); openChatDetail(key); });
+      item.appendChild(detail);
+    });
+    const close=panel.querySelector('.chat-history-close');
+    if(close) close.classList.add('new-chat-history-close-hit');
+    const actions=document.createElement('div');
+    actions.className='chat-history-footer';
+    const copyAll=document.createElement('button');
+    copyAll.type='button';
+    copyAll.className='footer-btn btn-copy-all';
+    copyAll.textContent='📋 复制全部对话';
+    copyAll.addEventListener('click',function(){ copyAllChats(copyAll); });
+    const clearAll=document.createElement('button');
+    clearAll.type='button';
+    clearAll.className='footer-btn btn-clear-all';
+    clearAll.textContent='🗑 清空全部对话';
+    clearAll.addEventListener('click',clearAllChats);
+    actions.appendChild(copyAll);
+    actions.appendChild(clearAll);
+    panel.appendChild(actions);
+  }
+
+  function formatAllChats(allChats){
+    let text='============================================================\n📝 全部 AI 对话记录\n============================================================\n\n';
+    let number=0;
+    const keys = Object.keys(allChats).filter(function(key){
+      return Array.isArray(allChats[key]) && allChats[key].length > 0;
+    });
+    text += '总对话数：' + keys.length + '\n';
+    text += '有效题目数：' + keys.length + '\n\n';
+    keys.forEach(function(key){
+      const messages=Array.isArray(allChats[key])?allChats[key]:[];
+      if(!messages.length) return;
+      number++;
+      const item = findQuestionByKey(key) || filteredQuestions.find(function(q){ return q._key === key; });
+      text += '============================================================\n题目 ' + number + '\n============================================================\n\n';
+      text += buildChatExportText(messages, item);
+      text += '\n';
+    });
+    return number ? text : '';
+  }
+  function copyAllChats(button){
+    loadAllChats().then(function(allChats){
+      const text=formatAllChats(allChats);
+      if(!text){ alert('暂无对话可复制'); return; }
+      return copyText(text).then(function(){
+        button.textContent='✅ 已复制';
+        setTimeout(function(){ button.textContent='📋 复制全部对话'; },1200);
+      });
+    }).catch(function(){
+      button.textContent='❌ 复制失败';
+      setTimeout(function(){ button.textContent='📋 复制全部对话'; },1200);
+    });
+  }
+  function clearAllChats(){
+    const panel=document.querySelector('.chat-history-panel');
+    showInlineConfirm(panel, '确定要清空所有题目的全部对话记录吗？\n此操作不可撤销！',function(){
+      idbSet(CHAT_DB_KEY,{}).then(function(){
+        const currentPanel=document.querySelector('.chat-history-panel');
+        if(currentPanel) currentPanel.remove();
+        openChatHistory();
+      });
+    });
+  }
+
+  let enhancementQueued=false;
+  const observer=new MutationObserver(function(){
+    if(enhancementQueued) return;
+    enhancementQueued=true;
+    queueMicrotask(function(){
+      enhancementQueued=false;
+      enhanceVisibleContent();
+      document.querySelectorAll('.chat-history-panel').forEach(enhanceHistoryPanel);
+    });
+  });
+  observer.observe(document.body,{childList:true,subtree:true});
+  document.addEventListener('click',function(e){
+    const item=e.target.closest && e.target.closest('.chat-history-item');
+    if(item && !e.target.closest('.'+newClasses.detailButton)){
+      const key=item.getAttribute('data-new-chat-key');
+      if(key) setTimeout(function(){ openChatDetail(key); },0);
+    }
+  });
+  document.addEventListener('click',function(e){
+    const option=e.target.closest && e.target.closest('#content .q-options .option');
+    if(!option) return;
+    const key=option.getAttribute('data-key');
+    const item=filteredQuestions.find(function(question){ return question._key===key; });
+    if(item && item._answered===undefined) incrementAttempt(key);
+  },true);
+  const style=document.createElement('style');
+  style.textContent='.'+newClasses.copy+'{background:#2563eb;color:#fff;border:0;border-radius:6px;padding:7px 12px;cursor:pointer;}.'+newClasses.clear+'{display:block;background:#dc2626;color:#fff;border:0;border-radius:6px;padding:7px 12px;margin:10px 0 0;cursor:pointer;} .new-chat-actions-top{margin-bottom:8px;} .'+newClasses.count+'{margin-left:6px;color:var(--secondary);font-size:.9em;white-space:nowrap;} .'+newClasses.detail+'{position:fixed;inset:10% 5%;z-index:10001;overflow:auto;background:#fff;padding:18px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.3);} .'+newClasses.detailClose+'{float:right;min-width:44px;min-height:44px;border:0;background:transparent;font-size:24px;cursor:pointer;} .new-chat-detail-title{font-weight:bold;font-size:16px;margin-bottom:14px;} .new-chat-detail-message{padding:10px;margin:8px 0;background:#f1f5f9;border-radius:6px;white-space:pre-wrap;} .'+newClasses.detailButton+'{margin-top:6px;background:#2563eb;color:#fff;border:0;border-radius:5px;padding:5px 9px;cursor:pointer;} .new-chat-history-close-hit{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;} .chat-history-panel{height:100vh !important;max-height:100vh !important;bottom:0 !important;overflow:hidden !important;} .chat-history-header{flex-shrink:0 !important;min-height:60px !important;} .chat-history-list{flex:1 1 auto !important;min-height:0 !important;overflow-y:auto !important;} .chat-history-footer{flex:0 0 auto !important;display:flex !important;gap:10px !important;align-items:center !important;justify-content:center !important;padding:8px 16px 12px !important;border-top:1px solid #e2e8f0 !important;background:#fff !important;min-height:56px !important;box-sizing:border-box !important;} .chat-history-footer .footer-btn{flex:1 1 0 !important;min-width:0 !important;max-width:200px !important;min-height:44px !important;padding:10px 12px !important;border:0 !important;border-radius:8px !important;color:#fff !important;font-size:14px !important;font-weight:600 !important;cursor:pointer !important;text-align:center !important;touch-action:manipulation !important;} .chat-history-footer .btn-copy-all{background:#2563eb !important;} .chat-history-footer .btn-clear-all{background:#dc2626 !important;} @media(max-width:480px){.chat-history-panel{width:100vw !important;max-width:100vw !important;}.chat-history-footer{padding:6px 12px 10px !important;gap:8px !important;min-height:50px !important;}.chat-history-footer .footer-btn{min-height:48px !important;font-size:13px !important;padding:8px 6px !important;}} @media(max-width:768px){.'+newClasses.detail+'{inset:4% 3%;}.'+newClasses.copy+','+'.'+newClasses.clear+'{min-height:44px;}}';
+  document.head.appendChild(style);
+  enhanceVisibleContent();
+})();
+
+// ============================================================
+// 新增：独立错题管理（localStorage，不改动原有错题逻辑）
+// ============================================================
+(function setupLocalWrongList(){
+  const qzLocalWrongKey='qz_wrong_list';
+  const qzLocalZones=['gk','mk','sy'];
+
+  function qzLocalRead(){
+    try{
+      const value=JSON.parse(localStorage.getItem(qzLocalWrongKey)||'{}');
+      return value&&typeof value==='object'?value:{};
+    }catch(e){ return {}; }
+  }
+  function qzLocalWrite(value){
+    try{ localStorage.setItem(qzLocalWrongKey,JSON.stringify(value)); }catch(e){}
+  }
+  function qzLocalValidQuestion(zone,key){
+    if(!db[zone]||!key) return false;
+    const match=String(key).match(/^f(.+)_q(\d+)$/);
+    return !!(match&&db[zone][match[1]]&&db[zone][match[1]].questions&&db[zone][match[1]].questions[Number(match[2])]);
+  }
+  function qzLocalValidList(){
+    const source=qzLocalRead();
+    const valid={};
+    qzLocalZones.forEach(function(zone){
+      valid[zone]={};
+      const entries=source[zone]&&typeof source[zone]==='object'?source[zone]:{};
+      Object.keys(entries).forEach(function(key){
+        if(entries[key]===true&&qzLocalValidQuestion(zone,key)) valid[zone][key]=true;
+      });
+    });
+    return valid;
+  }
+  function qzLocalUpdateCount(){
+    const list=qzLocalValidList();
+    let total=0;
+    qzLocalZones.forEach(function(zone){ total+=Object.keys(list[zone]).length; });
+    const count=document.getElementById('wrongCount');
+    if(count) count.textContent=String(total);
+  }
+  function qzLocalSyncAnswer(zone,key,isWrong){
+    const list=qzLocalRead();
+    if(!list[zone]||typeof list[zone]!=='object') list[zone]={};
+    if(isWrong) list[zone][key]=true;
+    else delete list[zone][key];
+    qzLocalWrite(list);
+    qzLocalUpdateCount();
+  }
+
+  // 兼容已有用户：首次使用新 key 时复制旧数据，之后两套数据互不覆盖。
+  let qzLocalBootstrapped=false;
+  function qzLocalBootstrap(){
+    if(qzLocalBootstrapped) return;
+    qzLocalBootstrapped=true;
+    const current=localStorage.getItem(qzLocalWrongKey);
+    if(current===null&&typeof wrongSet!=='undefined'){
+      const legacy=qzLocalRead();
+      qzLocalZones.forEach(function(zone){
+        legacy[zone]={};
+        const entries=wrongSet[zone]&&typeof wrongSet[zone]==='object'?wrongSet[zone]:{};
+        Object.keys(entries).forEach(function(key){ if(entries[key]) legacy[zone][key]=true; });
+      });
+      qzLocalWrite(legacy);
+    }
+    qzLocalUpdateCount();
+  }
+
+  // 在原有内联 selectOption 之前同步答案，不阻断原有处理流程。
+  document.addEventListener('click',function(event){
+    const option=event.target.closest&&event.target.closest('#content .q-options .option');
+    if(!option) return;
+    const key=option.getAttribute('data-key');
+    const letter=option.getAttribute('data-letter');
+    const item=filteredQuestions.find(function(question){ return question._key===key; });
+    if(!item||item._answered!==undefined) return;
+    let correct=false;
+    try{ correct=getCorrectLetter(item)===letter; }catch(e){}
+    qzLocalSyncAnswer(activeZone,key,!correct);
+  },true);
+
+  const qzOriginalGetFiltered=getFiltered;
+  getFiltered=function(){
+    const requestedStatus=filterState.status;
+    if(requestedStatus==='wrong') filterState.status='all';
+    let result=qzOriginalGetFiltered();
+    filterState.status=requestedStatus;
+    if(requestedStatus==='wrong'){
+      const list=qzLocalValidList();
+      result=result.filter(function(question){ return !!(list[activeZone]&&list[activeZone][question._key]); });
+    }
+    return result;
+  };
+
+  const qzOriginalRenderAll=renderAll;
+  renderAll=function(){
+    qzLocalBootstrap();
+    return qzOriginalRenderAll();
+  };
+
+  window.viewWrongSet=function(){
+    filterState.status='wrong';
+    currentPage=1;
+    saveView();
+    renderAll();
+    qzLocalUpdateCount();
+  };
+  window.addEventListener('storage',function(event){
+    if(event.key===qzLocalWrongKey){ qzLocalUpdateCount(); if(filterState.status==='wrong') renderQuestions(); }
+  });
+  qzLocalUpdateCount();
+})();
