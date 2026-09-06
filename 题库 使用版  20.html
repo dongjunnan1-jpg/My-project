@@ -573,7 +573,6 @@ body.skin-dark .essay-note-input { background:#0f172a !important; color:#e2e8f0 
   .zone-tab { flex:0 0 42vw !important; }
 }
 body.essay-zone #zoneDone, body.essay-zone #zoneCorrect, body.essay-zone #zoneAccuracy { display:none; }
-body.essay-zone #moduleBar { display:none; }
 body.essay-zone #sourceFilter, body.essay-zone #statusFilter, body.essay-zone #sortFilter,
 body.essay-zone #moduleFilter, body.essay-zone #leafTypeFilter, body.essay-zone .ratio-label { display:none !important; }
 
@@ -624,11 +623,11 @@ body.essay-zone #moduleFilter, body.essay-zone #leafTypeFilter, body.essay-zone 
 @media (max-width:768px) { #scrollDiagPanel { bottom:80px; max-height:65vh; } #scrollDiagPanel header { align-items:flex-start; } }
 
 /* ====== 皮肤面板 ====== */
-#skinPanel { position:fixed; right:20px; bottom:130px; z-index:9999; background:#fff; border-radius:12px; padding:12px; box-shadow:0 8px 32px rgba(0,0,0,0.2); display:none; flex-direction:column; gap:8px; min-width:140px; }
+#skinPanel { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:9999; background:#1e293b; border-radius:16px; padding:20px; box-shadow:0 20px 60px rgba(0,0,0,0.5); display:none; flex-direction:column; gap:10px; min-width:300px; max-width:90vw; border:1px solid rgba(255,255,255,0.08); }
 #skinPanel.show { display:flex; }
-.skin-opt { padding:10px 14px; border-radius:8px; border:2px solid var(--light); background:#fff; cursor:pointer; font-size:14px; color:var(--deep); transition:.15s; text-align:center; }
-.skin-opt:hover { border-color:var(--main); }
-.skin-opt.active { background:linear-gradient(135deg,var(--mid),var(--main)); color:#fff; border-color:var(--main); }
+.skin-opt { padding:10px 8px; border-radius:8px; border:2px solid #334155; background:#0f172a; color:#e2e8f0; cursor:pointer; font-size:12px; text-align:center; transition:all 0.2s; font-weight:600; }
+.skin-opt:hover { border-color:#60a5fa; }
+.skin-opt.active { border-color:#60a5fa; background:#1e3a5f; box-shadow:0 0 20px rgba(96,165,250,0.2); }
 
 /* ====== AI 配置面板 ====== */
 #aiPanel { position:fixed; left:20px; bottom:70px; z-index:9999; background:#fff; border-radius:12px; padding:14px; box-shadow:0 8px 32px rgba(0,0,0,0.2); display:none; flex-direction:column; gap:8px; min-width:280px; max-width:320px; }
@@ -742,16 +741,6 @@ body.essay-zone #moduleFilter, body.essay-zone #leafTypeFilter, body.essay-zone 
 .q-ai-loading { color:#7c3aed; font-style:italic; }
 .q-ai-error { color:#dc2626; }
 
-/* ====== 墨水屏模式（纸质书风格，保留分区色）====== */
-body.ink-mode { --surface:#fcf9f4; --surface-muted:#f5f0e8; --text:#2c2c2c; --border:#d4cdc0; --overlay:rgba(0,0,0,0.5); background:var(--surface-muted) !important; color:var(--text) !important; }
-body.ink-mode .question, body.ink-mode .file-list, body.ink-mode .filter-bar, body.ink-mode .upload-zone, body.ink-mode .file-info, body.ink-mode .module-btn, body.ink-mode .zone-stats span, body.ink-mode .progress-panel, body.ink-mode .q-material, body.ink-mode .q-options .option { background:#fcf9f4 !important; color:#2c2c2c !important; border-color:#d4cdc0 !important; }
-body.ink-mode .q-content, body.ink-mode .q-title, body.ink-mode .q-solution, body.ink-mode .pp-label, body.ink-mode .zone-tab { color:#2c2c2c !important; }
-body.ink-mode .header { background:#ede6d6 !important; }
-/* 墨水屏保留分区激活色 */
-body.ink-mode .zone-tab[data-zone="gk"].active { background:#4a90d9 !important; color:#fff !important; border-color:#4a90d9 !important; }
-body.ink-mode .zone-tab[data-zone="mk"].active { background:#f5a623 !important; color:#fff !important; border-color:#f5a623 !important; }
-body.ink-mode .zone-tab[data-zone="sy"].active { background:#f7c948 !important; color:#2d3748 !important; border-color:#f7c948 !important; }
-
 /* ====== 暗夜皮肤 ====== */
 body.skin-dark { --surface:#1c2333; --surface-muted:#151b29; --text:#e6edf5; --border:#52627a; --overlay:rgba(0,0,0,0.6); background:var(--surface-muted) !important; color:var(--text) !important; }
 body.skin-dark .question, body.skin-dark .file-list, body.skin-dark .filter-bar, body.skin-dark .upload-zone, body.skin-dark .file-info, body.skin-dark .module-btn, body.skin-dark .zone-stats span, body.skin-dark .progress-panel, body.skin-dark .q-material, body.skin-dark .q-options .option { background:#2d3748 !important; color:#e2e8f0 !important; border-color:#4a5568 !important; }
@@ -763,52 +752,32 @@ body.skin-dark .q-analysis,
 body.skin-dark .q-ai-result { color:#e2e8f0 !important; background:#1e293b !important; }
 body.skin-dark .option.selected-correct { color:#4CAF50 !important; border:2px solid #4CAF50 !important; background:rgba(76,175,80,0.2) !important; }
 body.skin-dark .option.selected-wrong { color:#f44336 !important; border:2px solid #f44336 !important; background:rgba(244,67,54,0.2) !important; }
-body.ink-mode .header-pp .pp-card, body.skin-dark .header-pp .pp-card { background:var(--surface) !important; border-color:var(--border) !important; color:var(--text) !important; }
-body.ink-mode .header-pp .pp-label, body.ink-mode .header-pp .pp-value, body.skin-dark .header-pp .pp-label, body.skin-dark .header-pp .pp-value { color:var(--text) !important; text-shadow:none; }
+body.skin-dark .header-pp .pp-card { background:var(--surface) !important; border-color:var(--border) !important; color:var(--text) !important; }
+body.skin-dark .header-pp .pp-label, body.skin-dark .header-pp .pp-value { color:var(--text) !important; text-shadow:none; }
 body.skin-dark .chat-history-panel, body.skin-dark .new-chat-detail-panel, body.skin-dark .chat-history-footer { background:var(--surface) !important; color:var(--text) !important; border-color:var(--border) !important; }
 body.skin-dark .chat-history-item, body.skin-dark .new-chat-detail-message { background:var(--surface-muted) !important; color:var(--text) !important; border-color:var(--border) !important; }
 body.skin-dark .chat-history-item-title, body.skin-dark .chat-history-item-preview, body.skin-dark .chat-history-empty, body.skin-dark .new-chat-detail-title, body.skin-dark .msg-question, body.skin-dark .msg-options, body.skin-dark .msg-ai { color:var(--text) !important; }
-body.ink-mode .chat-history-panel, body.ink-mode .new-chat-detail-panel, body.ink-mode .chat-history-footer { background:var(--surface) !important; color:var(--text) !important; border-color:var(--border) !important; }
-body.ink-mode .chat-history-item, body.ink-mode .new-chat-detail-message { background:var(--surface-muted) !important; color:var(--text) !important; border-color:var(--border) !important; }
 body.skin-dark .q-chat-box, body.skin-dark .q-chat-msg, body.skin-dark .done-item, body.skin-dark .info-card, body.skin-dark .question-card, body.skin-dark .badge, body.skin-dark .empty-conversation { background:var(--surface) !important; color:var(--text) !important; border-color:var(--border) !important; }
 body.skin-dark .q-chat-input textarea { background:var(--surface-muted) !important; color:var(--text) !important; border-color:var(--border) !important; }
-body.ink-mode .q-chat-box, body.ink-mode .q-chat-msg, body.ink-mode .done-item, body.ink-mode .info-card, body.ink-mode .question-card, body.ink-mode .badge, body.ink-mode .empty-conversation { background:var(--surface) !important; color:var(--text) !important; border-color:var(--border) !important; }
-body.ink-mode .q-chat-input textarea { background:var(--surface-muted) !important; color:var(--text) !important; border-color:var(--border) !important; }
-body.skin-dark .header-pp .pp-card:first-child .pp-label, body.ink-mode .header-pp .pp-card:first-child .pp-label { color:var(--text) !important; }
-body.skin-dark .header-pp .pp-card:first-child .pp-value, body.ink-mode .header-pp .pp-card:first-child .pp-value { color:var(--text) !important; }
-body.skin-dark .header-pp .pp-card:first-child #dailyStatus, body.ink-mode .header-pp .pp-card:first-child #dailyStatus { color:var(--text) !important; }
-body.skin-dark .btn-primary, body.ink-mode .btn-primary { background:var(--deep) !important; color:var(--on-main) !important; }
-body.skin-dark .btn-primary:hover, body.ink-mode .btn-primary:hover { background:var(--main) !important; color:var(--on-main) !important; }
-body.skin-dark .btn-outline, body.ink-mode .btn-outline { background:var(--surface) !important; color:var(--text) !important; border-color:var(--border) !important; }
-body.skin-dark .btn-outline:hover, body.ink-mode .btn-outline:hover { background:var(--surface-muted) !important; color:var(--text) !important; }
+body.skin-dark .header-pp .pp-card:first-child .pp-label, body.skin-dark .header-pp .pp-card:first-child .pp-value, body.skin-dark .header-pp .pp-card:first-child #dailyStatus { color:var(--text) !important; }
+body.skin-dark .btn-primary { background:var(--deep) !important; color:var(--on-main) !important; }
+body.skin-dark .btn-primary:hover { background:var(--main) !important; color:var(--on-main) !important; }
+body.skin-dark .btn-outline { background:var(--surface) !important; color:var(--text) !important; border-color:var(--border) !important; }
+body.skin-dark .btn-outline:hover { background:var(--surface-muted) !important; color:var(--text) !important; }
 body.skin-dark #progressPanel .pp-card:first-child #dailyGoalInput,
-body.ink-mode #progressPanel .pp-card:first-child #dailyGoalInput { background:var(--surface-muted) !important; color:var(--text) !important; border:1px solid var(--border) !important; color-scheme:auto; }
 body.skin-dark #progressPanel .pp-card:first-child #dailyGoalInput:focus,
-body.ink-mode #progressPanel .pp-card:first-child #dailyGoalInput:focus { background:var(--surface) !important; color:var(--text) !important; border-color:var(--main) !important; outline:2px solid var(--main); }
 body.skin-dark #progressPanel .pp-card:first-child .daily-reset-btn,
-body.ink-mode #progressPanel .pp-card:first-child .daily-reset-btn { background:var(--surface-muted) !important; color:var(--text) !important; border:1px solid var(--border) !important; }
 body.skin-dark #progressPanel .pp-card:first-child .daily-reset-btn:hover,
-body.ink-mode #progressPanel .pp-card:first-child .daily-reset-btn:hover { background:var(--surface) !important; color:var(--text) !important; border-color:var(--main) !important; }
 body.skin-dark #progressPanel .pp-card:last-child .pp-date-input,
-body.ink-mode #progressPanel .pp-card:last-child .pp-date-input,
 body.skin-dark #progressPanel .pp-card:first-child .daily-reset-btn,
-body.ink-mode #progressPanel .pp-card:first-child .daily-reset-btn { background:var(--surface-muted) !important; color:var(--text) !important; border:1px solid var(--border) !important; }
 body.skin-dark #progressPanel .pp-card:last-child .pp-date-input:hover,
-body.ink-mode #progressPanel .pp-card:last-child .pp-date-input:hover,
 body.skin-dark #progressPanel .pp-card:first-child .daily-reset-btn:hover,
-body.ink-mode #progressPanel .pp-card:first-child .daily-reset-btn:hover { background:var(--surface) !important; color:var(--text) !important; }
 body.skin-dark #progressPanel .pp-card:last-child .pp-mini-btn,
-body.ink-mode #progressPanel .pp-card:last-child .pp-mini-btn { background:#4a2a2a !important; color:#e6a0a0 !important; border:1px solid #6a3a3a !important; }
 body.skin-dark #progressPanel .pp-card:last-child .pp-mini-btn:hover,
-body.ink-mode #progressPanel .pp-card:last-child .pp-mini-btn:hover { background:#5a3a3a !important; color:#fff !important; }
 
 /* ====== 护眼皮肤 ====== */
 body.skin-eye { background:#c7edcc !important; color:#2d3748 !important; }
 body.skin-eye .question, body.skin-eye .file-list, body.skin-eye .filter-bar, body.skin-eye .upload-zone, body.skin-eye .file-info, body.skin-eye .module-btn, body.skin-eye .zone-stats span, body.skin-eye .progress-panel, body.skin-eye .q-material { background:#e8f5e9 !important; color:#2d3748 !important; border-color:#a5d6a7 !important; }
-
-/* ====== 暖阳皮肤 ====== */
-body.skin-warm { background:#fff4e6 !important; color:#5c3d1a !important; }
-body.skin-warm .question, body.skin-warm .file-list, body.skin-warm .filter-bar, body.skin-warm .upload-zone, body.skin-warm .file-info, body.skin-warm .module-btn, body.skin-warm .zone-stats span, body.skin-warm .progress-panel, body.skin-warm .q-material { background:#fff9f0 !important; color:#5c3d1a !important; border-color:#f4d4a8 !important; }
 
 /* ====== 进度面板字体加深 ====== */
 .header-pp .pp-label { color:#fff !important; opacity:1 !important; font-weight:bold !important; text-shadow:0 1px 2px rgba(0,0,0,0.3); }
@@ -1811,14 +1780,33 @@ function getZoneQuestions(zone, fileId){
 }
 
 function renderZoneStats(){
-const qs=getZoneQuestions(activeZone, '__all__');
+  const qs=getZoneQuestions(activeZone, '__all__');
   let total=qs.length, done=0, corr=0;
   qs.forEach(q=>{ const a=q._answered; if(a!==undefined){ done++; if(isAnsweredCorrect(q)) corr++; } });
   const acc=done?((corr/done)*100).toFixed(1):'0.0';
-  document.getElementById('zoneTotal').textContent=activeZone==='sl' ? '📝 总 '+total+' 套试卷' : '📝 总 '+total+' 题';
-  document.getElementById('zoneDone').textContent='✅ 已做 '+done+' 题';
-  document.getElementById('zoneCorrect').textContent='🎯 正确 '+corr+' 题';
-  document.getElementById('zoneAccuracy').textContent='📈 正确率 '+acc+'%';
+
+  if (activeZone === 'ms') {
+    document.getElementById('zoneTotal').textContent = '📝 总 ' + total + ' 题';
+    document.getElementById('zoneDone').style.display = 'none';
+    document.getElementById('zoneCorrect').style.display = 'none';
+    document.getElementById('zoneAccuracy').style.display = 'none';
+  } else if (activeZone === 'sl') {
+    document.getElementById('zoneTotal').textContent = '📝 总 ' + total + ' 套试卷';
+    document.getElementById('zoneDone').textContent = '✅ 已做 ' + done + ' 套';
+    document.getElementById('zoneCorrect').textContent = '🎯 正确 ' + corr + ' 套';
+    document.getElementById('zoneAccuracy').textContent = '📈 正确率 ' + acc + '%';
+    document.getElementById('zoneDone').style.display = '';
+    document.getElementById('zoneCorrect').style.display = '';
+    document.getElementById('zoneAccuracy').style.display = '';
+  } else {
+    document.getElementById('zoneTotal').textContent = '📝 总 ' + total + ' 题';
+    document.getElementById('zoneDone').textContent = '✅ 已做 ' + done + ' 题';
+    document.getElementById('zoneCorrect').textContent = '🎯 正确 ' + corr + ' 题';
+    document.getElementById('zoneAccuracy').textContent = '📈 正确率 ' + acc + '%';
+    document.getElementById('zoneDone').style.display = '';
+    document.getElementById('zoneCorrect').style.display = '';
+    document.getElementById('zoneAccuracy').style.display = '';
+  }
   document.getElementById('zoneNameLabel').textContent=zoneName(activeZone);
 
   const fi=document.getElementById('fileInfo');
@@ -1932,28 +1920,64 @@ function getFilterBaseQuestions(){
 }
 
 function renderModuleBar(){
-  const qs=getFilterBaseQuestions();
-  const counts={all: qs.length};
-  qs.forEach(q=>{ 
-    let m = getQuestionBigCategory(q);
-    m = normalizeModuleName(m);
-    if (!counts[m]) counts[m] = 0;
-    counts[m]++; 
-  });
-  let html=`<button class="module-btn ${filterState.module==='all'?'active':''}" data-module="all">📂 全部<span class="count">${counts.all} 题</span></button>`;
-  MODS.forEach(m=>{ html+=`<button class="module-btn ${filterState.module===m?'active':''}" data-module="${m}">${m}<span class="count">${counts[m] || 0} 题</span></button>`; });
-  moduleBar.innerHTML=html;
-  moduleBar.querySelectorAll('.module-btn').forEach(b=>{
-    b.onclick=function(){
-      moduleBar.querySelectorAll('.module-btn').forEach(x=>x.classList.remove('active'));
-      this.classList.add('active');
-      filterState.module=this.dataset.module;
-      filterState.subType='all';
-      filterState.leafType='all';
-      if (activeZone === 'mk') {
-        filterState.sortBy = 'default';
+  const qs = getFilterBaseQuestions();
+  const counts = { all: qs.length };
+
+  if (activeZone === 'sl') {
+    qs.forEach(function(q) {
+      var topic = q.topic || '申论';
+      if (!counts[topic]) counts[topic] = 0;
+      counts[topic]++;
+    });
+    var html = '<button class="module-btn ' + (filterState.module === 'all' ? 'active' : '') + '" data-module="all">📂 全部<span class="count">' + counts.all + ' 套</span></button>';
+    var slTopics = ['申论', '经济', '政治', '文化', '社会', '生态', '乡村振兴', '基层治理', '民生保障', '其他'];
+    slTopics.forEach(function(topic) {
+      if (counts[topic] && counts[topic] > 0) {
+        html += '<button class="module-btn ' + (filterState.module === topic ? 'active' : '') + '" data-module="' + topic + '">' + topic + '<span class="count">' + counts[topic] + ' 套</span></button>';
       }
-      currentPage=1; saveView();
+    });
+    moduleBar.innerHTML = html;
+  } else if (activeZone === 'ms') {
+    var typeStats = {};
+    qs.forEach(function(q) {
+      var type = q.questionType || q.type || q.subType || '面试';
+      if (!typeStats[type]) typeStats[type] = 0;
+      typeStats[type]++;
+    });
+    var html = '<button class="module-btn ' + (filterState.module === 'all' ? 'active' : '') + '" data-module="all">📂 全部<span class="count">' + counts.all + ' 题</span></button>';
+    var msOrder = ['综合分析', '组织管理', '应急应变', '人际关系', '自我认知', '情景模拟', '演讲题', '观点题', '社会现象', '其他'];
+    msOrder.forEach(function(type) {
+      if (typeStats[type] && typeStats[type] > 0) {
+        html += '<button class="module-btn ' + (filterState.module === type ? 'active' : '') + '" data-module="' + type + '">' + type + '<span class="count">' + typeStats[type] + ' 题</span></button>';
+      }
+    });
+    moduleBar.innerHTML = html;
+  } else {
+    qs.forEach(function(q) {
+      var m = getQuestionBigCategory(q);
+      m = normalizeModuleName(m);
+      if (!counts[m]) counts[m] = 0;
+      counts[m]++;
+    });
+    var html = '<button class="module-btn ' + (filterState.module === 'all' ? 'active' : '') + '" data-module="all">📂 全部<span class="count">' + counts.all + ' 题</span></button>';
+    MODS.forEach(function(m) {
+      if (counts[m] && counts[m] > 0) {
+        html += '<button class="module-btn ' + (filterState.module === m ? 'active' : '') + '" data-module="' + m + '">' + m + '<span class="count">' + counts[m] + ' 题</span></button>';
+      }
+    });
+    moduleBar.innerHTML = html;
+  }
+
+  moduleBar.querySelectorAll('.module-btn').forEach(function(b) {
+    b.onclick = function() {
+      moduleBar.querySelectorAll('.module-btn').forEach(function(x) { x.classList.remove('active'); });
+      this.classList.add('active');
+      filterState.module = this.dataset.module;
+      filterState.subType = 'all';
+      filterState.leafType = 'all';
+      if (activeZone === 'mk') filterState.sortBy = 'default';
+      currentPage = 1;
+      saveView();
       window.updateSubTypeFilter();
       renderQuestions();
     };
@@ -2306,10 +2330,18 @@ function getFiltered(){
 
   if(activeZone==='sl'){
     if(kw) qs=qs.filter(function(q){ return ((q.paperName||'')+' '+(q.topic||'')).toLowerCase().includes(kw); });
-    if(filterState.year!=='all') qs=qs.filter(function(q){ return q.year===filterState.year; });
-    if(filterState.province!=='all') qs=qs.filter(function(q){ return q.province===filterState.province; });
-    if(filterState.subType!=='all') qs=qs.filter(function(q){ return q.topic===filterState.subType; });
+    if(filterState.module!=='all') qs=qs.filter(function(q){ return (q.topic||'申论')===filterState.module; });
+    if(filterState.subType!=='all') qs=qs.filter(function(q){ return (q.year||'未知')===filterState.subType; });
+    if(filterState.leafType!=='all') qs=qs.filter(function(q){ return (q.province||'其他')===filterState.leafType; });
     return qs.sort(function(a,b){ return Number(b.year||0)-Number(a.year||0) || String(b.paperDate||'').localeCompare(String(a.paperDate||'')); });
+  }
+
+  if(activeZone==='ms'){
+    if(kw) qs=qs.filter(function(q){ return (q.content||'').toLowerCase().includes(kw); });
+    if(filterState.module!=='all') qs=qs.filter(function(q){ return (q.questionType || q.type || q.subType || '面试') === filterState.module; });
+    if(filterState.subType!=='all') qs=qs.filter(function(q){ return (q.topic || q.subCategory || '其他') === filterState.subType; });
+    if(filterState.leafType!=='all') qs=qs.filter(function(q){ return (q.source || '未知') === filterState.leafType; });
+    return qs;
   }
 
   // 大模块、一级题型、细分题型：严格使用题目已有的三级分类字段
@@ -4861,28 +4893,93 @@ function setupLongPressExclude(){
 }
 
 // ============================================================
-// 皮肤切换（5 皮肤存 localStorage qz_skin_v4）+ 墨水屏开关
+// 颜色主题系统（10种艺术色彩 + 默认蓝）
 // ============================================================
-const SKIN_KEY='qz_skin_v4';
-let currentSkin='default';
-function loadSkin(){ try{ currentSkin=localStorage.getItem(SKIN_KEY)||'default'; }catch(e){} applySkin(currentSkin); }
-function applySkin(skin){
-  document.body.classList.remove('skin-dark','skin-eye','skin-warm','ink-mode');
-  if(skin==='dark') document.body.classList.add('skin-dark');
-  else if(skin==='eye') document.body.classList.add('skin-eye');
-  else if(skin==='warm') document.body.classList.add('skin-warm');
-  else if(skin==='ink') document.body.classList.add('ink-mode');
-  currentSkin=skin;
-  try{ localStorage.setItem(SKIN_KEY, skin); }catch(e){}
-  document.querySelectorAll('.skin-opt').forEach(function(o){ o.classList.toggle('active', o.dataset.skin===skin); });
-}
-function toggleSkinPanel(){ const p=document.getElementById('skinPanel'); if(p) p.classList.toggle('show'); }
-function selectSkin(s){ applySkin(s); }
-function toggleInkMode(){
-  if(document.body.classList.contains('ink-mode')) applySkin('default');
-  else applySkin('ink');
+const SKIN_KEY = 'qz_skin_v4';
+let currentSkin = 'default';
+const SKIN_THEMES = {
+  default: { main: '#5b9bd5', mid: '#8fc1ed', deep: '#3a7ab0', bg: '#f0f7ff', light: '#eef4fc', onMain: '#ffffff', name: '默认蓝' },
+  klein: { main: '#002FA7', mid: '#1a4fc7', deep: '#001a5e', bg: '#e8ecf5', light: '#d6dce8', onMain: '#ffffff', name: '克莱因蓝' },
+  burgundy: { main: '#800020', mid: '#b00038', deep: '#4a0012', bg: '#f5e8ea', light: '#e8d6d8', onMain: '#ffffff', name: '勃垦地红' },
+  mars: { main: '#18453B', mid: '#2a6b5a', deep: '#0a2a22', bg: '#e8f0ed', light: '#d6e3de', onMain: '#ffffff', name: '马尔斯绿' },
+  titian: { main: '#C21807', mid: '#e03020', deep: '#7a0f04', bg: '#f5ece8', light: '#e8ddd6', onMain: '#ffffff', name: '提香红' },
+  chinaRed: { main: '#A70000', mid: '#d02020', deep: '#5e0000', bg: '#f5e8e8', light: '#e8d6d6', onMain: '#ffffff', name: '中国红' },
+  prussian: { main: '#003153', mid: '#1a5070', deep: '#001a2e', bg: '#e8edf0', light: '#d6dde3', onMain: '#ffffff', name: '普鲁士蓝' },
+  bordeaux: { main: '#7D1182', mid: '#a030a5', deep: '#4a0a4e', bg: '#f5e8f5', light: '#e8d6e8', onMain: '#ffffff', name: '波尔多红' },
+  shenburen: { main: '#D4A820', mid: '#FADA5E', deep: '#a07810', bg: '#f8f4e0', light: '#f0e8c8', onMain: '#2d3748', name: '申步伦黄' },
+  tiffany: { main: '#0ABAB5', mid: '#40d4cf', deep: '#06807a', bg: '#e8f5f4', light: '#d6e8e6', onMain: '#ffffff', name: '蒂芙尼蓝' },
+  vandyke: { main: '#664228', mid: '#8a5a3a', deep: '#3a2416', bg: '#f0ece8', light: '#e3ded6', onMain: '#ffffff', name: '凡戴克棕' }
+};
+
+function loadSkin() {
+  try { currentSkin = localStorage.getItem(SKIN_KEY) || 'default'; } catch(e) {}
+  applySkin(currentSkin);
 }
 
+function applySkin(skin) {
+  document.body.classList.remove('skin-dark', 'skin-eye', 'skin-warm', 'ink-mode');
+
+  if (skin === 'default') {
+    currentSkin = 'default';
+    try { localStorage.setItem(SKIN_KEY, skin); } catch(e) {}
+    applyZoneTheme(activeZone);
+    updateSkinPanelUI();
+    return;
+  }
+
+  const theme = SKIN_THEMES[skin];
+  if (!theme) {
+    currentSkin = 'default';
+    try { localStorage.setItem(SKIN_KEY, 'default'); } catch(e) {}
+    applyZoneTheme(activeZone);
+    updateSkinPanelUI();
+    return;
+  }
+
+  const r = document.documentElement.style;
+  r.setProperty('--main', theme.main);
+  r.setProperty('--mid', theme.mid);
+  r.setProperty('--deep', theme.deep);
+  r.setProperty('--bg', theme.bg);
+  r.setProperty('--light', theme.light);
+  r.setProperty('--on-main', theme.onMain);
+
+  if (skin === 'shenburen') {
+    document.body.style.color = '#2d3748';
+  } else {
+    document.body.style.color = '';
+  }
+
+  currentSkin = skin;
+  try { localStorage.setItem(SKIN_KEY, skin); } catch(e) {}
+  updateSkinPanelUI();
+}
+
+function updateSkinPanelUI() {
+  document.querySelectorAll('.skin-opt').forEach(function(el) {
+    const isActive = el.dataset.skin === currentSkin;
+    el.classList.toggle('active', isActive);
+    el.style.borderColor = isActive ? '#60a5fa' : '#334155';
+    el.style.background = isActive ? '#1e3a5f' : '#0f172a';
+    el.style.boxShadow = isActive ? '0 0 20px rgba(96,165,250,0.2)' : 'none';
+  });
+}
+
+function toggleSkinPanel() {
+  const p = document.getElementById('skinPanel');
+  if (!p) return;
+  const isShow = p.style.display === 'flex';
+  p.style.display = isShow ? 'none' : 'flex';
+  if (!isShow) updateSkinPanelUI();
+}
+
+function selectSkin(s) {
+  applySkin(s);
+  setTimeout(function() {
+    const panel = document.getElementById('skinPanel');
+    if (panel) panel.style.display = 'none';
+  }, 600);
+}
 // ============================================================
 // 返回顶部按钮（滚动>300px 显示）
 // ============================================================
@@ -5471,17 +5568,93 @@ window.updateSubTypeFilter = function() {
 
   if (activeZone === 'sl') {
     var topicStats = {};
-    qs.forEach(function(q){ var topic=q.topic||'其他'; topicStats[topic]=(topicStats[topic]||0)+1; });
-    moduleFilter.innerHTML = '<option value="all">📂 申论试卷 (' + qs.length + '套)</option>';
-    moduleFilter.value = 'all';
-    subTypeFilter.innerHTML = '<option value="all">🏷️ 全部话题 (' + qs.length + '套)</option>';
+    qs.forEach(function(q){ var topic = q.topic || '申论'; topicStats[topic] = (topicStats[topic] || 0) + 1; });
+
+    var selectedModule = filterState.module || 'all';
+    moduleFilter.innerHTML = '<option value="all">📂 全部话题 (' + qs.length + '套)</option>';
     Object.keys(topicStats).sort().forEach(function(topic){
-      var option=document.createElement('option'); option.value=topic; option.textContent=topic+' ('+topicStats[topic]+'套)'; subTypeFilter.appendChild(option);
+      var option = document.createElement('option');
+      option.value = topic;
+      option.textContent = topic + ' (' + topicStats[topic] + '套)';
+      moduleFilter.appendChild(option);
     });
-    if(filterState.subType!=='all' && !Object.prototype.hasOwnProperty.call(topicStats, filterState.subType)) filterState.subType='all';
-    subTypeFilter.value=filterState.subType;
-    leafTypeFilter.innerHTML='<option value="all">📋 申论不区分细分题型</option>';
-    leafTypeFilter.value='all'; filterState.leafType='all';
+    if (selectedModule !== 'all' && !topicStats[selectedModule]) {
+      filterState.module = 'all';
+      selectedModule = 'all';
+    }
+    moduleFilter.value = selectedModule;
+
+    var moduleQs = selectedModule === 'all' ? qs : qs.filter(function(q){ return (q.topic || '申论') === selectedModule; });
+    var yearStats = {};
+    moduleQs.forEach(function(q){ var year = q.year || '未知'; yearStats[year] = (yearStats[year] || 0) + 1; });
+    subTypeFilter.innerHTML = '<option value="all">📅 全部年份 (' + moduleQs.length + '套)</option>';
+    Object.keys(yearStats).sort(function(a,b){ return Number(b) - Number(a); }).forEach(function(year){
+      var option = document.createElement('option');
+      option.value = year;
+      option.textContent = year + '年 (' + yearStats[year] + '套)';
+      subTypeFilter.appendChild(option);
+    });
+    if (filterState.subType !== 'all' && !yearStats[filterState.subType]) filterState.subType = 'all';
+    subTypeFilter.value = filterState.subType;
+
+    var provinceStats = {};
+    var yearQs = filterState.subType === 'all' ? moduleQs : moduleQs.filter(function(q){ return (q.year || '未知') === filterState.subType; });
+    yearQs.forEach(function(q){ var province = q.province || '其他'; provinceStats[province] = (provinceStats[province] || 0) + 1; });
+    leafTypeFilter.innerHTML = '<option value="all">📍 全部地区 (' + yearQs.length + '套)</option>';
+    Object.keys(provinceStats).sort().forEach(function(province){
+      var option = document.createElement('option');
+      option.value = province;
+      option.textContent = province + ' (' + provinceStats[province] + '套)';
+      leafTypeFilter.appendChild(option);
+    });
+    if (filterState.leafType !== 'all' && !provinceStats[filterState.leafType]) filterState.leafType = 'all';
+    leafTypeFilter.value = filterState.leafType;
+  } else if (activeZone === 'ms') {
+    var typeStats = {};
+    qs.forEach(function(q){ var type = q.questionType || q.type || q.subType || '面试'; typeStats[type] = (typeStats[type] || 0) + 1; });
+
+    var selectedModule = filterState.module || 'all';
+    moduleFilter.innerHTML = '<option value="all">📂 全部题型 (' + qs.length + '题)</option>';
+    var msOrder = ['综合分析', '组织管理', '应急应变', '人际关系', '自我认知', '情景模拟', '演讲题', '观点题', '社会现象', '其他'];
+    msOrder.forEach(function(type){
+      if (typeStats[type]) {
+        var option = document.createElement('option');
+        option.value = type;
+        option.textContent = type + ' (' + typeStats[type] + '题)';
+        moduleFilter.appendChild(option);
+      }
+    });
+    if (selectedModule !== 'all' && !typeStats[selectedModule]) {
+      filterState.module = 'all';
+      selectedModule = 'all';
+    }
+    moduleFilter.value = selectedModule;
+
+    var topicStats = {};
+    var moduleQs = selectedModule === 'all' ? qs : qs.filter(function(q){ return (q.questionType || q.type || q.subType || '面试') === selectedModule; });
+    moduleQs.forEach(function(q){ var topic = q.topic || q.subCategory || '其他'; topicStats[topic] = (topicStats[topic] || 0) + 1; });
+    subTypeFilter.innerHTML = '<option value="all">🏷️ 全部话题 (' + moduleQs.length + '题)</option>';
+    Object.keys(topicStats).sort().forEach(function(topic){
+      var option = document.createElement('option');
+      option.value = topic;
+      option.textContent = topic + ' (' + topicStats[topic] + '题)';
+      subTypeFilter.appendChild(option);
+    });
+    if (filterState.subType !== 'all' && !topicStats[filterState.subType]) filterState.subType = 'all';
+    subTypeFilter.value = filterState.subType;
+
+    var sourceStats = {};
+    var topicQs = filterState.subType === 'all' ? moduleQs : moduleQs.filter(function(q){ return (q.topic || q.subCategory || '其他') === filterState.subType; });
+    topicQs.forEach(function(q){ var src = q.source || '未知'; sourceStats[src] = (sourceStats[src] || 0) + 1; });
+    leafTypeFilter.innerHTML = '<option value="all">📚 全部来源 (' + topicQs.length + '题)</option>';
+    Object.keys(sourceStats).sort().forEach(function(src){
+      var option = document.createElement('option');
+      option.value = src;
+      option.textContent = src + ' (' + sourceStats[src] + '题)';
+      leafTypeFilter.appendChild(option);
+    });
+    if (filterState.leafType !== 'all' && !sourceStats[filterState.leafType]) filterState.leafType = 'all';
+    leafTypeFilter.value = filterState.leafType;
   } else if (activeZone === 'mk') {
     var moduleStats = {};
     qs.forEach(function(q) {
@@ -5586,7 +5759,6 @@ window.updateSubTypeFilter = function() {
       leafTypeFilter.appendChild(option);
     });
     leafTypeFilter.value = filterState.leafType;
-
   } else {
     var moduleStats = {};
     qs.forEach(function(q) {
@@ -6535,15 +6707,62 @@ function toggleNoHack(on){
   </label>
   <button class="btn btn-primary" type="button" onclick="saveAISettings()">保存配置</button>
 </div>
-<!-- 返回顶部 / 墨水屏 / 皮肤 按钮 -->
+<!-- 返回顶部 / 皮肤按钮 -->
 <button id="backToTop" type="button" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="返回顶部">↑</button>
 <button id="skinToggleBtn" type="button" onclick="toggleSkinPanel()" title="皮肤切换">🎨</button>
-<div id="skinPanel">
-  <div class="skin-opt" data-skin="default" onclick="selectSkin('default')">原版</div>
-  <div class="skin-opt" data-skin="dark" onclick="selectSkin('dark')">暗夜</div>
-  <div class="skin-opt" data-skin="eye" onclick="selectSkin('eye')">护眼</div>
-  <div class="skin-opt" data-skin="warm" onclick="selectSkin('warm')">暖阳</div>
-  <div class="skin-opt" data-skin="ink" onclick="selectSkin('ink')">墨水屏</div>
+<!-- 皮肤主题面板 - 居中弹出 -->
+<div id="skinPanel" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;background:#1e293b;border-radius:16px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,0.5);display:none;flex-direction:column;gap:10px;min-width:300px;max-width:90vw;border:1px solid rgba(255,255,255,0.08);">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+    <span style="color:#e2e8f0;font-size:16px;font-weight:700;">🎨 颜色主题</span>
+    <button type="button" onclick="toggleSkinPanel()" style="background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer;padding:0 4px;">✕</button>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+    <div class="skin-opt" data-skin="default" onclick="selectSkin('default')" style="padding:10px 8px;border-radius:8px;border:2px solid #334155;background:#0f172a;color:#e2e8f0;cursor:pointer;font-size:12px;text-align:center;transition:all 0.2s;font-weight:600;">
+      <div style="width:100%;height:24px;border-radius:4px;margin-bottom:4px;background:linear-gradient(135deg,#5b9bd5,#3a7ab0);"></div>
+      默认蓝
+    </div>
+    <div class="skin-opt" data-skin="klein" onclick="selectSkin('klein')" style="padding:10px 8px;border-radius:8px;border:2px solid #334155;background:#0f172a;color:#e2e8f0;cursor:pointer;font-size:12px;text-align:center;transition:all 0.2s;font-weight:600;">
+      <div style="width:100%;height:24px;border-radius:4px;margin-bottom:4px;background:#002FA7;"></div>
+      克莱因蓝
+    </div>
+    <div class="skin-opt" data-skin="burgundy" onclick="selectSkin('burgundy')" style="padding:10px 8px;border-radius:8px;border:2px solid #334155;background:#0f172a;color:#e2e8f0;cursor:pointer;font-size:12px;text-align:center;transition:all 0.2s;font-weight:600;">
+      <div style="width:100%;height:24px;border-radius:4px;margin-bottom:4px;background:#800020;"></div>
+      勃垦地红
+    </div>
+    <div class="skin-opt" data-skin="mars" onclick="selectSkin('mars')" style="padding:10px 8px;border-radius:8px;border:2px solid #334155;background:#0f172a;color:#e2e8f0;cursor:pointer;font-size:12px;text-align:center;transition:all 0.2s;font-weight:600;">
+      <div style="width:100%;height:24px;border-radius:4px;margin-bottom:4px;background:#18453B;"></div>
+      马尔斯绿
+    </div>
+    <div class="skin-opt" data-skin="titian" onclick="selectSkin('titian')" style="padding:10px 8px;border-radius:8px;border:2px solid #334155;background:#0f172a;color:#e2e8f0;cursor:pointer;font-size:12px;text-align:center;transition:all 0.2s;font-weight:600;">
+      <div style="width:100%;height:24px;border-radius:4px;margin-bottom:4px;background:#C21807;"></div>
+      提香红
+    </div>
+    <div class="skin-opt" data-skin="chinaRed" onclick="selectSkin('chinaRed')" style="padding:10px 8px;border-radius:8px;border:2px solid #334155;background:#0f172a;color:#e2e8f0;cursor:pointer;font-size:12px;text-align:center;transition:all 0.2s;font-weight:600;">
+      <div style="width:100%;height:24px;border-radius:4px;margin-bottom:4px;background:#A70000;"></div>
+      中国红
+    </div>
+    <div class="skin-opt" data-skin="prussian" onclick="selectSkin('prussian')" style="padding:10px 8px;border-radius:8px;border:2px solid #334155;background:#0f172a;color:#e2e8f0;cursor:pointer;font-size:12px;text-align:center;transition:all 0.2s;font-weight:600;">
+      <div style="width:100%;height:24px;border-radius:4px;margin-bottom:4px;background:#003153;"></div>
+      普鲁士蓝
+    </div>
+    <div class="skin-opt" data-skin="bordeaux" onclick="selectSkin('bordeaux')" style="padding:10px 8px;border-radius:8px;border:2px solid #334155;background:#0f172a;color:#e2e8f0;cursor:pointer;font-size:12px;text-align:center;transition:all 0.2s;font-weight:600;">
+      <div style="width:100%;height:24px;border-radius:4px;margin-bottom:4px;background:#7D1182;"></div>
+      波尔多红
+    </div>
+    <div class="skin-opt" data-skin="shenburen" onclick="selectSkin('shenburen')" style="padding:10px 8px;border-radius:8px;border:2px solid #334155;background:#0f172a;color:#e2e8f0;cursor:pointer;font-size:12px;text-align:center;transition:all 0.2s;font-weight:600;">
+      <div style="width:100%;height:24px;border-radius:4px;margin-bottom:4px;background:#FADA5E;"></div>
+      申步伦黄
+    </div>
+    <div class="skin-opt" data-skin="tiffany" onclick="selectSkin('tiffany')" style="padding:10px 8px;border-radius:8px;border:2px solid #334155;background:#0f172a;color:#e2e8f0;cursor:pointer;font-size:12px;text-align:center;transition:all 0.2s;font-weight:600;">
+      <div style="width:100%;height:24px;border-radius:4px;margin-bottom:4px;background:#0ABAB5;"></div>
+      蒂芙尼蓝
+    </div>
+    <div class="skin-opt" data-skin="vandyke" onclick="selectSkin('vandyke')" style="padding:10px 8px;border-radius:8px;border:2px solid #334155;background:#0f172a;color:#e2e8f0;cursor:pointer;font-size:12px;text-align:center;transition:all 0.2s;font-weight:600;">
+      <div style="width:100%;height:24px;border-radius:4px;margin-bottom:4px;background:#664228;"></div>
+      凡戴克棕
+    </div>
+  </div>
+  <div style="margin-top:6px;padding:6px 10px;background:#0f172a;border-radius:6px;text-align:center;font-size:10px;color:#64748b;">点击主题切换 · 再次点击关闭</div>
 </div>
 <div id="scrollDiagPanel">
   <header><strong>🔍 故障检测中心</strong><div class="diag-actions"><button type="button" onclick="detectProxy()">🌐 检测代理</button><button type="button" onclick="exportFullDiagnostic()">📊 完整诊断</button><button type="button" onclick="exportFaultReport()">📥 导出</button><button type="button" onclick="copyFaultReport()">📋 复制</button><button type="button" onclick="clearScrollDiagnostics()">🗑️ 清空</button><button type="button" class="scroll-diag-close" onclick="closeScrollDiagnostics()">✕</button></div></header>
@@ -6652,6 +6871,16 @@ function toggleNoHack(on){
         <span id="sidebarVolumeLabel" style="font-size:10px;color:#64748b;min-width:28px;">60%</span>
       </div>
       <div id="sidebarStatus" style="font-size:10px;color:#64748b;margin-top:2px;">⚪ 就绪</div>
+    </div>
+
+    <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06);">
+      <div style="font-size:10px;color:#64748b;margin-bottom:4px;">📁 自定义背景音</div>
+      <div style="display:flex;gap:4px;align-items:center;">
+        <input type="file" id="customSoundInput" accept="audio/*" style="display:none;" onchange="uploadCustomSound(this)">
+        <button id="customSoundBtn" style="flex:1;padding:4px 8px;border:1px solid #8b5cf6;border-radius:4px;background:#0f172a;color:#a78bfa;cursor:pointer;font-size:10px;transition:0.15s;min-height:36px;">📤 上传音频</button>
+        <button id="clearCustomSoundsBtn" style="padding:4px 8px;border:1px solid #ef4444;border-radius:4px;background:#0f172a;color:#ef4444;cursor:pointer;font-size:10px;transition:0.15s;min-height:36px;">🗑️</button>
+      </div>
+      <div id="customSoundList" style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;max-height:80px;overflow-y:auto;"></div>
     </div>
 
     <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
@@ -7162,8 +7391,188 @@ function setSoundVolume(val) {
   soundVolume = Math.max(0, Math.min(1, val / 100));
   var label = document.getElementById('sidebarVolumeLabel');
   if (label) label.textContent = Math.round(val) + '%';
+  if (customSoundGain) customSoundGain.gain.value = soundVolume * 0.5;
   saveSoundState();
 }
+
+const CUSTOM_SOUNDS_KEY = 'qz_custom_sounds';
+let customSounds = [];
+let isCustomSoundPlaying = false;
+let currentCustomSoundId = null;
+let customSoundCtx = null;
+let customSoundSource = null;
+let customSoundGain = null;
+
+function loadCustomSounds() {
+  try {
+    var raw = localStorage.getItem(CUSTOM_SOUNDS_KEY);
+    customSounds = raw ? JSON.parse(raw) : [];
+    customSounds = customSounds.filter(function(s) { return s && s.id && s.name && s.data; });
+  } catch(e) { customSounds = []; }
+  renderCustomSoundList();
+}
+
+function saveCustomSounds() {
+  try {
+    var toSave = customSounds.map(function(s) {
+      return { id: s.id, name: s.name, data: s.data, duration: s.duration || 0 };
+    });
+    localStorage.setItem(CUSTOM_SOUNDS_KEY, JSON.stringify(toSave));
+  } catch(e) {
+    alert('存储空间不足，请删除一些旧的自定义音效');
+  }
+}
+
+function uploadCustomSound(input) {
+  var file = input.files[0];
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) {
+    alert('音频文件过大（超过10MB）');
+    input.value = '';
+    return;
+  }
+  var validTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/webm', 'audio/m4a', 'audio/aac', 'audio/flac'];
+  if (!validTypes.includes(file.type) && !file.name.match(/\.(mp3|wav|ogg|m4a|aac|flac|webm)$/i)) {
+    alert('不支持此音频格式，请上传 MP3、WAV、OGG、M4A、AAC、FLAC 或 WebM');
+    input.value = '';
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var name = prompt('给这段音频起个名字：', file.name.replace(/\.[^/.]+$/, ''));
+    if (!name) { input.value = ''; return; }
+    var sound = {
+      id: 'custom_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+      name: name,
+      data: e.target.result,
+      duration: 0
+    };
+    var audio = new Audio();
+    audio.src = e.target.result;
+    audio.onloadedmetadata = function() {
+      sound.duration = Math.round(audio.duration);
+      customSounds.push(sound);
+      saveCustomSounds();
+      renderCustomSoundList();
+      input.value = '';
+    };
+    audio.onerror = function() {
+      customSounds.push(sound);
+      saveCustomSounds();
+      renderCustomSoundList();
+      input.value = '';
+    };
+  };
+  reader.onerror = function() { alert('读取文件失败'); input.value = ''; };
+  reader.readAsDataURL(file);
+}
+
+function renderCustomSoundList() {
+  var list = document.getElementById('customSoundList');
+  if (!list) return;
+  if (customSounds.length === 0) {
+    list.innerHTML = '<span style="font-size:10px;color:#475569;">暂无自定义音效</span>';
+    return;
+  }
+  list.innerHTML = customSounds.map(function(sound) {
+    var isPlaying = isCustomSoundPlaying && currentCustomSoundId === sound.id;
+    var dur = sound.duration ? Math.floor(sound.duration/60)+':'+String(sound.duration%60).padStart(2,'0') : '';
+    return '<button class="custom-sound-btn" data-id="' + sound.id + '" style="padding:3px 8px;border:1px solid ' + (isPlaying ? '#60a5fa' : '#334155') + ';border-radius:4px;background:' + (isPlaying ? '#1e3a5f' : '#0f172a') + ';color:' + (isPlaying ? '#60a5fa' : '#94a3b8') + ';cursor:pointer;font-size:10px;transition:0.15s;display:flex;align-items:center;gap:4px;min-height:32px;" onclick="toggleCustomSound(\'' + sound.id + '\')">' + (isPlaying ? '⏹' : '▶️') + ' ' + sound.name + (dur ? ' <span style="font-size:8px;color:#475569;">'+dur+'</span>' : '') + '</button>';
+  }).join('');
+}
+
+function toggleCustomSound(id) {
+  var sound = customSounds.find(function(s) { return s.id === id; });
+  if (!sound) return;
+  if (isCustomSoundPlaying && currentCustomSoundId === id) {
+    stopCustomSound();
+    return;
+  }
+  if (isCustomSoundPlaying) stopCustomSound();
+  if (isSoundPlaying) stopAllSounds();
+  playCustomSound(sound);
+}
+
+function playCustomSound(sound) {
+  try {
+    if (!customSoundCtx) {
+      customSoundCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (customSoundCtx.state === 'suspended') customSoundCtx.resume();
+    var binaryString = atob(sound.data.split(',')[1]);
+    var len = binaryString.length;
+    var bytes = new Uint8Array(len);
+    for (var i = 0; i < len; i++) bytes[i] = binaryString.charCodeAt(i);
+    customSoundCtx.decodeAudioData(bytes.buffer, function(buffer) {
+      customSoundSource = customSoundCtx.createBufferSource();
+      customSoundSource.buffer = buffer;
+      customSoundSource.loop = true;
+      customSoundGain = customSoundCtx.createGain();
+      customSoundGain.gain.value = soundVolume * 0.5;
+      customSoundSource.connect(customSoundGain);
+      customSoundGain.connect(customSoundCtx.destination);
+      customSoundSource.start();
+      isCustomSoundPlaying = true;
+      currentCustomSoundId = sound.id;
+      renderCustomSoundList();
+      var statusEl = document.getElementById('sidebarStatus');
+      if (statusEl) statusEl.textContent = '🎵 自定义: ' + sound.name;
+      customSoundSource.onended = function() { stopCustomSound(); };
+    }, function() { alert('无法播放此音频文件'); });
+  } catch(e) { alert('播放失败：' + e.message); }
+}
+
+function stopCustomSound() {
+  try {
+    if (customSoundSource) { customSoundSource.stop(); customSoundSource.disconnect(); customSoundSource = null; }
+    if (customSoundGain) { customSoundGain.disconnect(); customSoundGain = null; }
+  } catch(e) {}
+  isCustomSoundPlaying = false;
+  currentCustomSoundId = null;
+  renderCustomSoundList();
+  var statusEl = document.getElementById('sidebarStatus');
+  if (statusEl && !isSoundPlaying) statusEl.textContent = '⚪ 就绪';
+}
+
+function clearAllCustomSounds() {
+  if (customSounds.length === 0) return;
+  if (isCustomSoundPlaying) stopCustomSound();
+  customSounds = [];
+  saveCustomSounds();
+  renderCustomSoundList();
+}
+
+var originalSetSoundVolume = setSoundVolume;
+setSoundVolume = function(val) {
+  originalSetSoundVolume(val);
+  if (customSoundGain) customSoundGain.gain.value = soundVolume * 0.5;
+};
+
+var originalStopAllSounds = stopAllSounds;
+stopAllSounds = function() {
+  originalStopAllSounds();
+  if (isCustomSoundPlaying) stopCustomSound();
+};
+
+var originalPlaySound = playSound;
+playSound = function(type) {
+  if (isCustomSoundPlaying) stopCustomSound();
+  originalPlaySound(type);
+};
+
+function initCustomSounds() {
+  loadCustomSounds();
+  var customSoundBtn = document.getElementById('customSoundBtn');
+  var clearCustomSoundsBtn = document.getElementById('clearCustomSoundsBtn');
+  if (customSoundBtn) customSoundBtn.onclick = function() {
+    document.getElementById('customSoundInput').click();
+  };
+  if (clearCustomSoundsBtn) clearCustomSoundsBtn.onclick = function() {
+    if (customSounds.length === 0) return;
+    if (confirm('确定清空所有自定义音效吗？')) clearAllCustomSounds();
+  };
+}
+setTimeout(initCustomSounds, 500);
 
 function activateAudio() {
   var c = getSoundContext();
@@ -7190,13 +7599,13 @@ var isSidebarOpen = false;
 function openSidebar(){
   isSidebarOpen = true;
   document.getElementById('sidebar').style.width = isSidebarOpen ? '270px' : '0';
-  document.getElementById('sidebarToggle').style.right = '282px';
+  document.getElementById('sidebarToggle').style.right = isSidebarOpen ? '282px' : '80px';
   document.getElementById('sidebarToggle').textContent = '☰';
 }
 function closeSidebar(){
   isSidebarOpen = false;
   document.getElementById('sidebar').style.width = '0';
-  document.getElementById('sidebarToggle').style.right = '12px';
+  document.getElementById('sidebarToggle').style.right = '80px';
   document.getElementById('sidebarToggle').textContent = '☰';
 }
 document.getElementById('sidebarToggle').onclick = function() {
