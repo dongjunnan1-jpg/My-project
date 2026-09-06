@@ -7058,7 +7058,7 @@ function openSidebar(){
   isSidebarOpen = true;
   document.getElementById('sidebar').style.width = isSidebarOpen ? '270px' : '0';
   document.getElementById('sidebarToggle').style.right = '282px';
-  document.getElementById('sidebarToggle').textContent = '✕';
+  document.getElementById('sidebarToggle').textContent = '☰';
 }
 function closeSidebar(){
   isSidebarOpen = false;
@@ -7067,8 +7067,7 @@ function closeSidebar(){
   document.getElementById('sidebarToggle').textContent = '☰';
 }
 document.getElementById('sidebarToggle').onclick = function() {
-  if(isSidebarOpen) closeSidebar();
-  else openSidebar();
+  openSidebar();
 };
 document.getElementById('sidebarClose').onclick = closeSidebar;
 
