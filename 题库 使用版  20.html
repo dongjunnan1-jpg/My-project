@@ -4899,6 +4899,8 @@ const SKIN_KEY = 'qz_skin_v4';
 let currentSkin = 'default';
 const SKIN_THEMES = {
   default: { main: '#5b9bd5', mid: '#8fc1ed', deep: '#3a7ab0', bg: '#f0f7ff', light: '#eef4fc', onMain: '#ffffff', name: '默认蓝' },
+  dark: { main: '#1f2937', mid: '#334155', deep: '#0f172a', bg: '#0b1220', light: '#dbeafe', onMain: '#e2e8f0', name: '暗夜' },
+  eye: { main: '#7cc98f', mid: '#a5d6a7', deep: '#4c8f5d', bg: '#e8f5e9', light: '#dfeee1', onMain: '#1f2937', name: '护眼' },
   klein: { main: '#002FA7', mid: '#1a4fc7', deep: '#001a5e', bg: '#e8ecf5', light: '#d6dce8', onMain: '#ffffff', name: '克莱因蓝' },
   burgundy: { main: '#800020', mid: '#b00038', deep: '#4a0012', bg: '#f5e8ea', light: '#e8d6d8', onMain: '#ffffff', name: '勃垦地红' },
   mars: { main: '#18453B', mid: '#2a6b5a', deep: '#0a2a22', bg: '#e8f0ed', light: '#d6e3de', onMain: '#ffffff', name: '马尔斯绿' },
@@ -4919,15 +4921,13 @@ function loadSkin() {
 function applySkin(skin) {
   document.body.classList.remove('skin-dark', 'skin-eye', 'skin-warm', 'ink-mode');
 
-  if (skin === 'default') {
-    currentSkin = 'default';
-    try { localStorage.setItem(SKIN_KEY, skin); } catch(e) {}
-    applyZoneTheme(activeZone);
-    updateSkinPanelUI();
-    return;
+  if (skin === 'dark') {
+    document.body.classList.add('skin-dark');
+  } else if (skin === 'eye') {
+    document.body.classList.add('skin-eye');
   }
 
-  const theme = SKIN_THEMES[skin];
+  const theme = SKIN_THEMES[skin] || SKIN_THEMES.default;
   if (!theme) {
     currentSkin = 'default';
     try { localStorage.setItem(SKIN_KEY, 'default'); } catch(e) {}
@@ -4943,6 +4943,18 @@ function applySkin(skin) {
   r.setProperty('--bg', theme.bg);
   r.setProperty('--light', theme.light);
   r.setProperty('--on-main', theme.onMain);
+
+  if (skin === 'dark') {
+    r.setProperty('--surface', '#1c2333');
+    r.setProperty('--surface-muted', '#151b29');
+    r.setProperty('--text', '#e6edf5');
+    r.setProperty('--border', '#52627a');
+  } else if (skin === 'eye') {
+    r.setProperty('--surface', '#e8f5e9');
+    r.setProperty('--surface-muted', '#dfeee1');
+    r.setProperty('--text', '#2d3748');
+    r.setProperty('--border', '#a5d6a7');
+  }
 
   if (skin === 'shenburen') {
     document.body.style.color = '#2d3748';
@@ -6720,6 +6732,14 @@ function toggleNoHack(on){
     <div class="skin-opt" data-skin="default" onclick="selectSkin('default')" style="padding:10px 8px;border-radius:8px;border:2px solid #334155;background:#0f172a;color:#e2e8f0;cursor:pointer;font-size:12px;text-align:center;transition:all 0.2s;font-weight:600;">
       <div style="width:100%;height:24px;border-radius:4px;margin-bottom:4px;background:linear-gradient(135deg,#5b9bd5,#3a7ab0);"></div>
       默认蓝
+    </div>
+    <div class="skin-opt" data-skin="dark" onclick="selectSkin('dark')" style="padding:10px 8px;border-radius:8px;border:2px solid #334155;background:#0f172a;color:#e2e8f0;cursor:pointer;font-size:12px;text-align:center;transition:all 0.2s;font-weight:600;">
+      <div style="width:100%;height:24px;border-radius:4px;margin-bottom:4px;background:linear-gradient(135deg,#1f2937,#0f172a);"></div>
+      暗夜
+    </div>
+    <div class="skin-opt" data-skin="eye" onclick="selectSkin('eye')" style="padding:10px 8px;border-radius:8px;border:2px solid #334155;background:#0f172a;color:#e2e8f0;cursor:pointer;font-size:12px;text-align:center;transition:all 0.2s;font-weight:600;">
+      <div style="width:100%;height:24px;border-radius:4px;margin-bottom:4px;background:linear-gradient(135deg,#7cc98f,#a5d6a7);"></div>
+      护眼
     </div>
     <div class="skin-opt" data-skin="klein" onclick="selectSkin('klein')" style="padding:10px 8px;border-radius:8px;border:2px solid #334155;background:#0f172a;color:#e2e8f0;cursor:pointer;font-size:12px;text-align:center;transition:all 0.2s;font-weight:600;">
       <div style="width:100%;height:24px;border-radius:4px;margin-bottom:4px;background:#002FA7;"></div>
