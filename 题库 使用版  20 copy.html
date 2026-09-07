@@ -2056,6 +2056,7 @@ function getFilterBaseQuestions(){
 }
 
 function renderModuleBar(){
+  if(activeZone==='sl' || activeZone==='ms'){ moduleBar.innerHTML=''; return; }
   const qs = getFilterBaseQuestions();
   const counts = { all: qs.length };
 
@@ -2121,6 +2122,15 @@ function renderModuleBar(){
 }
 
 function updateFilterOptions() {
+  if(activeZone==='sl' || activeZone==='ms') return;
+  yearFilter.style.display='';
+  provinceFilter.style.display='';
+  sourceFilter.style.display='';
+  statusFilter.style.display='';
+  sortFilter.style.display='';
+  moduleFilter.style.display='';
+  subTypeFilter.style.display='';
+  leafTypeFilter.style.display='';
   if(activeZone==='sl'){
     var essayQuestions=getZoneQuestions(activeZone, '__all__');
     var essayYears={};
@@ -2460,24 +2470,38 @@ function extractSeasonNum(source){
   }
   return map[numStr] || 0;
 }
+function getSpecialQuestionType(question){
+  if(!question) return '';
+  if(question.leafCategory) return question.leafCategory;
+  if(Array.isArray(question.keypoints) && question.keypoints[0]) return question.keypoints[0].name||'';
+  return question.questionType||question.type||question.subType||'';
+}
+function getSpecialSearchText(question){
+  if(!question) return '';
+  if(activeZone==='sl'){
+    var text=[question.paperName,question.topic].join(' ');
+    (question.essayQuestions||[]).forEach(function(item){ text+=' '+(item&&item.content||''); });
+    return text.toLowerCase();
+  }
+  return String((question.paperName||question.source||'')+' '+(question.content||question.question||'')).toLowerCase();
+}
 function getFiltered(){
   let qs=getZoneQuestions(activeZone, '__all__');
   const kw=(filterState.search||'').toLowerCase().trim();
 
   if(activeZone==='sl'){
-    if(kw) qs=qs.filter(function(q){ return ((q.paperName||'')+' '+(q.topic||'')).toLowerCase().includes(kw); });
-    if(filterState.module!=='all') qs=qs.filter(function(q){ return (q.topic||'申论')===filterState.module; });
-    if(filterState.subType!=='all') qs=qs.filter(function(q){ return (q.year||'未知')===filterState.subType; });
-    if(filterState.leafType!=='all') qs=qs.filter(function(q){ return (q.province||'其他')===filterState.leafType; });
+    if(kw) qs=qs.filter(function(q){ return getSpecialSearchText(q).includes(kw); });
+    if(filterState.year!=='all') qs=qs.filter(function(q){ return q.year===filterState.year; });
+    if(filterState.province!=='all') qs=qs.filter(function(q){ return (q.topic||'其他')===filterState.province; });
+    if(filterState.module!=='all') qs=qs.filter(function(q){ return (q.essayQuestions||[]).some(function(item){ return getSpecialQuestionType(item)===filterState.module; }); });
     return qs.sort(function(a,b){ return Number(b.year||0)-Number(a.year||0) || String(b.paperDate||'').localeCompare(String(a.paperDate||'')); });
   }
 
   if(activeZone==='ms'){
-    if(kw) qs=qs.filter(function(q){ return (q.content||'').toLowerCase().includes(kw); });
-    if(filterState.module!=='all') qs=qs.filter(function(q){ return (q.questionType || q.type || q.subType || '面试') === filterState.module; });
-    if(filterState.subType!=='all') qs=qs.filter(function(q){ return (q.topic || q.subCategory || '其他') === filterState.subType; });
-    if(filterState.leafType!=='all') qs=qs.filter(function(q){ return (q.source || '未知') === filterState.leafType; });
-    return qs;
+    if(kw) qs=qs.filter(function(q){ return getSpecialSearchText(q).includes(kw); });
+    if(filterState.province!=='all') qs=qs.filter(function(q){ return (q.region||'其他')===filterState.province; });
+    if(filterState.module!=='all') qs=qs.filter(function(q){ return getSpecialQuestionType(q)===filterState.module; });
+    return qs.sort(function(a,b){ return extractYear(b.paperName||b.source||'')-extractYear(a.paperName||a.source||''); });
   }
 
   // 大模块、一级题型、细分题型：严格使用题目已有的三级分类字段
@@ -5797,6 +5821,35 @@ window.updateSubTypeFilter = function() {
   var subTypeFilter = document.getElementById('subTypeFilter');
   var leafTypeFilter = document.getElementById('leafTypeFilter');
   if (!moduleFilter || !subTypeFilter || !leafTypeFilter) return;
+
+  if(activeZone==='sl' || activeZone==='ms'){
+    var specialQs=getZoneQuestions(activeZone,'__all__');
+    var unique=function(list){ return Array.from(new Set(list.filter(Boolean))); };
+    var makeOptions=function(label,list){ return '<option value="all">'+label+'</option>'+list.map(function(value){ return '<option value="'+escapeHtml(value)+'">'+escapeHtml(value)+'</option>'; }).join(''); };
+    var years=unique(specialQs.map(function(q){ return q.year; })).sort(function(a,b){ return Number(b)-Number(a); });
+    var topics=unique(specialQs.map(function(q){ return q.topic||'其他'; })).sort();
+    var regions=unique(specialQs.map(function(q){ return q.region||'其他'; })).sort();
+    var types=activeZone==='sl' ? unique([].concat.apply([],specialQs.map(function(q){ return (q.essayQuestions||[]).map(getSpecialQuestionType); }))).sort() : unique(specialQs.map(getSpecialQuestionType)).sort();
+    yearFilter.style.display=activeZone==='sl'?'':'none';
+    provinceFilter.style.display='';
+    sourceFilter.style.display='none';
+    statusFilter.style.display='none';
+    sortFilter.style.display='none';
+    moduleFilter.style.display='';
+    subTypeFilter.style.display='none';
+    leafTypeFilter.style.display='none';
+    yearFilter.innerHTML=makeOptions('📅 全部年份',years);
+    provinceFilter.innerHTML=makeOptions(activeZone==='sl'?'🏷️ 全部话题':'📍 全部地区',activeZone==='sl'?topics:regions);
+    moduleFilter.innerHTML=makeOptions('📋 全部题型',types);
+    setSelectValue(yearFilter,filterState.year);
+    setSelectValue(provinceFilter,filterState.province);
+    setSelectValue(moduleFilter,filterState.module);
+    searchBox.placeholder=activeZone==='sl'?'🔍 搜索试卷或题干...':'🔍 搜索题干或来源...';
+    yearFilter.onchange=function(){ filterState.year=this.value; currentPage=1; saveView(); renderQuestions(); };
+    provinceFilter.onchange=function(){ filterState.province=this.value; currentPage=1; saveView(); renderQuestions(); };
+    moduleFilter.onchange=function(){ filterState.module=this.value; currentPage=1; saveView(); renderQuestions(); };
+    return;
+  }
 
   var qs = getFilterBaseQuestions();
 
