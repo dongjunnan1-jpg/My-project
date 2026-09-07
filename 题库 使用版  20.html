@@ -490,6 +490,10 @@ html, body { width:100%; max-width:100%; margin:0; padding:0; box-sizing:border-
 .q-options .option:hover { background: var(--light); border-color: var(--main); transform: translateX(3px); }
 .q-options .option.correct { background: rgba(72,187,120,0.12); border-color: var(--correct); }
 .q-options .option.wrong { background: rgba(252,129,129,0.14); border-color: var(--wrong); }
+.q-options .option.selected { border-color:#60a5fa !important; background:rgba(96,165,250,0.12) !important; transform:translateX(3px) !important; }
+.q-options .option.selected-correct { border-color:#4ade80 !important; background:rgba(74,222,128,0.15) !important; color:#4ade80 !important; }
+.q-options .option.selected-wrong { border-color:#f87171 !important; background:rgba(248,113,113,0.15) !important; color:#f87171 !important; }
+.q-options .option.correct { border-color:rgba(74,222,128,0.3) !important; background:rgba(74,222,128,0.08) !important; }
 .q-options .option.selected-correct { color: var(--correct); }
 .q-options .option.selected-wrong { color: var(--wrong); }
 .q-options .option.disabled { cursor: default; }
@@ -498,6 +502,10 @@ html, body { width:100%; max-width:100%; margin:0; padding:0; box-sizing:border-
 .q-user-answer { color: var(--wrong); font-weight: bold; }
 .q-answer.show { display: inline-block; }
 .q-verdict { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 8px 0 4px; }
+.q-multi-submit { margin-top:8px; padding:6px 16px; background:linear-gradient(135deg,#60a5fa,#3b82f6); color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:13px; font-weight:bold; transition:all .2s ease; }
+.q-multi-submit:hover:not(:disabled) { transform:translateY(-1px) scale(1.02); box-shadow:0 4px 12px rgba(59,130,246,0.3); }
+.q-multi-submit:disabled { opacity:.5; cursor:not-allowed; }
+.q-multi-status { margin-top:6px; font-size:13px; font-weight:500; }
 .q-solution { background: var(--bg); padding: 12px; border-radius: 8px; margin-top: 10px; border-left: 4px solid var(--main); display: none; }
 .q-solution.show { display: block; }
 /* 题目图片：最简单、GPU 合成层无关的样式，确保 iOS/Edge 正常显示 */
@@ -873,22 +881,84 @@ html, body {
   .essay-note-box .essay-note-clear-btn, .essay-note-box .essay-note-copy-btn { padding:10px 16px !important; font-size:14px !important; min-height:44px !important; flex:1 !important; text-align:center !important; }
 }
 
-/* ====== 侧边栏 - 手机端适配 ====== */
+/* ====== 侧边栏 - 手机端适配（统一尺寸） ====== */
 @media (max-width:768px) {
-  #sidebar[style*="width: 270px"], #sidebar[style*="width:270px"] { width:85vw !important; max-width:360px !important; }
-  #sidebar { font-size:15px !important; }
-  #sidebar > div:first-child { padding:18px 20px !important; }
-  #sidebar > div:first-child span { font-size:18px !important; }
-  #sidebar button, #sidebar .sidebar-tool-btn, #sidebar .custom-sound-btn { font-size:13px !important; min-height:44px !important; padding:8px 12px !important; border-radius:8px !important; }
-  #sidebar .sidebar-tool-btn { min-height:48px !important; font-size:13px !important; }
-  #sidebar button[data-snd] { font-size:12px !important; min-height:40px !important; padding:6px 8px !important; }
-  #pomodoroTime { font-size:28px !important; }
-  #pomodoroCard .pomodoro-controls button { font-size:13px !important; min-height:40px !important; }
-  #sidebarVolume { height:6px !important; }
-  #sidebarStatus { font-size:12px !important; }
-  #sidebar .pomodoro-title, #sidebar [style*="font-size:11px;color:#94a3b8"] { font-size:12px !important; }
-  #sidebarAnswered, #sidebarTotalTime, #sidebarAvgTime { font-size:18px !important; }
-  #sidebar > div:last-child { font-size:11px !important; padding:10px 16px !important; }
+  #sidebar[style*="width: 270px"],
+  #sidebar[style*="width:270px"] {
+    width:85vw !important;
+    max-width:360px !important;
+  }
+  #sidebar { font-size:14px !important; }
+  #sidebar > div:first-child { padding:14px 16px !important; }
+  #sidebar > div:first-child span { font-size:16px !important; }
+  #sidebar > div:first-child button { width:28px !important; height:28px !important; font-size:12px !important; }
+  #sidebar > div:nth-child(2) { padding:10px 12px !important; }
+  #sidebar > div:nth-child(2) > div {
+    margin-bottom:10px !important;
+    padding:10px 12px !important;
+    border-radius:8px !important;
+    background:rgba(255,255,255,0.04) !important;
+    border:1px solid rgba(255,255,255,0.06) !important;
+  }
+  #sidebar .module-title,
+  #sidebar .pomodoro-title {
+    font-size:11px !important;
+    font-weight:600 !important;
+    text-transform:uppercase !important;
+    letter-spacing:0.5px !important;
+    color:#94a3b8 !important;
+    margin-bottom:6px !important;
+  }
+  #sidebarAnswered, #sidebarTotalTime, #sidebarAvgTime { font-size:16px !important; }
+  #sidebar .sidebar-timer-grid { display:grid !important; grid-template-columns:1fr 1fr 1fr !important; gap:4px !important; }
+  #sidebar .sidebar-timer-grid > div { text-align:center !important; }
+  #sidebar .sidebar-timer-grid > div > div:first-child { font-size:9px !important; color:#64748b !important; }
+  #sidebarResetTimer { font-size:10px !important; padding:4px 8px !important; min-height:28px !important; margin-top:4px !important; }
+  #pomodoroTime { font-size:24px !important; }
+  #pomodoroCard .pomodoro-controls { display:flex !important; gap:4px !important; flex-wrap:wrap !important; }
+  #pomodoroCard .pomodoro-controls button { flex:1 !important; min-height:32px !important; font-size:11px !important; padding:4px 6px !important; }
+  #pomodoroDuration { min-height:32px !important; font-size:10px !important; max-width:64px !important; }
+  #pomodoroStatus { font-size:10px !important; margin-top:4px !important; }
+  #sidebar .sidebar-tool-btn {
+    min-height:36px !important;
+    font-size:11px !important;
+    padding:4px 6px !important;
+    border-radius:6px !important;
+    border:1px solid #334155 !important;
+    background:#0f172a !important;
+    color:#e2e8f0 !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    text-align:center !important;
+    line-height:1.2 !important;
+  }
+  #sidebar .sidebar-tool-btn:hover { border-color:#60a5fa !important; background:#1e3a5f !important; color:#bfdbfe !important; }
+  #sidebar button[data-snd] {
+    min-height:32px !important;
+    font-size:10px !important;
+    padding:4px !important;
+    border-radius:4px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    text-align:center !important;
+    line-height:1.2 !important;
+  }
+  #sidebar button[data-snd]:hover { border-color:#60a5fa !important; }
+  #sidebar button[data-snd="tick"] { border-color:#f59e0b !important; color:#f59e0b !important; }
+  #sidebar button[data-snd="bowl"] { border-color:#a78bfa !important; color:#a78bfa !important; }
+  #sidebarStopAll { min-height:32px !important; font-size:10px !important; padding:4px 6px !important; border-radius:4px !important; grid-column:span 2 !important; }
+  #customSoundBtn, #clearCustomSoundsBtn { min-height:32px !important; font-size:10px !important; padding:4px 8px !important; border-radius:4px !important; }
+  .custom-sound-btn { min-height:28px !important; font-size:10px !important; padding:2px 6px !important; border-radius:4px !important; }
+  #customSoundList { max-height:60px !important; margin-top:4px !important; gap:4px !important; }
+  #sidebarVolume { height:4px !important; }
+  #sidebarVolumeLabel { font-size:10px !important; min-width:28px !important; }
+  #sidebarStatus { font-size:10px !important; margin-top:2px !important; }
+  #sidebar #dbgBtn, #sidebar #scrollDiagBtn { min-height:32px !important; font-size:10px !important; padding:4px 8px !important; border-radius:4px !important; }
+  #scrollDiagCount { font-size:9px !important; min-width:14px !important; height:14px !important; }
+  #sidebar > div:last-child { font-size:10px !important; padding:8px 14px !important; }
+  #sidebar .sound-grid { display:grid !important; grid-template-columns:1fr 1fr !important; gap:4px !important; }
 }
 
 /* ====== 暗夜模式：面试解析修复 ====== */
@@ -961,6 +1031,24 @@ body.skin-dark .ms-record-time { color:#94a3b8 !important; }
 .sidebar-tool-btn { padding:7px 4px; border:1px solid #334155; border-radius:5px; background:#0f172a; color:#e2e8f0; cursor:pointer; font-size:11px; transition:.15s; }
 .sidebar-tool-btn:hover, .sidebar-tool-btn.active { border-color:#60a5fa; background:#1e3a5f; color:#bfdbfe; }
 @media (max-width:600px) { #toolFullscreen { padding:10px; } #toolFullscreen .tool-panel { padding:16px 10px; } #toolFullscreen .tool-head { align-items:flex-start; } }
+
+/* ====== 主题切换后的题目与答案可读性 ====== */
+body:not(.skin-dark):not(.skin-eye) .question { background:#fff !important; }
+.q-answer { color:#16a34a !important; background:rgba(74,222,128,0.12) !important; padding:2px 10px !important; border-radius:4px !important; }
+.q-user-answer { color:#dc2626 !important; background:rgba(248,113,113,0.12) !important; padding:2px 10px !important; border-radius:4px !important; }
+.q-solution { background:#f1f5f9 !important; color:#1e293b !important; border-left:4px solid #3b82f6 !important; padding:14px 16px !important; border-radius:8px !important; }
+.q-solution strong { color:#2563eb !important; }
+.q-options .option.selected-correct { background:rgba(74,222,128,0.15) !important; border-color:#4ade80 !important; color:#16a34a !important; }
+.q-options .option.selected-wrong { background:rgba(248,113,113,0.15) !important; border-color:#f87171 !important; color:#dc2626 !important; }
+.mian-shi-answer > div { background:#fff !important; color:#1e293b !important; padding:14px 16px !important; border-radius:0 0 8px 8px !important; line-height:2 !important; }
+.mian-shi-answer summary { color:#065f46 !important; background:#ecfdf5 !important; }
+.essay-answer > div, .essay-analysis > div { background:#fff !important; color:#1e293b !important; }
+
+/* 申步伦黄：保持暖色背景并加深正文对比度 */
+body.skin-shenburen .question { background:#fef9e7 !important; }
+body.skin-shenburen .q-content, body.skin-shenburen .q-title { color:#1a1a2e !important; }
+body.skin-shenburen .q-solution { background:#fdf6e3 !important; color:#1a1a2e !important; border-left-color:#d4a820 !important; }
+body.skin-shenburen .mian-shi-answer > div { background:#fef9e7 !important; color:#1a1a2e !important; }
 
 </style>
 </head>
@@ -3767,19 +3855,31 @@ function selectOption(key, letter, event){
   const item=filteredQuestions.find(q=>q._key===key);
   if(!item || item._answered!==undefined) return;
   if(isMultipleChoice(item)){
-    const target = event && event.currentTarget ? event.currentTarget : document.querySelector('.option[data-key="'+key+'"][data-letter="'+letter+'"]');
-    const selected = getSelectedLetters(item);
-    const idx = selected.indexOf(letter);
-    if(idx>=0) selected.splice(idx,1); else selected.push(letter);
-    item._draftSelection = selected.slice().sort();
+    let selected = getSelectedLetters(item);
+    if(!item._draftSelection) item._draftSelection = selected.slice();
+    const idx = item._draftSelection.indexOf(letter);
+    if(idx>=0) item._draftSelection.splice(idx,1); else item._draftSelection.push(letter);
+    item._draftSelection.sort();
     multiChoiceSelections[key] = item._draftSelection.slice();
-    if(target){ target.classList.toggle('selected', selected.includes(letter)); }
-    const questionEl = target ? target.closest('.question') : document.getElementById('q-'+key);
+    selected = item._draftSelection;
+    const questionEl = document.getElementById('q-'+key);
     if(questionEl){
+      questionEl.querySelectorAll('.q-options .option').forEach(function(opt){
+        const isSelected = selected.indexOf(opt.dataset.letter) >= 0;
+        opt.classList.toggle('selected', isSelected);
+        opt.style.borderColor = isSelected ? '#60a5fa' : '';
+        opt.style.background = isSelected ? 'rgba(96,165,250,0.15)' : '';
+      });
       const statusEl = questionEl.querySelector('.q-multi-status');
-      if(statusEl) statusEl.textContent = '已选 ' + selected.length + ' 项';
+      if(statusEl){
+        statusEl.textContent = '已选 ' + selected.length + ' 项';
+        statusEl.style.color = selected.length ? '#60a5fa' : '#94a3b8';
+      }
       const submitBtn = questionEl.querySelector('.q-multi-submit');
-      if(submitBtn) submitBtn.disabled = selected.length === 0;
+      if(submitBtn){
+        submitBtn.disabled = selected.length === 0;
+        submitBtn.style.opacity = selected.length ? '1' : '0.5';
+      }
     }
     return;
   }
@@ -3838,7 +3938,57 @@ function submitMultipleChoice(key){
   saveWrong();
   recordAnswerTiming();
   incDaily();
-  renderQuestions();
+  const questionEl = document.getElementById('q-'+key);
+  if(questionEl){
+    const correctLetters = normalizeAnswerLetters(getCorrectLetter(item));
+    questionEl.querySelectorAll('.q-options .option').forEach(function(opt){
+      const optLetter = opt.dataset.letter;
+      const isSelected = selectedSet.indexOf(optLetter) >= 0;
+      const isCorrect = correctLetters.indexOf(optLetter) >= 0;
+      opt.classList.add('disabled');
+      opt.style.cursor = 'default';
+      if(isSelected && isCorrect){
+        opt.classList.add('correct','selected-correct');
+        opt.style.borderColor = '#4ade80';
+        opt.style.background = 'rgba(74,222,128,0.2)';
+        opt.style.color = '#4ade80';
+      } else if(isSelected){
+        opt.classList.add('wrong','selected-wrong');
+        opt.style.borderColor = '#f87171';
+        opt.style.background = 'rgba(248,113,113,0.2)';
+        opt.style.color = '#f87171';
+      } else if(isCorrect){
+        opt.classList.add('correct');
+        opt.style.borderColor = 'rgba(74,222,128,0.4)';
+        opt.style.background = 'rgba(74,222,128,0.08)';
+      }
+    });
+    const verdict = questionEl.querySelector('.q-verdict');
+    if(verdict){
+      const answer = verdict.querySelector('.q-answer');
+      if(answer){
+        answer.classList.add('show');
+        answer.textContent = isCorrect ? '✅ 回答正确' : '✅ 正确答案：' + correctLetters.join(', ');
+        answer.style.color = isCorrect ? '#4ade80' : '#fbbf24';
+      }
+      const oldUser = verdict.querySelector('.q-user-answer');
+      if(oldUser) oldUser.remove();
+      const user = document.createElement('span');
+      user.className = 'q-user-answer';
+      user.textContent = '❌ 你的答案：' + selectedSet.join(', ');
+      user.style.color = isCorrect ? '#4ade80' : '#f87171';
+      verdict.appendChild(user);
+    }
+    const solution = questionEl.querySelector('.q-solution');
+    if(solution) solution.classList.add('show');
+    const submitBtn = questionEl.querySelector('.q-multi-submit');
+    if(submitBtn) submitBtn.style.display = 'none';
+    const statusEl = questionEl.querySelector('.q-multi-status');
+    if(statusEl) statusEl.style.display = 'none';
+  }
+  renderProgressPanel();
+  renderZoneStats();
+  updateWrongCount();
 }
 
 function goPage(p){ const total=Math.ceil(filteredQuestions.length/PAGE_SIZE); if(p<1||p>total) return; currentPage=p; renderQuestions(); window.scrollTo(0,0); }
@@ -4920,14 +5070,6 @@ function loadSkin() {
 }
 
 function applySkin(skin) {
-  document.body.classList.remove('skin-dark', 'skin-eye', 'skin-warm', 'ink-mode');
-
-  if (skin === 'dark') {
-    document.body.classList.add('skin-dark');
-  } else if (skin === 'eye') {
-    document.body.classList.add('skin-eye');
-  }
-
   const theme = SKIN_THEMES[skin] || SKIN_THEMES.default;
   if (!theme) {
     currentSkin = 'default';
@@ -4936,6 +5078,9 @@ function applySkin(skin) {
     updateSkinPanelUI();
     return;
   }
+
+  document.body.classList.remove('skin-dark', 'skin-eye', 'skin-warm', 'ink-mode', 'skin-default', 'skin-klein', 'skin-burgundy', 'skin-mars', 'skin-titian', 'skin-chinaRed', 'skin-prussian', 'skin-bordeaux', 'skin-shenburen', 'skin-tiffany', 'skin-vandyke');
+  document.body.classList.add('skin-' + skin);
 
   const r = document.documentElement.style;
   r.setProperty('--main', theme.main);
@@ -4955,6 +5100,11 @@ function applySkin(skin) {
     r.setProperty('--surface-muted', '#dfeee1');
     r.setProperty('--text', '#2d3748');
     r.setProperty('--border', '#a5d6a7');
+  } else {
+    r.setProperty('--surface', '#ffffff');
+    r.setProperty('--surface-muted', theme.bg);
+    r.setProperty('--text', '#2d3748');
+    r.setProperty('--border', theme.mid);
   }
 
   if (skin === 'shenburen') {
@@ -6828,8 +6978,8 @@ function toggleNoHack(on){
   </div>
   <div style="flex:1;overflow-y:auto;padding:12px 16px;">
     <div style="margin-bottom:14px;padding:10px 12px;background:rgba(255,255,255,0.05);border-radius:8px;border:1px solid rgba(255,255,255,0.06);">
-      <div style="font-size:11px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">⏱️ 计时统计</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;">
+      <div class="module-title" style="font-size:11px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">⏱️ 计时统计</div>
+      <div class="sidebar-timer-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;">
         <div style="text-align:center;"><div style="font-size:10px;color:#64748b;">已答</div><div id="sidebarAnswered" style="font-size:16px;font-weight:bold;color:#60a5fa;">0</div></div>
         <div style="text-align:center;"><div style="font-size:10px;color:#64748b;">总用时</div><div id="sidebarTotalTime" style="font-size:16px;font-weight:bold;color:#f59e0b;">0秒</div></div>
         <div style="text-align:center;"><div style="font-size:10px;color:#64748b;">平均</div><div id="sidebarAvgTime" style="font-size:16px;font-weight:bold;color:#a78bfa;">0秒</div></div>
@@ -6838,7 +6988,7 @@ function toggleNoHack(on){
     </div>
 
     <div id="pomodoroCard">
-      <div class="pomodoro-title">🍅 番茄钟</div>
+      <div class="pomodoro-title module-title">🍅 番茄钟</div>
       <div id="pomodoroTime">25:00</div>
       <div class="pomodoro-progress"><div id="pomodoroProgressFill"></div></div>
       <div class="pomodoro-controls">
@@ -6860,7 +7010,7 @@ function toggleNoHack(on){
     </div>
 
     <div style="margin-bottom:14px;padding:10px 12px;background:rgba(255,255,255,0.05);border-radius:8px;border:1px solid rgba(255,255,255,0.06);">
-      <div style="font-size:11px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">🧰 专项训练</div>
+      <div class="module-title" style="font-size:11px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">🧰 专项训练</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
         <button class="sidebar-tool-btn" data-tool="bhf" onclick="openToolFullscreen('bhf')">🧮 百化分</button>
         <button class="sidebar-tool-btn" data-tool="calc" onclick="openToolFullscreen('calc')">⚡ 速算</button>
@@ -6871,8 +7021,8 @@ function toggleNoHack(on){
     </div>
 
     <div style="margin-bottom:10px;">
-      <div style="font-size:11px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">🎧 专注背景音</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+      <div class="module-title" style="font-size:11px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">🎧 专注背景音</div>
+      <div class="sound-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
         <button data-snd="tick" style="padding:4px 6px;border:1px solid #f59e0b;border-radius:4px;background:#0f172a;color:#f59e0b;cursor:pointer;font-size:10px;transition:0.15s;">🕐 机械时钟</button>
         <button data-snd="brown" style="padding:4px 6px;border:1px solid #334155;border-radius:4px;background:#0f172a;color:#e2e8f0;cursor:pointer;font-size:10px;transition:0.15s;">🎧 棕色噪音</button>
         <button data-snd="wave" style="padding:4px 6px;border:1px solid #334155;border-radius:4px;background:#0f172a;color:#e2e8f0;cursor:pointer;font-size:10px;transition:0.15s;">🌊 海浪</button>
@@ -6896,7 +7046,7 @@ function toggleNoHack(on){
     </div>
 
     <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06);">
-      <div style="font-size:10px;color:#64748b;margin-bottom:4px;">📁 自定义背景音</div>
+      <div class="module-title" style="font-size:10px;color:#64748b;margin-bottom:4px;">📁 自定义背景音</div>
       <div style="display:flex;gap:4px;align-items:center;">
         <input type="file" id="customSoundInput" accept="audio/*" style="display:none;" onchange="uploadCustomSound(this)">
         <button id="customSoundBtn" style="flex:1;padding:4px 8px;border:1px solid #8b5cf6;border-radius:4px;background:#0f172a;color:#a78bfa;cursor:pointer;font-size:10px;transition:0.15s;min-height:36px;">📤 上传音频</button>
@@ -6906,7 +7056,7 @@ function toggleNoHack(on){
     </div>
 
     <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
-      <div style="font-size:11px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">🛠️ 调试工具</div>
+      <div class="module-title" style="font-size:11px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">🛠️ 调试工具</div>
       <div style="display:flex;flex-direction:column;gap:4px;">
         <button id="dbgBtn" type="button" onclick="toggleDebug()" style="display:flex;align-items:center;justify-content:flex-start;gap:6px;padding:6px 10px;background:#0f172a;border:1px solid #334155;border-radius:4px;color:#e2e8f0;font-size:11px;cursor:pointer;text-align:left;">🔧 图片诊断</button>
         <button id="scrollDiagBtn" type="button" onclick="toggleScrollDiagnostics()" title="故障检测中心" style="display:flex;align-items:center;justify-content:flex-start;gap:6px;padding:6px 10px;background:#0f172a;border:1px solid #334155;border-radius:4px;color:#e2e8f0;font-size:11px;cursor:pointer;text-align:left;position:relative;">🔍 故障检测 <span id="scrollDiagCount" style="display:inline-flex;min-width:16px;height:16px;align-items:center;justify-content:center;padding:0 4px;border-radius:10px;background:#ef4444;color:#fff;font-size:10px;line-height:1;">0</span></button>
