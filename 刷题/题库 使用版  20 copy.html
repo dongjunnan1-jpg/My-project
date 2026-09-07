@@ -465,6 +465,18 @@ html, body { width:100%; max-width:100%; margin:0; padding:0; box-sizing:border-
 .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; background: #fff; padding: 10px 14px; border-radius: 12px; margin-bottom: 14px; box-shadow: var(--shadow); }
 .filter-bar select, .filter-bar input { padding: 7px 10px; border: 2px solid var(--light); border-radius: 8px; font-size: 13px; outline: none; background: #fff; color: var(--deep); }
 .filter-bar select:focus, .filter-bar input:focus { border-color: var(--main); }
+.essay-topic-buttons { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+.essay-topic-buttons .module-btn { flex:1; min-width:90px; padding:10px 16px; border:none; border-radius:12px; font-weight:bold; font-size:13px; cursor:pointer; background:#fff; color:var(--deep); box-shadow:0 1px 3px rgba(0,0,0,.06); text-align:center; }
+.essay-topic-buttons .module-btn .count { display:block; font-weight:normal; font-size:11px; color:var(--secondary); opacity:.8; }
+.essay-filter-grid { display:grid !important; grid-template-columns:repeat(3,1fr) !important; gap:6px !important; padding:8px !important; width:100% !important; box-sizing:border-box; }
+.essay-filter-grid select, .essay-filter-grid input, .essay-filter-grid button { width:100% !important; min-height:44px !important; height:44px !important; font-size:11px !important; border:1px solid #ccc !important; border-radius:6px !important; text-align:center; text-align-last:center; box-sizing:border-box; }
+.essay-filter-grid input { grid-column:span 2; padding:0 12px; }
+.essay-filter-grid .filter-stats { grid-column:span 3; text-align:center; color:var(--secondary); font-size:13px; padding:4px 0; }
+@media (max-width:768px) { .essay-filter-grid { grid-template-columns:repeat(3,1fr) !important; } }
+.essay-top-filter { display:flex !important; flex-wrap:wrap !important; gap:6px !important; padding:8px !important; width:100% !important; box-sizing:border-box; }
+.pc-mode .essay-top-filter, .mobile-mode .essay-top-filter { display:flex !important; grid-template-columns:none !important; }
+.essay-top-filter > select, .essay-top-filter > button { flex:1 1 0; min-width:0; width:auto !important; height:44px; min-height:44px; padding:0 8px; background:#fff; border:2px solid #dbe7f5; border-radius:8px; color:var(--deep); font-size:13px; text-align:center; text-align-last:center; box-sizing:border-box; }
+.essay-top-filter > .essay-filter-stats { flex:0 0 100%; text-align:center; color:var(--secondary); font-size:13px; padding:4px 0 0; }
 .ratio-label { font-size: 13px; color:var(--secondary); display:flex; align-items:center; gap:4px; white-space:nowrap; }
 .ratio-input { width: 58px; padding: 7px 8px; }
 .btn { padding: 8px 16px; border: none; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: bold; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all .18s ease; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
@@ -959,6 +971,16 @@ html, body {
   #scrollDiagCount { font-size:9px !important; min-width:14px !important; height:14px !important; }
   #sidebar > div:last-child { font-size:10px !important; padding:8px 14px !important; }
   #sidebar .sound-grid { display:grid !important; grid-template-columns:1fr 1fr !important; gap:4px !important; }
+  #sidebar[style*="width: 85vw"], #sidebar[style*="width:85vw"], #sidebar[style*="width: 270px"], #sidebar[style*="width:270px"] { width:85vw !important; max-width:360px !important; min-width:280px !important; flex-shrink:0 !important; box-sizing:border-box !important; }
+  #sidebar > div:nth-child(2) { min-width:0 !important; width:100% !important; box-sizing:border-box !important; }
+  #sidebar > div:nth-child(2) > div, #sidebar > div:nth-child(2) > #pomodoroCard {
+    width:100% !important; min-width:0 !important; min-height:0 !important; box-sizing:border-box !important;
+    padding:12px 14px !important; margin:0 0 10px !important; border-radius:8px !important;
+    background:rgba(255,255,255,0.05) !important; border:1px solid rgba(255,255,255,0.06) !important;
+    flex-shrink:0 !important; overflow:visible !important;
+  }
+  #sidebar button, #sidebar select, #sidebar input { flex-shrink:0 !important; }
+  #sidebar button { min-height:36px; box-sizing:border-box; }
 }
 
 /* ====== 暗夜模式：面试解析修复 ====== */
@@ -1663,7 +1685,7 @@ function isMianShiQuestion(question){
   return !!(question && (question._interview || getSolutionAccessory(question,'stzd') || getSolutionAccessory(question,'sfdt') || getSolutionAccessory(question,'swdt')));
 }
 function cleanMaterialMarkers(value){
-  return String(value||'').replace(/\s*\[materialid\]\s*\d+\s*\[\/materialid\]\s*/gi,' ').replace(/ {2,}/g,' ');
+  return String(value||'');
 }
 function cleanEssayContent(value){
   if(typeof value==='string') return cleanMaterialMarkers(value);
@@ -1696,6 +1718,13 @@ function normalizeEssayPapers(data){
       subCategory:paper.topic||'其他',
       leafCategory:''
     };
+  });
+}
+function replaceMaterialMarkers(value, materials){
+  var list=Array.isArray(materials)?materials:[];
+  return String(value||'').replace(/\[materialid\]\s*(\d+)\s*\[\/materialid\]/gi,function(match,id){
+    var index=list.findIndex(function(material){ return material && String(material.id)===String(id); });
+    return index>=0 ? '材料'+(index+1) : match;
   });
 }
 function detectModule(name, data){
@@ -1881,7 +1910,7 @@ function renderAll(){
   renderModuleBar();
   updateFilterOptions();
   if(window.updateSubTypeFilter) window.updateSubTypeFilter();
-  applyFilterStateToUI();
+  if(activeZone!=='sl') applyFilterStateToUI();
   renderFileList();
   renderQuestions();
 }
@@ -2082,42 +2111,20 @@ function getFilterBaseQuestions(){
 
 function renderModuleBar(){
   if(activeZone==='sl'){
-    var legacyFilterBar=document.getElementById('filterBar');
-    if(legacyFilterBar) legacyFilterBar.style.display='none';
-    [yearFilter,provinceFilter,sourceFilter,statusFilter,sortFilter,moduleFilter,subTypeFilter,leafTypeFilter].forEach(function(element){ if(element) element.style.display='none'; });
-    if(searchBox) searchBox.style.display='none';
-    var essayQs=getZoneQuestions(activeZone,'__all__');
-    var topicStats={};
-    var leafStats={};
-    essayQs.forEach(function(q){
-      var topic=q._paperTopic||'其他';
-      topicStats[topic]=(topicStats[topic]||0)+1;
-      var leaf=q.leafCategory||'其他';
-      leafStats[leaf]=(leafStats[leaf]||0)+1;
-    });
-    var yearValues=Array.from(new Set(essayQs.map(function(q){ return q._paperYear; }).filter(Boolean))).sort(function(a,b){ return Number(b)-Number(a); });
-    var html='<select id="slYearFilter" class="filter-select"><option value="all">📅 全部年份</option>';
-    yearValues.forEach(function(year){ html+='<option value="'+escapeHtml(year)+'">'+escapeHtml(year)+'年</option>'; });
-    html+='</select><select id="slTopicFilter" class="filter-select"><option value="all">🏷️ 全部话题</option>';
-    Object.keys(topicStats).sort().forEach(function(topic){ html+='<option value="'+escapeHtml(topic)+'">'+escapeHtml(topic)+'（'+topicStats[topic]+'题）</option>'; });
-    html+='</select><select id="slLeafFilter" class="filter-select"><option value="all">📋 全部题型</option>';
-    Object.keys(leafStats).sort().forEach(function(leaf){ html+='<option value="'+escapeHtml(leaf)+'">'+escapeHtml(leaf)+'（'+leafStats[leaf]+'道）</option>'; });
-    html+='</select><input id="slSearchBox" class="search-box" placeholder="🔍 搜索试卷或题干..." style="flex:1;min-width:120px;">';
-    var filtered=getFiltered();
-    html+='<span class="filter-stats" style="color:var(--secondary);font-size:13px;white-space:nowrap;">共 '+essayQs.length+' 题 · 筛选后 '+filtered.length+' 题</span><button class="btn btn-outline" onclick="clearFilters()" style="font-size:12px;padding:4px 12px;">✕ 清除筛选</button>';
-    moduleBar.innerHTML=html;
-    var slYearFilter=document.getElementById('slYearFilter');
-    var slTopicFilter=document.getElementById('slTopicFilter');
-    var slLeafFilter=document.getElementById('slLeafFilter');
-    var slSearchBox=document.getElementById('slSearchBox');
-    if(slYearFilter){ slYearFilter.value=filterState.year||'all'; slYearFilter.onchange=function(){ filterState.year=this.value; currentPage=1; saveView(); renderAll(); }; }
-    if(slTopicFilter){ slTopicFilter.value=filterState.province||'all'; slTopicFilter.onchange=function(){ filterState.province=this.value; currentPage=1; saveView(); renderAll(); }; }
-    if(slLeafFilter){ slLeafFilter.value=filterState.leafType||'all'; slLeafFilter.onchange=function(){ filterState.leafType=this.value; currentPage=1; saveView(); renderAll(); }; }
-    if(slSearchBox){ slSearchBox.value=filterState.search||''; slSearchBox.oninput=function(){ filterState.search=this.value; currentPage=1; saveView(); renderAll(); }; }
+    moduleBar.innerHTML='';
+    moduleBar.style.display='none';
+    renderEssayFilterBar();
     return;
   }
   var legacyFilterBar=document.getElementById('filterBar');
-  if(legacyFilterBar) legacyFilterBar.style.display='';
+  if(legacyFilterBar){
+    legacyFilterBar.style.display='';
+    legacyFilterBar.className='filter-bar';
+    legacyFilterBar.querySelectorAll('.essay-dynamic').forEach(function(element){ element.remove(); });
+    Array.from(legacyFilterBar.children).forEach(function(element){ element.style.display=''; });
+    delete legacyFilterBar.dataset.essayMode;
+  }
+  moduleBar.style.display='';
   [yearFilter,provinceFilter,sourceFilter,statusFilter,sortFilter,moduleFilter,subTypeFilter,leafTypeFilter].forEach(function(element){ if(element) element.style.display=''; });
   if(searchBox) searchBox.style.display='';
   if(activeZone==='ms'){ moduleBar.innerHTML=''; return; }
@@ -2183,6 +2190,66 @@ function renderModuleBar(){
       renderQuestions();
     };
   });
+}
+
+function getEssayQuestions(){ return getZoneQuestions('sl','__all__'); }
+function filterEssayQuestions(excludeField){
+  var qs=getEssayQuestions();
+  function active(field){ return field!==excludeField; }
+  if(active('year')&&filterState.year!=='all') qs=qs.filter(function(q){ return String(q._paperYear)===String(filterState.year); });
+  if(active('province')&&filterState.province!=='all') qs=qs.filter(function(q){ return q._paperProvince===filterState.province; });
+  if(active('subType')&&filterState.subType!=='all') qs=qs.filter(function(q){ return q._paperTopic===filterState.subType; });
+  if(active('leafType')&&filterState.leafType!=='all') qs=qs.filter(function(q){ return q.leafCategory===filterState.leafType; });
+  return qs;
+}
+function getEssayOptionStats(field){
+  var stats={};
+  filterEssayQuestions(field).forEach(function(q){
+    var value=field==='year'?q._paperYear:field==='province'?q._paperProvince:field==='subType'?q._paperTopic:q.leafCategory;
+    value=value||'其他';
+    stats[value]=(stats[value]||0)+1;
+  });
+  return stats;
+}
+function buildEssaySelect(id,label,stats,sortFn){
+  var html='<select class="essay-dynamic" id="'+id+'"><option value="all">'+label+'</option>';
+  Object.keys(stats).sort(sortFn||function(a,b){ return String(a).localeCompare(String(b),'zh-CN'); }).forEach(function(value){
+    html+='<option value="'+escapeHtml(value)+'">'+escapeHtml(value)+'（'+stats[value]+'题）</option>';
+  });
+  return html+'</select>';
+}
+function updateEssaySelects(){
+  if(activeZone!=='sl') return;
+  var bar=document.getElementById('filterBar');
+  if(!bar) return;
+  if(!bar.dataset.essayMode){
+    Array.from(bar.children).forEach(function(element){ element.style.display='none'; });
+    bar.dataset.essayMode='1';
+  }
+  bar.querySelectorAll('.essay-dynamic').forEach(function(element){ element.remove(); });
+  var current={year:filterState.year,province:filterState.province,subType:filterState.subType,leafType:filterState.leafType};
+  bar.insertAdjacentHTML('beforeend',buildEssaySelect('slYearFilter','📅 全部年份',getEssayOptionStats('year'),function(a,b){ return Number(b)-Number(a); })+
+    buildEssaySelect('slProvinceFilter','📍 全部省份',getEssayOptionStats('province'))+
+    buildEssaySelect('slTopicFilter','🏷️ 全部话题',getEssayOptionStats('subType'))+
+    buildEssaySelect('slLeafFilter','📋 全部题型',getEssayOptionStats('leafType'))+
+    '<button class="essay-dynamic" id="slClearFilter" type="button">✕ 清除筛选</button>'+
+    '<div class="essay-dynamic essay-filter-stats">共 '+getEssayQuestions().length+' 题 · 筛选后 '+getFiltered().length+' 题</div>');
+  bar.className='filter-bar essay-top-filter';
+  ['year','province','subType','leafType'].forEach(function(field){
+    var id=field==='year'?'slYearFilter':field==='province'?'slProvinceFilter':field==='subType'?'slTopicFilter':'slLeafFilter';
+    var element=document.getElementById(id);
+    if(!element) return;
+    element.value=current[field];
+    if(element.value!==current[field]){ filterState[field]='all'; element.value='all'; }
+    element.onchange=function(){ filterState[field]=this.value; currentPage=1; saveView(); renderAll(); };
+  });
+  document.getElementById('slClearFilter').onclick=clearFilters;
+}
+function renderEssayFilterBar(){
+  var bar=document.getElementById('filterBar');
+  if(!bar) return;
+  bar.style.display='';
+  updateEssaySelects();
 }
 
 function updateFilterOptions() {
@@ -2555,7 +2622,8 @@ function getFiltered(){
   if(activeZone==='sl'){
     if(kw) qs=qs.filter(function(q){ return getSpecialSearchText(q).includes(kw); });
     if(filterState.year!=='all') qs=qs.filter(function(q){ return q._paperYear===filterState.year; });
-    if(filterState.province!=='all') qs=qs.filter(function(q){ return (q._paperTopic||'其他')===filterState.province; });
+    if(filterState.province!=='all') qs=qs.filter(function(q){ return (q._paperProvince||'其他')===filterState.province; });
+    if(filterState.subType!=='all') qs=qs.filter(function(q){ return (q._paperTopic||'其他')===filterState.subType; });
     if(filterState.leafType!=='all') qs=qs.filter(function(q){ return (q.leafCategory||'其他')===filterState.leafType; });
     return qs.sort(function(a,b){ return Number(b._paperYear||0)-Number(a._paperYear||0) || String(b._paperName||'').localeCompare(String(a._paperName||'')); });
   }
@@ -3521,6 +3589,28 @@ setTimeout(function() {
     }
 }, 3000);
 
+function hasEssayFilter(){
+  if(activeZone!=='sl') return false;
+  return filterState.year!=='all' || filterState.province!=='all' || filterState.subType!=='all' || filterState.leafType!=='all' ||
+    (filterState.search&&filterState.search.trim()!=='') || filterState.status!=='all' || filterState.source!=='all';
+}
+function groupEssayPapers(questions){
+  var groups={};
+  questions.forEach(function(question){
+    var name=question._paperName||'未命名申论试卷';
+    if(!groups[name]) groups[name]={paperName:name,paperYear:question._paperYear||'未知',paperProvince:question._paperProvince||'其他',paperTopic:question._paperTopic||'其他',questions:[]};
+    groups[name].questions.push(question);
+  });
+  return Object.keys(groups).map(function(name){ return groups[name]; }).sort(function(a,b){
+    return Number(b.paperYear||0)-Number(a.paperYear||0) || a.paperName.localeCompare(b.paperName,'zh-CN');
+  });
+}
+function renderEssayPaperGroup(group,index){
+  var body=group.questions.map(function(question,questionIndex){
+    return renderShenLunPaper(question,questionIndex,'paper-'+index+'-q-'+questionIndex);
+  }).join('');
+  return '<details class="question visible essay-paper-group" id="paper-group-'+index+'"><summary><strong>📄 '+escapeHtml(group.paperName)+'</strong><span class="q-source">'+escapeHtml(group.paperYear)+'年 · '+escapeHtml(group.paperProvince)+' · '+escapeHtml(group.paperTopic)+' · 共'+group.questions.length+'题</span></summary><div class="essay-paper-group-body">'+body+'</div></details>';
+}
 function renderQuestions(){
   stopAllMianShiRecordings();
   if (filterState.status === 'wrong') {
@@ -3588,15 +3678,18 @@ function renderQuestions(){
     return;
   }
   controls.style.display='flex';
-  const totalPages=Math.ceil(total/PAGE_SIZE);
+  const essayPaperMode=activeZone==='sl' && !hasEssayFilter();
+  const renderItems=essayPaperMode ? groupEssayPapers(filteredQuestions) : filteredQuestions;
+  const displayTotal=renderItems.length;
+  const totalPages=Math.ceil(displayTotal/PAGE_SIZE);
   if(currentPage>totalPages) currentPage=totalPages;
   if(currentPage<1) currentPage=1;
-  const start=(currentPage-1)*PAGE_SIZE, end=Math.min(start+PAGE_SIZE,total);
+  const start=(currentPage-1)*PAGE_SIZE, end=Math.min(start+PAGE_SIZE,displayTotal);
   let html=''; const optLtrs=['A','B','C','D','E','F'];
   for(let i=start;i<end;i++){
-    const item=filteredQuestions[i], key=item._key;
+    const item=renderItems[i], key=essayPaperMode ? ('paper-'+i) : item._key;
     if(activeZone==='sl'){
-      html+=renderShenLunPaper(item, i, key);
+      html+=essayPaperMode ? renderEssayPaperGroup(item, i) : renderShenLunPaper(item, i, key);
       continue;
     }
     if(activeZone==='ms'){
@@ -3672,7 +3765,7 @@ function renderQuestions(){
   // MutationObserver 也会处理后续动态插入的 img（见 setupImgObserver）。
   bindImageDebug();   // 诊断：捕获图片 load/error 事件（生产可整段删除）
   pageMeta.style.display='block';
-  pageMeta.textContent=`第 ${currentPage} / ${totalPages} 页 · 共 ${total} 题 · 每页 ${PAGE_SIZE} 题`;
+  pageMeta.textContent=essayPaperMode ? `第 ${currentPage} / ${totalPages} 页 · 共 ${total} 题 · ${displayTotal} 套试卷` : `第 ${currentPage} / ${totalPages} 页 · 共 ${total} 题 · 每页 ${PAGE_SIZE} 题`;
   if(totalPages>1){
     let ph=`<button onclick="goPage(1)" ${currentPage===1?'disabled':''}>首页</button><button onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>上一页</button>`;
     for(let p=Math.max(1,currentPage-4); p<=Math.min(totalPages,currentPage+4); p++) ph+=`<button onclick="goPage(${p})" class="${p===currentPage?'active':''}">${p}</button>`;
@@ -3764,9 +3857,9 @@ function renderShenLunPaper(question, index, key){
   html+=' <span style="color:var(--secondary);font-size:12px;">第 '+(index+1)+' 题</span></div>';
   materials.forEach(function(material,materialIndex){
     if(!material || !material.content) return;
-    html+='<section class="q-material essay-material"><strong>材料'+(materialIndex+1)+'</strong><div>'+fixProtocols(material.content)+'</div></section>';
+    html+='<section class="q-material essay-material"><strong>材料'+(materialIndex+1)+'</strong><div>'+fixProtocols(replaceMaterialMarkers(material.content,materials))+'</div></section>';
   });
-  html+='<div class="q-content">'+fixProtocols(question.content||'')+'</div>';
+  html+='<div class="q-content">'+fixProtocols(replaceMaterialMarkers(question.content||'',materials))+'</div>';
   const answer=getAnswer(question);
   const analysis=getAnalysis(question);
   if(answer) html+='<details class="essay-answer"><summary>📖 参考答案</summary><div>'+fixProtocols(answer)+'</div></details>';
@@ -6343,6 +6436,8 @@ if (window.renderQuestions) window.renderQuestions();
     }
   };
   document.body.appendChild(historyBtn);
+  applyZoneTheme(activeZone);
+  document.body.classList.toggle('essay-zone', activeZone==='sl');
   renderAll();
   if(restoredStudyPosition){
     setTimeout(function(){
@@ -7950,10 +8045,29 @@ playSound = function(type) {
 function initCustomSounds() {
   loadCustomSounds();
   var customSoundBtn = document.getElementById('customSoundBtn');
+  var customSoundInput = document.getElementById('customSoundInput');
   var clearCustomSoundsBtn = document.getElementById('clearCustomSoundsBtn');
-  if (customSoundBtn) customSoundBtn.onclick = function() {
-    document.getElementById('customSoundInput').click();
-  };
+  if(customSoundInput){
+    customSoundInput.style.display='block';
+    customSoundInput.style.position='fixed';
+    customSoundInput.style.left='0';
+    customSoundInput.style.top='0';
+    customSoundInput.style.width='1px';
+    customSoundInput.style.height='1px';
+    customSoundInput.style.opacity='0';
+    customSoundInput.style.pointerEvents='auto';
+    customSoundInput.style.zIndex='99999';
+  }
+  function openCustomSoundPicker(event){
+    if(event){ event.preventDefault(); event.stopPropagation(); }
+    if(!customSoundInput) return;
+    customSoundInput.value='';
+    customSoundInput.click();
+  }
+  if (customSoundBtn){
+    customSoundBtn.onclick=openCustomSoundPicker;
+    customSoundBtn.addEventListener('touchend',openCustomSoundPicker,{passive:false});
+  }
   if (clearCustomSoundsBtn) clearCustomSoundsBtn.onclick = function() {
     if (customSounds.length === 0) return;
     if (confirm('确定清空所有自定义音效吗？')) clearAllCustomSounds();
@@ -7985,12 +8099,20 @@ function restoreSoundState() {
 var isSidebarOpen = false;
 function openSidebar(){
   isSidebarOpen = true;
-  document.getElementById('sidebar').style.width = '270px';
+  var sidebar=document.getElementById('sidebar');
+  if(sidebar){
+    sidebar.style.width = window.innerWidth<=768 ? '85vw' : '270px';
+    sidebar.style.maxWidth = window.innerWidth<=768 ? '360px' : 'none';
+    sidebar.style.minWidth = window.innerWidth<=768 ? '280px' : '0';
+    sidebar.style.flexShrink='0';
+    sidebar.querySelectorAll('button,select,input').forEach(function(element){ element.style.flexShrink='0'; });
+  }
   document.getElementById('sidebarToggle').classList.add('hidden');
 }
 function closeSidebar(){
   isSidebarOpen = false;
-  document.getElementById('sidebar').style.width = '0';
+  var sidebar=document.getElementById('sidebar');
+  if(sidebar){ sidebar.style.width='0'; sidebar.style.maxWidth='none'; sidebar.style.minWidth='0'; sidebar.style.flexShrink='1'; }
   document.getElementById('sidebarToggle').classList.remove('hidden');
 }
 document.getElementById('sidebarToggle').onclick = function() {
