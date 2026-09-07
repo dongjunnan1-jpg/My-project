@@ -1030,6 +1030,32 @@ body.skin-dark .ms-record-time { color:#94a3b8 !important; }
 #toolFullscreen .tool-progress > div { height:100%; background:var(--main,#3b82f6); transition:width .2s; }
 .sidebar-tool-btn { padding:7px 4px; border:1px solid #334155; border-radius:5px; background:#0f172a; color:#e2e8f0; cursor:pointer; font-size:11px; transition:.15s; }
 .sidebar-tool-btn:hover, .sidebar-tool-btn.active { border-color:#60a5fa; background:#1e3a5f; color:#bfdbfe; }
+#chengyuApp .cy-mode-tabs, #chengyuApp .cy-category-list, #chengyuApp .cy-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+#chengyuApp .cy-mode-tabs { margin-bottom:14px; }
+#chengyuApp .cy-category-list { max-height:90px; overflow:auto; justify-content:flex-start; margin:12px 0; }
+#chengyuApp .cy-category-list .btn { padding:6px 10px; font-size:12px; }
+#chengyuApp .cy-search { flex:1; min-width:180px; padding:9px 12px; border:1px solid var(--border); border-radius:8px; background:var(--surface); color:var(--text); box-sizing:border-box; }
+#chengyuApp .cy-toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+#chengyuApp .cy-count { color:var(--secondary); font-size:13px; }
+#chengyuApp .cy-cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+#chengyuApp .cy-card { padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--surface); min-height:120px; }
+#chengyuApp .cy-word { color:var(--deep); font-size:24px; font-weight:700; margin-bottom:8px; }
+#chengyuApp .cy-meaning { color:var(--text); line-height:1.7; font-size:14px; }
+#chengyuApp .cy-tag { display:inline-block; margin-top:10px; padding:3px 8px; border-radius:99px; background:var(--light); color:var(--deep); font-size:11px; }
+#chengyuApp .cy-pager { display:flex; justify-content:center; gap:8px; margin-top:16px; }
+#chengyuApp .cy-upload { text-align:center; border:2px dashed var(--border); border-radius:12px; padding:34px 18px; }
+#chengyuApp .cy-upload input { display:none; }
+#chengyuApp .cy-recite-word { text-align:center; color:var(--deep); font-size:clamp(34px,8vw,64px); font-weight:700; padding:44px 10px 24px; }
+#chengyuApp .cy-recite-answer { padding:16px; border-radius:10px; background:var(--light); color:var(--text); line-height:1.8; text-align:center; }
+#chengyuApp .cy-test-word { text-align:center; color:var(--deep); font-size:clamp(30px,7vw,54px); font-weight:700; padding:26px 10px; }
+#chengyuApp .cy-test-options { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+#chengyuApp .cy-test-options .cy-test-option { min-height:64px; padding:12px; text-align:left; border:2px solid var(--border); border-radius:10px; background:var(--surface); color:var(--text); cursor:pointer; }
+#chengyuApp .cy-test-options .cy-test-option.correct { border-color:#22c55e; background:#dcfce7; color:#166534; }
+#chengyuApp .cy-test-options .cy-test-option.wrong { border-color:#ef4444; background:#fee2e2; color:#991b1b; }
+#chengyuApp .cy-stat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
+#chengyuApp .cy-stat { padding:10px; border:1px solid var(--border); border-radius:8px; background:var(--surface); text-align:center; }
+#chengyuApp .cy-stat strong { display:block; color:var(--deep); font-size:20px; }
+@media (max-width:600px) { #chengyuApp .cy-cards, #chengyuApp .cy-test-options { grid-template-columns:1fr; } #chengyuApp .cy-card { min-height:0; } #chengyuApp .cy-word { font-size:21px; } }
 @media (max-width:600px) { #toolFullscreen { padding:10px; } #toolFullscreen .tool-panel { padding:16px 10px; } #toolFullscreen .tool-head { align-items:flex-start; } }
 
 /* ====== 主题切换后的题目与答案可读性 ====== */
@@ -7017,6 +7043,7 @@ function toggleNoHack(on){
         <button class="sidebar-tool-btn" data-tool="formula" onclick="openToolFullscreen('formula')">📐 公式选择</button>
         <button class="sidebar-tool-btn" data-tool="schulte" onclick="openToolFullscreen('schulte')">🧠 舒尔特表</button>
         <button class="sidebar-tool-btn" data-tool="memory" onclick="openToolFullscreen('memory')" style="grid-column:span 2;">🃏 记忆翻牌</button>
+        <button class="sidebar-tool-btn" data-tool="chengyu" onclick="openToolFullscreen('chengyu')" style="grid-column:span 2;border-color:#a78bfa;color:#a78bfa;">📚 成语小助手</button>
       </div>
     </div>
 
@@ -7926,7 +7953,7 @@ document.addEventListener('click', activateAudio);
 // 全屏专项训练工具
 // ============================================================
 (function(){
-  var titles={bhf:'🧮 百化分训练',calc:'⚡ 速算训练',formula:'📐 公式选择训练',schulte:'🧠 舒尔特表训练',memory:'🃏 记忆翻牌训练'};
+  var titles={bhf:'🧮 百化分训练',calc:'⚡ 速算训练',formula:'📐 公式选择训练',schulte:'🧠 舒尔特表训练',memory:'🃏 记忆翻牌训练',chengyu:'📚 成语小助手'};
   var activeTool='';
   var timers={schulte:0,memory:0};
   var fractions=[['1/2','50'],['1/3','33.3'],['1/4','25'],['1/5','20'],['1/6','16.7'],['1/7','14.3'],['1/8','12.5'],['1/9','11.1'],['1/10','10'],['1/11','9.1'],['1/12','8.3'],['1/13','7.7'],['1/14','7.1'],['1/15','6.7'],['1/16','6.3'],['1/17','5.9'],['1/18','5.6'],['1/19','5.3'],['1/20','5']];
@@ -8142,11 +8169,11 @@ document.addEventListener('click', activateAudio);
   function header(s,total,extra){return '<div class="tool-row" style="justify-content:space-between;margin-bottom:6px;"><strong>第 '+(s.i+1)+'/'+total+' 题</strong><span class="tool-muted">已答 '+s.i+' · 正确 '+s.right+(extra?' · '+extra:'')+'</span><span><button class="btn btn-outline" onclick="trainingReset()">🔄 重来</button> <button class="btn btn-outline" onclick="trainingSettings()">⚙️ 设置</button></span></div><div class="tool-progress"><div style="width:'+Math.round(s.i/total*100)+'%"></div></div>';}
   function result(s,total,name,detail){var pct=total?Math.round(s.right/total*100):0;return '<div class="tool-panel" style="text-align:center;"><h2>🎉 训练完成</h2><p class="tool-muted">'+name+' · 共 '+total+' 题</p><p>✅ 正确 '+s.right+' 题　📈 正确率 '+pct+'%</p><p class="tool-muted">⏱️ 用时 '+Math.max(0,Math.round((Date.now()-s.start)/1000))+' 秒</p><div class="tool-actions"><button class="btn btn-primary" onclick="trainingReset()">🔄 再来一组</button><button class="btn btn-outline" onclick="trainingSettings()">⚙️ 设置</button><button class="btn btn-outline" onclick="closeToolFullscreen()">✕ 返回题库</button></div>'+(detail||'')+'</div>';}
   function newQuestions(k,gen){var s=states[k];s.qs=gen();s.i=0;s.right=0;s.start=Date.now();save(k);}
-  function render(k){ if(!root())return; activeTool=k; if(k==='bhf')renderBhf(); else if(k==='calc')renderCalc(); else if(k==='formula')renderFormula(); else if(k==='schulte')renderSchulte(); else renderMemory(); }
-  window.openToolFullscreen=function(k){ if(!titles[k])return; activeTool=k; var box=document.getElementById('toolFullscreen'); box.style.display='block'; document.body.style.overflow='hidden'; document.getElementById('toolFullscreenTitle').textContent=titles[k]; document.querySelectorAll('.sidebar-tool-btn').forEach(function(b){b.classList.toggle('active',b.dataset.tool===k);}); render(k); };
+  function render(k){ if(!root())return; activeTool=k; if(k==='bhf')renderBhf(); else if(k==='calc')renderCalc(); else if(k==='formula')renderFormula(); else if(k==='schulte')renderSchulte(); else if(k==='memory')renderMemory(); else renderChengyu(); }
+  window.openToolFullscreen=function(k){ if(!titles[k])return; activeTool=k; var box=document.getElementById('toolFullscreen'); box.style.display='block'; document.body.style.overflow='hidden'; document.getElementById('toolFullscreenTitle').textContent=titles[k]; var closeButton=document.querySelector('#toolFullscreen .tool-head button'); if(closeButton)closeButton.textContent=k==='chengyu'?'← 返回题库':'✕ 返回题库'; document.querySelectorAll('.sidebar-tool-btn').forEach(function(b){b.classList.toggle('active',b.dataset.tool===k);}); render(k); };
   window.closeToolFullscreen=function(){Object.keys(timers).forEach(function(k){if(timers[k]){clearInterval(timers[k]);timers[k]=0;}});var box=document.getElementById('toolFullscreen');if(box)box.style.display='none';document.body.style.overflow='';document.querySelectorAll('.sidebar-tool-btn').forEach(function(b){b.classList.remove('active');});activeTool='';};
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&activeTool)closeToolFullscreen();});
-  window.trainingReset=function(){var k=activeTool;if(k==='bhf'||k==='calc'||k==='formula'){states[k].qs=[];saveAndRender(k);}else if(k==='schulte'){states.schulte.grid=[];states.schulte.finished=false;saveAndRender(k);}else{states.memory.cards=[];states.memory.finished=false;saveAndRender(k);}};
+  window.trainingReset=function(){var k=activeTool;if(k==='chengyu'){chengyuState.mode='browse';chengyuState.page=1;renderChengyu();}else if(k==='bhf'||k==='calc'||k==='formula'){states[k].qs=[];saveAndRender(k);}else if(k==='schulte'){states.schulte.grid=[];states.schulte.finished=false;saveAndRender(k);}else{states.memory.cards=[];states.memory.finished=false;saveAndRender(k);}};
   window.trainingSettings=function(){var k=activeTool, s=states[k], html='<div class="tool-panel"><h3>⚙️ '+titles[k]+'设置</h3>';
     if(k==='bhf')html+='<p>题量：<button class="btn btn-outline" onclick="setTrainingOption(\'count\',5)">5</button> <button class="btn btn-outline" onclick="setTrainingOption(\'count\',10)">10</button></p><p>交换概率：<input type="range" min="0" max="100" value="'+s.swap+'" oninput="setTrainingOption(\'swap\',Number(this.value))"> '+s.swap+'%</p><p>分母：'+s.denoms.map(function(d){return '<button class="btn '+(s.denoms.indexOf(d)>=0?'btn-primary':'btn-outline')+'" onclick="toggleDenom('+d+')">'+d+'</button>';}).join(' ')+'</p>';
     if(k==='calc')html+='<p>题型：'+['mixed','add','sub','mul','div'].map(function(m){return '<button class="btn '+(s.mode===m?'btn-primary':'btn-outline')+'" onclick="setTrainingOption(\'mode\',\''+m+'\')">'+({mixed:'混合',add:'加法',sub:'减法',mul:'乘法',div:'除法'}[m])+'</button>';}).join(' ')+'</p><p>难度：<button class="btn btn-outline" onclick="setTrainingOption(\'difficulty\',\'twoDigit\')">两位数</button> <button class="btn btn-outline" onclick="setTrainingOption(\'difficulty\',\'threeDigit\')">三位数</button></p><p>题量：<button class="btn btn-outline" onclick="setTrainingOption(\'count\',5)">5</button> <button class="btn btn-outline" onclick="setTrainingOption(\'count\',10)">10</button> <button class="btn btn-outline" onclick="setTrainingOption(\'count\',20)">20</button></p>';
@@ -8179,6 +8206,51 @@ document.addEventListener('click', activateAudio);
   window.chooseFormula=function(i){var s=states.formula,q=s.qs[s.i],ok=q.opts[i]===q.correct;s.right+=ok?1:0;document.getElementById('trainingFeedback').innerHTML=ok?'✅ 正确':'❌ 正确答案：'+esc(q.correct);save('formula');setTimeout(function(){s.i++;render('formula');},800);};
   window.clickSchulte=function(n){var s=states.schulte;if(n===s.target){s.target++;}else{s.errors++;}save('schulte');renderSchulte();};
   window.flipMemory=function(i){var s=states.memory;if(s.flipped.length>=2||s.cards[i].matched)return;s.flipped.push(i);s.moves++;renderMemory();if(s.flipped.length===2){var a=s.cards[s.flipped[0]],b=s.cards[s.flipped[1]];if(a.pair===b.pair){a.matched=b.matched=true;s.pairs++;s.flipped=[];save('memory');renderMemory();}else{setTimeout(function(){s.flipped=[];save('memory');renderMemory();},650);}}};
+
+  var CHENGYU_DATA_KEY='training_chengyu_data';
+  var CHENGYU_STATE_KEY='training_chengyu_state';
+  var chengyuState={data:[],category:'all',mode:'browse',search:'',page:1,pageSize:20,mastered:{},wrong:{},reciteIndex:-1,reciteAnswer:false,test:null};
+  function chengyuLoadState(){
+    try{var data=JSON.parse(localStorage.getItem(CHENGYU_DATA_KEY)||'[]');if(Array.isArray(data))chengyuState.data=data.map(chengyuNormalize).filter(Boolean);}catch(e){chengyuState.data=[];}
+    try{var saved=JSON.parse(localStorage.getItem(CHENGYU_STATE_KEY)||'null');if(saved){chengyuState.mastered=saved.mastered||{};chengyuState.wrong=saved.wrong||{};}}catch(e){}
+  }
+  function chengyuSave(){try{localStorage.setItem(CHENGYU_STATE_KEY,JSON.stringify({mastered:chengyuState.mastered,wrong:chengyuState.wrong}));}catch(e){}}
+  function chengyuNormalize(item,index){
+    if(!item||typeof item!=='object')return null;
+    var word=String(item['成语']||item.word||'').trim(), meaning=String(item['释义']||item.meaning||'').trim();
+    if(!word||!meaning)return null;
+    return {id:String(index)+'_'+word,word:word,meaning:meaning,major:String(item['大类']||item.major||'未分类').trim()||'未分类',minor:String(item['小类']||item.minor||'').trim()};
+  }
+  function chengyuPersistData(){try{localStorage.setItem(CHENGYU_DATA_KEY,JSON.stringify(chengyuState.data.map(function(item){return {'成语':item.word,'释义':item.meaning,'大类':item.major,'小类':item.minor};})));}catch(e){}}
+  function chengyuCategories(){var counts={};chengyuState.data.forEach(function(item){counts[item.major]=(counts[item.major]||0)+1;});return Object.keys(counts).sort().map(function(name){return {name:name,count:counts[name]};});}
+  function chengyuFiltered(){var query=chengyuState.search.trim().toLowerCase();return chengyuState.data.filter(function(item){return (chengyuState.category==='all'||item.major===chengyuState.category)&&(!query||(item.word+' '+item.meaning+' '+item.minor).toLowerCase().indexOf(query)>=0);});}
+  function chengyuStats(){var mastered=Object.keys(chengyuState.mastered).length,wrong=Object.keys(chengyuState.wrong).length;return '<div class="cy-stat-grid"><div class="cy-stat"><strong>'+chengyuState.data.length+'</strong>总成语数</div><div class="cy-stat"><strong>'+mastered+'</strong>已掌握</div><div class="cy-stat"><strong>'+wrong+'</strong>错题数</div></div>';}
+  function chengyuModeNav(){return '<div class="cy-mode-tabs"><button class="btn '+(chengyuState.mode==='browse'?'btn-primary':'btn-outline')+'" onclick="chengyuSetMode(\'browse\')">📖 浏览</button><button class="btn '+(chengyuState.mode==='recite'?'btn-primary':'btn-outline')+'" onclick="chengyuSetMode(\'recite\')">🧠 背诵</button><button class="btn '+(chengyuState.mode==='test'?'btn-primary':'btn-outline')+'" onclick="chengyuSetMode(\'test\')">📝 测试</button><button class="btn btn-outline" onclick="chengyuClearData()">🗑️ 清除数据</button></div>';}
+  function chengyuCategoryNav(){var html='<div class="cy-category-list"><button class="btn '+(chengyuState.category==='all'?'btn-primary':'btn-outline')+'" onclick="chengyuSetCategory(\'all\')">全部 ('+chengyuState.data.length+')</button>';chengyuCategories().forEach(function(item){html+='<button class="btn '+(chengyuState.category===item.name?'btn-primary':'btn-outline')+'" onclick="chengyuSetCategory(\''+esc(item.name)+'\')">'+esc(item.name)+' ('+item.count+')</button>';});return html+'</div>';}
+  function chengyuUploadPanel(){return '<div class="tool-panel cy-upload" ondragover="event.preventDefault()" ondrop="chengyuDrop(event)"><h3>📚 导入成语数据</h3><p class="tool-muted">请选择或拖入「言语.json」，格式为成语、释义、大类、小类数组。</p><label class="btn btn-primary" for="chengyuFile">📁 选择 JSON 文件</label><input id="chengyuFile" type="file" accept=".json,application/json" onchange="chengyuReadFile(this.files[0])"><p id="chengyuUploadStatus" class="tool-muted">首次使用请先导入数据</p></div>';}
+  function renderChengyu(){
+    chengyuLoadState();
+    if(!chengyuState.data.length){root().innerHTML='<div id="chengyuApp">'+chengyuUploadPanel()+'</div>';return;}
+    var content=chengyuStats()+chengyuModeNav()+chengyuCategoryNav();
+    if(chengyuState.mode==='browse')content+=chengyuRenderBrowse();else if(chengyuState.mode==='recite')content+=chengyuRenderRecite();else content+=chengyuRenderTest();
+    root().innerHTML='<div id="chengyuApp">'+content+'</div>';
+  }
+  function chengyuRenderBrowse(){var list=chengyuFiltered(),pages=Math.max(1,Math.ceil(list.length/chengyuState.pageSize));chengyuState.page=Math.min(chengyuState.page,pages);var start=(chengyuState.page-1)*chengyuState.pageSize,items=list.slice(start,start+chengyuState.pageSize);var html='<div class="cy-toolbar"><input class="cy-search" value="'+esc(chengyuState.search)+'" placeholder="搜索成语、释义或小类" oninput="chengyuSearch(this.value)"><span class="cy-count">共 '+list.length+' 条</span></div><div class="cy-cards">';items.forEach(function(item){html+='<article class="cy-card"><div class="cy-word">'+esc(item.word)+'</div><div class="cy-meaning">'+esc(item.meaning)+'</div>'+(item.minor?'<span class="cy-tag">'+esc(item.minor)+'</span>':'')+'</article>';});if(!items.length)html+='<div class="tool-panel">没有匹配的成语。</div>';html+='</div><div class="cy-pager"><button class="btn btn-outline" onclick="chengyuPage(-1)" '+(chengyuState.page<=1?'disabled':'')+'>上一页</button><span class="tool-muted">第 '+chengyuState.page+' / '+pages+' 页</span><button class="btn btn-outline" onclick="chengyuPage(1)" '+(chengyuState.page>=pages?'disabled':'')+'>下一页</button></div>';return html;}
+  function chengyuReciteItem(){var list=chengyuFiltered();if(!list.length)return null;if(chengyuState.reciteIndex<0||chengyuState.reciteIndex>=list.length)chengyuState.reciteIndex=Math.floor(Math.random()*list.length);return list[chengyuState.reciteIndex];}
+  function chengyuRenderRecite(){var item=chengyuReciteItem();if(!item)return '<div class="tool-panel">当前分类没有成语。</div>';var mastered=Object.keys(chengyuState.mastered).length,html='<div class="tool-row" style="justify-content:space-between"><span>已掌握 '+mastered+' / '+chengyuState.data.length+'</span><span class="tool-muted">'+(chengyuState.category==='all'?'全部':esc(chengyuState.category))+'</span></div><div class="tool-panel"><div class="cy-recite-word">'+esc(item.word)+'</div>';if(chengyuState.reciteAnswer)html+='<div class="cy-recite-answer">'+esc(item.meaning)+(item.minor?'<br><span class="cy-tag">'+esc(item.minor)+'</span>':'')+'</div>';html+='<div class="cy-actions" style="justify-content:center;margin-top:16px;">'+(!chengyuState.reciteAnswer?'<button class="btn btn-primary" onclick="chengyuShowAnswer()">👁️ 显示答案</button>':'<button class="btn btn-outline" onclick="chengyuMark(false)">🔁 不认识</button><button class="btn btn-primary" onclick="chengyuMark(true)">✅ 认识</button>')+'</div></div>';return html;}
+  function chengyuMakeTest(){var pool=chengyuFiltered();if(pool.length<4)pool=chengyuState.data.slice();pool=shuffle(pool.slice());return pool.slice(0,10).map(function(item){var same=chengyuState.data.filter(function(x){return x.id!==item.id&&x.major===item.major;});var others=shuffle((same.length>=3?same:chengyuState.data.filter(function(x){return x.id!==item.id;})).slice()).slice(0,3);return {item:item,options:shuffle([item].concat(others)).map(function(x){return x.meaning;}),answer:item.meaning,selected:null};});}
+  function chengyuRenderTest(){if(!chengyuState.test||!chengyuState.test.questions||chengyuState.test.questions.length!==10){chengyuState.test={questions:chengyuMakeTest(),index:0,right:0,done:false};}var t=chengyuState.test;if(t.done)return '<div class="tool-panel" style="text-align:center"><h2>🎉 测试完成</h2><p>答对 '+t.right+' / 10 题，正确率 '+(t.right*10)+'%</p><button class="btn btn-primary" onclick="chengyuRestartTest()">🔄 再测一次</button></div>';var q=t.questions[t.index],html='<div class="tool-row" style="justify-content:space-between"><strong>第 '+(t.index+1)+' / 10 题</strong><span class="tool-muted">正确 '+t.right+' 题</span></div><div class="tool-progress"><div style="width:'+Math.round(t.index/10*100)+'%"></div></div><div class="tool-panel"><div class="cy-test-word">'+esc(q.item.word)+'</div><div class="cy-test-options">';q.options.forEach(function(option,index){var cls='cy-test-option';if(q.selected){if(option===q.answer)cls+=' correct';else if(option===q.selected&&q.selected!==q.answer)cls+=' wrong';}html+='<button class="'+cls+'" '+(q.selected?'disabled':'onclick="chengyuAnswerTest('+index+')"')+'>'+String.fromCharCode(65+index)+'. '+esc(option)+'</button>';});html+='</div>'+(q.selected?'<p style="text-align:center;color:'+(q.selected===q.answer?'#16a34a':'#dc2626')+'">'+(q.selected===q.answer?'✅ 回答正确':'❌ 正确答案：'+esc(q.answer))+'</p>':'')+'</div>';return html;}
+  window.chengyuSetMode=function(mode){chengyuState.mode=mode;chengyuState.page=1;chengyuState.reciteIndex=-1;chengyuState.reciteAnswer=false;if(mode==='test')chengyuState.test=null;renderChengyu();};
+  window.chengyuSetCategory=function(category){chengyuState.category=category;chengyuState.page=1;chengyuState.reciteIndex=-1;chengyuState.test=null;renderChengyu();};
+  window.chengyuSearch=function(value){chengyuState.search=value;chengyuState.page=1;renderChengyu();var input=document.querySelector('#chengyuApp .cy-search');if(input){input.focus();input.selectionStart=input.selectionEnd=value.length;}};
+  window.chengyuPage=function(delta){chengyuState.page+=delta;renderChengyu();};
+  window.chengyuShowAnswer=function(){chengyuState.reciteAnswer=true;renderChengyu();};
+  window.chengyuMark=function(known){var item=chengyuReciteItem();if(!item)return;if(known){chengyuState.mastered[item.id]=true;delete chengyuState.wrong[item.id];}else{chengyuState.wrong[item.id]=true;}chengyuSave();chengyuState.reciteIndex=-1;chengyuState.reciteAnswer=false;renderChengyu();};
+  window.chengyuRestartTest=function(){chengyuState.test=null;renderChengyu();};
+  window.chengyuAnswerTest=function(index){var t=chengyuState.test,q=t&&t.questions[t.index];if(!q||q.selected)return;q.selected=q.options[index];if(q.selected===q.answer){t.right++;delete chengyuState.wrong[q.item.id];}else{chengyuState.wrong[q.item.id]=true;}chengyuSave();renderChengyu();setTimeout(function(){if(chengyuState.test===t&&t.index<9){t.index++;renderChengyu();}else if(chengyuState.test===t){t.done=true;renderChengyu();}},900);};
+  window.chengyuReadFile=function(file){if(!file)return;var reader=new FileReader();reader.onload=function(){try{var raw=JSON.parse(reader.result),items=Array.isArray(raw)?raw:raw.data;if(!Array.isArray(items))throw new Error('格式不是数组');var data=items.map(chengyuNormalize).filter(Boolean);if(!data.length)throw new Error('没有找到有效数据');chengyuState.data=data;chengyuState.category='all';chengyuState.search='';chengyuPersistData();chengyuSave();renderChengyu();}catch(e){var status=document.getElementById('chengyuUploadStatus');if(status)status.textContent='❌ 导入失败：'+e.message;}};reader.readAsText(file,'utf-8');};
+  window.chengyuDrop=function(event){event.preventDefault();var files=event.dataTransfer&&event.dataTransfer.files;if(files&&files[0])chengyuReadFile(files[0]);};
+  window.chengyuClearData=function(){if(!confirm('确定清除已保存的成语数据和学习进度吗？'))return;try{localStorage.removeItem(CHENGYU_DATA_KEY);localStorage.removeItem(CHENGYU_STATE_KEY);}catch(e){}chengyuState.data=[];renderChengyu();};
 })();
 </script>
 </style>
