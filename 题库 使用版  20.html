@@ -1909,7 +1909,7 @@ function getZoneQuestions(zone, fileId){
     if(!f) return;
     (f.questions||[]).forEach((q,qi)=>{
       const key='f'+f.id+'_q'+qi;
-      arr.push({...q, correctRatio:getQuestionCorrectRatio(q), _fileId:f.id, _qi:qi, _key:key, _answered: (f.answered&&f.answered[key]!==undefined)?f.answered[key]:undefined});
+      arr.push({...q, correctRatio:getQuestionCorrectRatio(q), _fileId:f.id, _qi:qi, _key:key, _zone:zone, _answered: (f.answered&&f.answered[key]!==undefined)?f.answered[key]:undefined});
     });
   });
   return arr;
@@ -4123,15 +4123,21 @@ function forceNormalizeZoneTabs(){
 // 导出
 // ============================================================
 function buildExportItem(q){
+  const zone=q._zone||activeZone;
+  const file=db[zone]&&db[zone][q._fileId];
+  const answered=q._answered!==undefined ? q._answered : (file&&file.answered ? file.answered[q._key] : undefined);
+  const exportQuestion=Object.assign({},q,{_answered:answered});
   return {
-    module: db[activeZone][q._fileId]?db[activeZone][q._fileId].module:'',
+    module: file?file.module:'',
     content: q.content||'',
     options: getOptions(q),
     correctAnswer: getCorrectLetter(q),
     solution: q.solution||'',
     source: q.source||'',
     correctRatio: q.correctRatio||0,
-    status: q._answered!==undefined ? (isAnsweredCorrect(q)?'正确':'错误') : '未做'
+    answered: answered===undefined ? null : answered,
+    isCorrect: answered===undefined ? null : isAnsweredCorrect(exportQuestion),
+    status: answered!==undefined ? (isAnsweredCorrect(exportQuestion)?'正确':'错误') : '未做'
   };
 }
 
@@ -4330,6 +4336,7 @@ async function exportBackup(){
           answeredQuestions.push({
             qid: q._qid,
             answer: userAnswer,
+            answered: userAnswer,
             isCorrect: isCorrect,
             content: q.content || '',
             options: getOptions(q),
