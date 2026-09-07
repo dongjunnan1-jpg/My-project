@@ -936,6 +936,7 @@ body.skin-dark .ms-record-time { color:#94a3b8 !important; }
 #sidebarToggle { transition:right 0.35s cubic-bezier(0.22,1,0.36,1), transform 0.2s ease !important; }
 #sidebarToggle:hover { transform:scale(1.05); }
 #sidebarToggle:active, #sidebar button:active { transform:scale(0.96); transition-duration:0.05s; }
+#sidebarToggle.hidden { display:none !important; opacity:0 !important; pointer-events:none !important; }
 #sidebar > div:nth-child(2) { opacity:0; transition:opacity 0.25s ease 0.1s; }
 #sidebar[style*="width: 270px"] > div:nth-child(2), #sidebar[style*="width:270px"] > div:nth-child(2) { opacity:1; }
 
@@ -977,7 +978,6 @@ body.skin-dark .ms-record-time { color:#94a3b8 !important; }
 <div class="container">
     <div class="header">
         <div class="header-controls">
-          <button id="modeToggle" class="mode-toggle" onclick="toggleMode()">📱</button>
         </div>
         <h1>Helium</h1>
         <!-- 进度面板：今日刷题 + 考试倒计时（小卡片并排） -->
@@ -4691,11 +4691,12 @@ function applyMode(mode){
     const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints && navigator.maxTouchPoints>0);
     if(isTouch) document.body.classList.add('pc-touch');
   }
-  const btn=document.getElementById('modeToggle');
-  if(btn){
-    btn.textContent = m==='mobile' ? '📱' : '💻';
-    btn.title = m==='mobile' ? '切换到PC模式' : '切换到手机模式';
-  }
+  const icon = m==='mobile' ? '📱' : '💻';
+  const title = m==='mobile' ? '切换到PC模式' : '切换到手机模式';
+  const sidebarBtn=document.getElementById('sidebarModeToggle');
+  if(sidebarBtn){ sidebarBtn.textContent = icon; sidebarBtn.title = title; }
+  const topBtn=document.getElementById('modeToggle');
+  if(topBtn){ topBtn.textContent = icon; topBtn.title = title; }
 }
 function toggleMode(){
   const cur = document.body.classList.contains('mobile-mode') ? 'mobile' : 'pc';
@@ -6817,10 +6818,11 @@ function toggleNoHack(on){
 <button id="sidebarToggle" style="position:fixed;right:12px;top:12px;z-index:100000;width:40px;height:40px;background:rgba(20,30,50,0.85);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#e2e8f0;font-size:20px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;">☰</button>
 <div id="sidebar" style="position:fixed;right:0;top:0;bottom:0;z-index:99999;width:0;overflow:hidden;background:rgba(20,30,50,0.95);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#e2e8f0;box-shadow:-2px 0 20px rgba(0,0,0,0.3);border-left:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;font-family:-apple-system,"Microsoft YaHei",sans-serif;">
   <div style="padding:16px 18px;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;display:flex;justify-content:space-between;align-items:center;">
-    <div style="display:flex;align-items:center;gap:8px;">
-      <span style="font-weight:bold;font-size:16px;color:#fff;">☰ Helium</span>
-      <button onclick="fontZoom(-2)" title="缩小字体" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:4px;color:#e2e8f0;width:28px;height:28px;cursor:pointer;font-size:12px;font-weight:bold;display:flex;align-items:center;justify-content:center;transition:all 0.15s;">A−</button>
-      <button onclick="fontZoom(2)" title="放大字体" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:4px;color:#e2e8f0;width:28px;height:28px;cursor:pointer;font-size:12px;font-weight:bold;display:flex;align-items:center;justify-content:center;transition:all 0.15s;">A+</button>
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap;overflow:hidden;">
+      <span style="font-weight:bold;font-size:16px;color:#fff;white-space:nowrap;">☰ Helium</span>
+      <button onclick="fontZoom(-2)" title="缩小字体" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:4px;color:#e2e8f0;width:28px;height:28px;cursor:pointer;font-size:12px;font-weight:bold;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0;">A−</button>
+      <button onclick="fontZoom(2)" title="放大字体" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:4px;color:#e2e8f0;width:28px;height:28px;cursor:pointer;font-size:12px;font-weight:bold;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0;">A+</button>
+      <button id="sidebarModeToggle" onclick="toggleMode()" title="切换到手机模式" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:4px;color:#e2e8f0;width:28px;height:28px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0;">💻</button>
     </div>
     <button id="sidebarClose" style="background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer;padding:4px 8px;">✕</button>
   </div>
@@ -7618,15 +7620,13 @@ function restoreSoundState() {
 var isSidebarOpen = false;
 function openSidebar(){
   isSidebarOpen = true;
-  document.getElementById('sidebar').style.width = isSidebarOpen ? '270px' : '0';
-  document.getElementById('sidebarToggle').style.right = isSidebarOpen ? '282px' : '80px';
-  document.getElementById('sidebarToggle').textContent = '☰';
+  document.getElementById('sidebar').style.width = '270px';
+  document.getElementById('sidebarToggle').classList.add('hidden');
 }
 function closeSidebar(){
   isSidebarOpen = false;
   document.getElementById('sidebar').style.width = '0';
-  document.getElementById('sidebarToggle').style.right = '80px';
-  document.getElementById('sidebarToggle').textContent = '☰';
+  document.getElementById('sidebarToggle').classList.remove('hidden');
 }
 document.getElementById('sidebarToggle').onclick = function() {
   openSidebar();
