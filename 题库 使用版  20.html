@@ -591,15 +591,15 @@ body.essay-zone #moduleFilter, body.essay-zone #leafTypeFilter, body.essay-zone 
 .q-options .option.excluded { opacity:0.35 !important; background:#e2e8f0 !important; border-color:#cbd5e0 !important; transition:all 0.2s ease !important; text-decoration:line-through; }
 
 /* ====== 返回顶部按钮 ====== */
-#backToTop { position:fixed; right:10px; bottom:80px; left:auto; z-index:999; background:var(--main); color:#fff; border:none; border-radius:50%; width:44px; height:44px; font-size:18px; cursor:pointer; box-shadow:0 2px 12px rgba(0,0,0,0.15); transition:all 0.3s ease; opacity:0; pointer-events:none; }
+#backToTop { position:fixed; right:10px; bottom:80px; left:auto; z-index:999; background:var(--main) !important; color:var(--on-main) !important; border:none; border-radius:50% !important; width:44px !important; height:44px !important; font-size:18px !important; cursor:pointer; box-shadow:0 2px 12px rgba(0,0,0,0.15) !important; transition:all 0.3s ease !important; opacity:0; pointer-events:none; display:flex !important; align-items:center !important; justify-content:center !important; padding:0 !important; line-height:1 !important; text-align:center !important; -webkit-tap-highlight-color:transparent !important; }
 #backToTop.visible { opacity:1; pointer-events:auto; }
 #backToTop:hover { transform:translateY(-2px) scale(1.05); }
 
 /* ====== 皮肤/AI设置 按钮 ====== */
-#skinToggleBtn, #aiSettingsBtn { position:fixed; z-index:9998; background:var(--main); color:#fff; border:none; border-radius:50%; width:44px; height:44px; font-size:18px; cursor:pointer; box-shadow:0 4px 16px rgba(0,0,0,0.15); transition:all 0.3s ease; -webkit-tap-highlight-color:transparent; }
+#skinToggleBtn, #aiSettingsBtn, .chat-history-btn { position:fixed; z-index:9998; background:var(--main) !important; color:var(--on-main) !important; border:none; border-radius:50% !important; width:44px !important; height:44px !important; font-size:18px !important; cursor:pointer; box-shadow:0 4px 16px rgba(0,0,0,0.15) !important; transition:all 0.3s ease !important; -webkit-tap-highlight-color:transparent !important; display:flex !important; align-items:center !important; justify-content:center !important; padding:0 !important; line-height:1 !important; text-align:center !important; }
 #skinToggleBtn { left:10px; bottom:10px; }
 #aiSettingsBtn { right:10px; bottom:10px; font-size:20px; }
-#skinToggleBtn:hover, #aiSettingsBtn:hover { transform:translateY(-2px) scale(1.05); }
+#skinToggleBtn:hover, #aiSettingsBtn:hover, .chat-history-btn:hover, #backToTop:hover { transform:translateY(-2px) scale(1.05); box-shadow:0 4px 16px rgba(0,0,0,0.25) !important; }
 
 #sidebar #dbgBtn, #sidebar #scrollDiagBtn { position:relative; display:flex; align-items:center; justify-content:flex-start; gap:6px; width:100%; padding:6px 10px; background:#0f172a; color:#e2e8f0; border:1px solid #334155; border-radius:4px; font-size:11px; cursor:pointer; text-align:left; box-shadow:none; }
 #sidebar #dbgBtn:hover, #sidebar #scrollDiagBtn:hover { border-color:#64748b; background:#111827; }
@@ -690,12 +690,12 @@ body.essay-zone #moduleFilter, body.essay-zone #leafTypeFilter, body.essay-zone 
 .chat-history-export-btn:hover { background:rgba(255,255,255,0.3); }
 .chat-history-btn {
   position:fixed; left:10px; bottom:80px; padding:0 !important;
-    background:linear-gradient(135deg,#60a5fa,#3b82f6); color:#fff; border:none;
+    background:var(--main) !important; color:var(--on-main) !important; border:none;
   border-radius:50% !important; width:44px !important; height:44px !important; font-size:20px !important; cursor:pointer; font-weight:bold;
-    z-index:9998; box-shadow:0 2px 8px rgba(59,130,246,0.3);
+    z-index:9998; box-shadow:0 2px 8px rgba(0,0,0,0.15) !important; transition:all 0.3s ease !important; -webkit-tap-highlight-color:transparent !important;
   display:flex !important; align-items:center !important; justify-content:center !important; line-height:1 !important; text-align:center !important;
 }
-.chat-history-btn:hover { transform:translateY(-2px) scale(1.05); box-shadow:0 4px 12px rgba(59,130,246,0.4); }
+.chat-history-btn:hover { transform:translateY(-2px) scale(1.05); box-shadow:0 4px 16px rgba(0,0,0,0.25) !important; }
 
 /* ====== 计时面板 RESET 按钮 ====== */
 .timer-reset-btn {
