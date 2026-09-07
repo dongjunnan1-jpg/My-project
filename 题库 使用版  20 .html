@@ -1056,6 +1056,28 @@ body.skin-dark .ms-record-time { color:#94a3b8 !important; }
 #chengyuApp .cy-stat { padding:10px; border:1px solid var(--border); border-radius:8px; background:var(--surface); text-align:center; }
 #chengyuApp .cy-stat strong { display:block; color:var(--deep); font-size:20px; }
 @media (max-width:600px) { #chengyuApp .cy-cards, #chengyuApp .cy-test-options { grid-template-columns:1fr; } #chengyuApp .cy-card { min-height:0; } #chengyuApp .cy-word { font-size:21px; } }
+#examApp .exam-mode-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+#examApp .exam-mode-card { padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--text); cursor:pointer; text-align:left; }
+#examApp .exam-mode-card:hover { border-color:var(--main); transform:translateY(-1px); }
+#examApp .exam-mode-card strong { display:block; color:var(--deep); font-size:16px; margin-bottom:6px; }
+#examApp .exam-mode-card span { display:block; color:var(--secondary); font-size:12px; line-height:1.7; }
+#examApp .exam-mode-card:last-child { grid-column:span 2; }
+#examApp .exam-progress { height:7px; background:var(--surface-muted); border-radius:99px; overflow:hidden; margin:8px 0 14px; }
+#examApp .exam-progress > div { height:100%; background:var(--main); transition:width .2s; }
+#examApp .exam-option { display:block; width:100%; padding:12px 14px; margin:8px 0; border:2px solid var(--border); border-radius:8px; background:var(--surface); color:var(--text); cursor:pointer; text-align:left; }
+#examApp .exam-option:hover, #examApp .exam-option.selected { border-color:var(--main); background:var(--light); }
+#examApp .exam-nav { display:grid; grid-template-columns:repeat(10,1fr); gap:5px; margin:14px 0; }
+#examApp .exam-nav button { min-width:0; padding:6px 2px; border:1px solid var(--border); border-radius:5px; background:var(--surface); color:var(--text); cursor:pointer; font-size:11px; }
+#examApp .exam-nav button.answered { background:#dcfce7; color:#166534; border-color:#86efac; }
+#examApp .exam-nav button.current { outline:2px solid var(--main); }
+#examApp .exam-result-score { text-align:center; padding:16px; color:var(--deep); font-size:38px; font-weight:700; }
+#examApp .exam-summary { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:12px 0; }
+#examApp .exam-summary div { padding:10px; border:1px solid var(--border); border-radius:8px; background:var(--surface); text-align:center; }
+#examApp .exam-summary strong { display:block; color:var(--deep); font-size:20px; }
+#examApp .exam-detail { width:100%; border-collapse:collapse; font-size:12px; }
+#examApp .exam-detail th, #examApp .exam-detail td { padding:7px 6px; border-bottom:1px solid var(--border); text-align:left; vertical-align:top; }
+#examApp .exam-detail .ok { color:#16a34a; } #examApp .exam-detail .bad { color:#dc2626; }
+@media (max-width:600px) { #examApp .exam-mode-grid { grid-template-columns:1fr; } #examApp .exam-mode-card:last-child { grid-column:auto; } #examApp .exam-nav { grid-template-columns:repeat(8,1fr); } #examApp .exam-summary { grid-template-columns:repeat(2,1fr); } #examApp .exam-detail { font-size:11px; } }
 @media (max-width:600px) { #toolFullscreen { padding:10px; } #toolFullscreen .tool-panel { padding:16px 10px; } #toolFullscreen .tool-head { align-items:flex-start; } }
 
 /* ====== 主题切换后的题目与答案可读性 ====== */
@@ -7047,6 +7069,15 @@ function toggleNoHack(on){
       </div>
     </div>
 
+    <div style="margin-bottom:14px;padding:10px 12px;background:rgba(255,255,255,0.05);border-radius:8px;border:1px solid rgba(255,255,255,0.06);">
+      <div class="module-title" style="font-size:11px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">📝 智能组卷</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+        <button class="sidebar-tool-btn" data-tool="exam-gk" onclick="openToolFullscreen('exam-gk')">🏛️ 国考行政</button>
+        <button class="sidebar-tool-btn" data-tool="exam-sy" onclick="openToolFullscreen('exam-sy')">🏢 事业单位A类</button>
+        <button class="sidebar-tool-btn" data-tool="exam-lk" onclick="openToolFullscreen('exam-lk')" style="grid-column:span 2;">📋 辽宁省考联考</button>
+      </div>
+    </div>
+
     <div style="margin-bottom:10px;">
       <div class="module-title" style="font-size:11px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">🎧 专注背景音</div>
       <div class="sound-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
@@ -7953,7 +7984,7 @@ document.addEventListener('click', activateAudio);
 // 全屏专项训练工具
 // ============================================================
 (function(){
-  var titles={bhf:'🧮 百化分训练',calc:'⚡ 速算训练',formula:'📐 公式选择训练',schulte:'🧠 舒尔特表训练',memory:'🃏 记忆翻牌训练',chengyu:'📚 成语小助手'};
+  var titles={bhf:'🧮 百化分训练',calc:'⚡ 速算训练',formula:'📐 公式选择训练',schulte:'🧠 舒尔特表训练',memory:'🃏 记忆翻牌训练',chengyu:'📚 成语小助手','exam-gk':'🏛️ 国考行政执法类','exam-lk':'📋 辽宁省考联考','exam-sy':'🏢 事业单位A类'};
   var activeTool='';
   var timers={schulte:0,memory:0};
   var fractions=[['1/2','50'],['1/3','33.3'],['1/4','25'],['1/5','20'],['1/6','16.7'],['1/7','14.3'],['1/8','12.5'],['1/9','11.1'],['1/10','10'],['1/11','9.1'],['1/12','8.3'],['1/13','7.7'],['1/14','7.1'],['1/15','6.7'],['1/16','6.3'],['1/17','5.9'],['1/18','5.6'],['1/19','5.3'],['1/20','5']];
@@ -8169,8 +8200,45 @@ document.addEventListener('click', activateAudio);
   function header(s,total,extra){return '<div class="tool-row" style="justify-content:space-between;margin-bottom:6px;"><strong>第 '+(s.i+1)+'/'+total+' 题</strong><span class="tool-muted">已答 '+s.i+' · 正确 '+s.right+(extra?' · '+extra:'')+'</span><span><button class="btn btn-outline" onclick="trainingReset()">🔄 重来</button> <button class="btn btn-outline" onclick="trainingSettings()">⚙️ 设置</button></span></div><div class="tool-progress"><div style="width:'+Math.round(s.i/total*100)+'%"></div></div>';}
   function result(s,total,name,detail){var pct=total?Math.round(s.right/total*100):0;return '<div class="tool-panel" style="text-align:center;"><h2>🎉 训练完成</h2><p class="tool-muted">'+name+' · 共 '+total+' 题</p><p>✅ 正确 '+s.right+' 题　📈 正确率 '+pct+'%</p><p class="tool-muted">⏱️ 用时 '+Math.max(0,Math.round((Date.now()-s.start)/1000))+' 秒</p><div class="tool-actions"><button class="btn btn-primary" onclick="trainingReset()">🔄 再来一组</button><button class="btn btn-outline" onclick="trainingSettings()">⚙️ 设置</button><button class="btn btn-outline" onclick="closeToolFullscreen()">✕ 返回题库</button></div>'+(detail||'')+'</div>';}
   function newQuestions(k,gen){var s=states[k];s.qs=gen();s.i=0;s.right=0;s.start=Date.now();save(k);}
-  function render(k){ if(!root())return; activeTool=k; if(k==='bhf')renderBhf(); else if(k==='calc')renderCalc(); else if(k==='formula')renderFormula(); else if(k==='schulte')renderSchulte(); else if(k==='memory')renderMemory(); else renderChengyu(); }
-  window.openToolFullscreen=function(k){ if(!titles[k])return; activeTool=k; var box=document.getElementById('toolFullscreen'); box.style.display='block'; document.body.style.overflow='hidden'; document.getElementById('toolFullscreenTitle').textContent=titles[k]; var closeButton=document.querySelector('#toolFullscreen .tool-head button'); if(closeButton)closeButton.textContent=k==='chengyu'?'← 返回题库':'✕ 返回题库'; document.querySelectorAll('.sidebar-tool-btn').forEach(function(b){b.classList.toggle('active',b.dataset.tool===k);}); render(k); };
+  function render(k){
+    if(!root())return;
+    activeTool=k;
+    if(k==='bhf')renderBhf();
+    else if(k==='calc')renderCalc();
+    else if(k==='formula')renderFormula();
+    else if(k==='schulte')renderSchulte();
+    else if(k==='memory')renderMemory();
+    else if(k==='chengyu')renderChengyu();
+  }
+  window.openToolFullscreen=function(k){
+    if(!titles[k])return;
+    activeTool=k;
+    var box=document.getElementById('toolFullscreen');
+    box.style.display='block';
+    document.body.style.overflow='hidden';
+    document.getElementById('toolFullscreenTitle').textContent=titles[k];
+    var closeButton=document.querySelector('#toolFullscreen .tool-head button');
+    if(closeButton)closeButton.textContent=(k==='chengyu'||k.indexOf('exam-')===0)?'← 返回题库':'✕ 返回题库';
+    document.querySelectorAll('.sidebar-tool-btn').forEach(function(b){b.classList.toggle('active',b.dataset.tool===k);});
+    if(k.indexOf('exam-')===0){
+      var mode=k.replace('exam-','');
+      var saved=examStorage('exam_progress_'+mode);
+      if(saved&&saved.phase==='question'&&saved.questions&&saved.questions.length){
+        examState=saved;
+        examState.phase='question';
+        examState.timerId=0;
+      }else{
+        examState.mode=mode;
+        examState.phase='start';
+        examState.questions=[];
+        examState.answers={};
+        examState.index=0;
+      }
+      examRender(mode);
+      return;
+    }
+    render(k);
+  };
   window.closeToolFullscreen=function(){Object.keys(timers).forEach(function(k){if(timers[k]){clearInterval(timers[k]);timers[k]=0;}});var box=document.getElementById('toolFullscreen');if(box)box.style.display='none';document.body.style.overflow='';document.querySelectorAll('.sidebar-tool-btn').forEach(function(b){b.classList.remove('active');});activeTool='';};
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&activeTool)closeToolFullscreen();});
   window.trainingReset=function(){var k=activeTool;if(k==='chengyu'){chengyuState.mode='browse';chengyuState.page=1;renderChengyu();}else if(k==='bhf'||k==='calc'||k==='formula'){states[k].qs=[];saveAndRender(k);}else if(k==='schulte'){states.schulte.grid=[];states.schulte.finished=false;saveAndRender(k);}else{states.memory.cards=[];states.memory.finished=false;saveAndRender(k);}};
@@ -8251,6 +8319,43 @@ document.addEventListener('click', activateAudio);
   window.chengyuReadFile=function(file){if(!file)return;var reader=new FileReader();reader.onload=function(){try{var raw=JSON.parse(reader.result),items=Array.isArray(raw)?raw:raw.data;if(!Array.isArray(items))throw new Error('格式不是数组');var data=items.map(chengyuNormalize).filter(Boolean);if(!data.length)throw new Error('没有找到有效数据');chengyuState.data=data;chengyuState.category='all';chengyuState.search='';chengyuPersistData();chengyuSave();renderChengyu();}catch(e){var status=document.getElementById('chengyuUploadStatus');if(status)status.textContent='❌ 导入失败：'+e.message;}};reader.readAsText(file,'utf-8');};
   window.chengyuDrop=function(event){event.preventDefault();var files=event.dataTransfer&&event.dataTransfer.files;if(files&&files[0])chengyuReadFile(files[0]);};
   window.chengyuClearData=function(){if(!confirm('确定清除已保存的成语数据和学习进度吗？'))return;try{localStorage.removeItem(CHENGYU_DATA_KEY);localStorage.removeItem(CHENGYU_STATE_KEY);}catch(e){}chengyuState.data=[];renderChengyu();};
+
+  var EXAM_CONFIG={
+    gk:{name:'国考行政执法类',icon:'🏛️',time:120,total:130,fullScore:100,modules:{'政治理论':20,'常识判断':15,'言语理解':30,'数量关系':10,'判断推理':35,'资料分析':20},moduleSources:{'政治理论':['gk','sy','mk'],'常识判断':['gk','mk','sy'],'言语理解':['gk'],'数量关系':['gk'],'判断推理':['gk'],'资料分析':['gk']},subTypes:{'判断推理':{'图形推理':10,'定义判断':10,'类比推理':10,'逻辑判断':5}}},
+    lk:{name:'辽宁省考联考',icon:'📋',time:120,total:120,fullScore:100,modules:{'政治理论':12,'常识判断':18,'言语理解':35,'数量关系':10,'判断推理':30,'资料分析':15},moduleSources:{'政治理论':['gk','sy','mk'],'常识判断':['gk','mk','sy'],'言语理解':['gk'],'数量关系':['gk'],'判断推理':['gk'],'资料分析':['gk']}},
+    sy:{name:'事业单位A类',icon:'🏢',time:90,total:100,fullScore:150,modules:{'常识判断':20,'言语理解':22,'数量关系':8,'判断推理':35,'资料分析':15},moduleSources:{'常识判断':['gk','mk','sy'],'言语理解':['sy'],'数量关系':['sy'],'判断推理':['sy'],'资料分析':['sy']},subTypes:{'判断推理':{'图形推理':5,'定义判断':10,'类比推理':10,'逻辑判断':8,'综合判断推理':2}}}
+  };
+  var examState={mode:'',phase:'start',questions:[],answers:{},index:0,startedAt:0,endsAt:0,result:null,timerId:0};
+  function examStorage(key,value){try{if(value===undefined)return JSON.parse(localStorage.getItem(key)||'null');localStorage.setItem(key,JSON.stringify(value));}catch(e){}return null;}
+  function examHistoryKey(mode){return 'exam_history_'+mode;}
+  function examLoadHistory(mode){var history=examStorage(examHistoryKey(mode));return Array.isArray(history)?history:[];}
+  function examSaveHistory(mode,keys){var history=examLoadHistory(mode).concat(keys);var unique=[];history.forEach(function(key){if(unique.indexOf(key)<0)unique.push(key);});examStorage(examHistoryKey(mode),unique.slice(-500));}
+  function examExtractYear(q,file){var value=[q&&q.year,q&&q.source,file&&file.fileName].filter(Boolean).join(' '),match=value.match(/(20\d{2})/g);return match?Number(match[match.length-1]):0;}
+  function examQuestionModule(q){return String(q.category||q.bigCategory||q.subCategory||q.module||'').replace(/与表达$/,'');}
+  function examQuestionSubType(q){return String(q.subType||q.subCategory||q.leafCategory||'');}
+  function examAllQuestions(zone){var result=[];Object.keys(db[zone]||{}).forEach(function(fileId){var file=db[zone][fileId];if(!file)return;(file.questions||[]).forEach(function(raw,index){var q=Object.assign({},raw,{_fileId:fileId,_qi:index,_key:'f'+fileId+'_q'+index,_zone:zone,_fileName:file.fileName,_examYear:examExtractYear(raw,file)});result.push(q);});});return result;}
+  function examMatchModule(q,module){var value=examQuestionModule(q);return value===module||value.indexOf(module)>=0||module.indexOf(value)>=0;}
+  function examGetPool(mode,module){var config=EXAM_CONFIG[mode],sources=config.moduleSources[module]||[],pool=[];sources.forEach(function(zone){examAllQuestions(zone).forEach(function(q){if(!examMatchModule(q,module))return;if(module==='政治理论'&&(zone==='gk'||zone==='sy')&&(q._examYear<2025||q._examYear>2026))return;pool.push(q);});});var seen={};return pool.filter(function(q){if(seen[q._key])return false;seen[q._key]=true;return true;});}
+  function examBalanced(pool,count,history){var available=pool.filter(function(q){return history.indexOf(q._key)<0;}),groups={};available.forEach(function(q){var year=q._examYear||0;if(!groups[year])groups[year]=[];groups[year].push(q);});var years=Object.keys(groups).map(Number).sort(function(a,b){return b-a;});years.forEach(function(year){shuffle(groups[year]);});var output=[],cursor=0;while(output.length<count&&years.length){var used=false;for(var i=0;i<years.length&&output.length<count;i++){var group=groups[years[i]];if(group.length){output.push(group.pop());used=true;}}if(!used)break;}return output;}
+  function getQuestionScore(mode,q){var module=examQuestionModule(q),subType=examQuestionSubType(q);if(mode==='gk'){if(module==='判断推理')return ({'图形推理':0.6,'定义判断':0.8,'类比推理':0.6,'逻辑判断':0.8}[subType]||0.7);return ({'政治理论':0.8,'常识判断':0.6,'言语理解':0.8,'数量关系':0.85,'资料分析':0.8}[module]||0.7);}if(mode==='sy'){if(module==='判断推理')return ({'图形推理':1.2,'定义判断':1.4,'类比推理':1.2,'逻辑判断':1.8,'综合判断推理':1.8}[subType]||1.4);return ({'常识判断':1,'言语理解':1.6,'数量关系':2,'资料分析':2}[module]||1.4);}return 0.8;}
+  function examCorrectLetters(q){return normalizeAnswerLetters(getCorrectLetter(q));}
+  function examOptions(q){return q.options||q.choices||q.option||[];}
+  function examStart(mode){var config=EXAM_CONFIG[mode],history=examLoadHistory(mode),questions=[],selectedKeys={};Object.keys(config.modules).forEach(function(module){var subConfig=config.subTypes&&config.subTypes[module],used=0;function pick(pool,count){var available=pool.filter(function(q){return !selectedKeys[q._key];}),picked=examBalanced(available,count,history);picked.forEach(function(q){selectedKeys[q._key]=true;});return picked;}if(subConfig){Object.keys(subConfig).forEach(function(sub){var pool=examGetPool(mode,module).filter(function(q){return examQuestionSubType(q).indexOf(sub)>=0||sub.indexOf(examQuestionSubType(q))>=0;});var picked=pick(pool,subConfig[sub]);questions=questions.concat(picked);used+=picked.length;});if(used<config.modules[module])questions=questions.concat(pick(examGetPool(mode,module),config.modules[module]-used));}else questions=questions.concat(pick(examGetPool(mode,module),config.modules[module]));});examState={mode:mode,phase:'question',questions:shuffle(questions),answers:{},index:0,startedAt:Date.now(),endsAt:Date.now()+config.time*60000,result:null,timerId:0};examSaveProgress();examRenderFullscreen();}
+  function examSaveProgress(){if(examState.phase==='question')examStorage('exam_progress_'+examState.mode,{mode:examState.mode,phase:examState.phase,questions:examState.questions,answers:examState.answers,index:examState.index,startedAt:examState.startedAt,endsAt:examState.endsAt});}
+  function examRestore(mode){var saved=examStorage('exam_progress_'+mode);if(saved&&saved.mode===mode&&saved.questions&&saved.phase==='question'){examState=saved;examState.result=null;return true;}return false;}
+  function examAnswerValue(q){return examState.answers[q._key];}
+  function examRender(mode){var config=EXAM_CONFIG[mode];if(examState.mode!==mode||!examState.phase){examState.mode=mode;examState.phase='start';}if(examState.phase==='start')examRenderStart();else if(examState.phase==='question')examRenderQuestion();else examRenderResult();}
+  function examRenderStart(){var config=EXAM_CONFIG[examState.mode],rows=Object.keys(config.modules).map(function(module){return '<tr><td>'+module+'</td><td>'+config.modules[module]+'</td><td>'+((config.moduleSources[module]||[]).join('、'))+'</td></tr>';}).join('');root().innerHTML='<div id="examApp"><div class="tool-panel"><h2>'+config.icon+' '+config.name+'</h2><p class="tool-muted">'+config.total+'题 · '+config.time+'分钟 · 满分 '+config.fullScore+' 分</p><table class="exam-detail"><thead><tr><th>模块</th><th>题量</th><th>来源</th></tr></thead><tbody>'+rows+'</tbody></table><div class="tool-actions" style="margin-top:18px"><button class="btn btn-primary" onclick="examStart(\''+examState.mode+'\')">🚀 开始组卷</button>'+(examRestore(examState.mode)?'<button class="btn btn-outline" onclick="examResume(\''+examState.mode+'\')">↩️ 恢复上次进度</button>':'')+'</div></div></div>';}
+  function examRenderQuestion(){var config=EXAM_CONFIG[examState.mode],q=examState.questions[examState.index];if(!q){examState.phase='result';examRenderResult();return;}var answered=Object.keys(examState.answers).length,remaining=Math.max(0,examState.endsAt-Date.now()),mins=Math.floor(remaining/60000),secs=Math.floor(remaining/1000)%60,options=examOptions(q),correct=examAnswerValue(q),html='<div id="examApp"><div class="tool-row" style="justify-content:space-between"><strong>'+config.icon+' '+config.name+'</strong><span>第 '+(examState.index+1)+' / '+examState.questions.length+' 题</span><span>⏱️ '+mins+':'+String(secs).padStart(2,'0')+' · 已答 '+answered+'</span></div><div class="exam-progress"><div style="width:'+Math.round((examState.index+1)/examState.questions.length*100)+'%"></div></div><div class="tool-panel"><div style="color:var(--secondary);font-size:12px;margin-bottom:8px">'+examQuestionModule(q)+' · '+(q.source||q._fileName||'')+'</div><h3>'+esc(q.question||q.content||q.title||'')+'</h3><div>';options.forEach(function(option,index){var letter=String.fromCharCode(65+index),text=typeof option==='object'?(option.text||option.content||option.value||''):option;html+='<button class="exam-option '+(correct===letter?'selected':'')+'" onclick="examSelectOption(\''+q._key+'\',\''+letter+'\')">'+letter+'. '+esc(text)+'</button>';});html+='</div><div class="tool-actions"><button class="btn btn-outline" onclick="examGoTo('+(examState.index-1)+')" '+(examState.index===0?'disabled':'')+'>← 上一题</button><button class="btn btn-primary" onclick="examGoTo('+(examState.index+1)+')" '+(examState.index>=examState.questions.length-1?'disabled':'')+'>下一题 →</button><button class="btn btn-danger" onclick="examSubmitPaper()">交卷</button></div></div><div class="exam-nav">';examState.questions.forEach(function(item,index){html+='<button class="'+(examState.answers[item._key]?'answered ':'')+(index===examState.index?'current':'')+'" onclick="examGoTo('+index+')">'+(index+1)+'</button>';});html+='</div></div>';root().innerHTML=html;if(examState.timerId)clearInterval(examState.timerId);examState.timerId=setInterval(function(){if(examState.phase==='question'){if(Date.now()>=examState.endsAt){clearInterval(examState.timerId);examSubmitPaper(true);}else{var timer=document.querySelector('#examApp .tool-row span:nth-child(3)');if(timer){var left=Math.max(0,examState.endsAt-Date.now()),m=Math.floor(left/60000),s=Math.floor(left/1000)%60;timer.textContent='⏱️ '+m+':'+String(s).padStart(2,'0')+' · 已答 '+Object.keys(examState.answers).length;}}}},1000);}
+  function examRenderResult(){var config=EXAM_CONFIG[examState.mode],result=examState.result;if(!result)result=calculateScore(examState.mode,examState.answers,examState.questions);var detail=result.details.map(function(item){return '<tr class="'+(item.correct?'ok':'bad')+'"><td>'+(item.index+1)+'</td><td>'+esc(item.module)+'</td><td>'+esc(item.user||'未答')+'</td><td>'+esc(item.correctAnswer||'')+'</td><td>'+item.score.toFixed(2)+'</td></tr>';}).join('');var modules=Object.keys(result.modules).map(function(name){var item=result.modules[name];return '<tr><td>'+name+'</td><td>'+item.score.toFixed(2)+'</td><td>'+item.full.toFixed(2)+'</td><td>'+item.correct+'/'+item.total+'</td></tr>';}).join('');root().innerHTML='<div id="examApp"><div class="tool-panel"><h2 style="text-align:center">'+config.icon+' '+config.name+' · 结果</h2><div class="exam-result-score">'+result.score.toFixed(2)+' / '+config.fullScore+' 分</div><div class="exam-summary"><div><strong>'+result.correct+'</strong>正确</div><div><strong>'+result.wrong+'</strong>错误</div><div><strong>'+result.unanswered+'</strong>未答</div><div><strong>'+result.rate+'%</strong>正确率</div></div><p style="text-align:center" class="tool-muted">用时 '+result.duration+' 分钟</p><h3>模块得分</h3><table class="exam-detail"><thead><tr><th>模块</th><th>得分</th><th>满分</th><th>正确</th></tr></thead><tbody>'+modules+'</tbody></table><h3>逐题明细</h3><table class="exam-detail"><thead><tr><th>#</th><th>模块</th><th>你的答案</th><th>正确答案</th><th>得分</th></tr></thead><tbody>'+detail+'</tbody></table><div class="tool-actions" style="margin-top:18px"><button class="btn btn-primary" onclick="examExportPDF()">🖨️ 导出PDF</button><button class="btn btn-outline" onclick="closeToolFullscreen()">← 返回题库</button></div></div></div>';}
+  function calculateScore(mode,answers,questions){var result={score:0,correct:0,wrong:0,unanswered:0,rate:0,duration:Math.max(0,Math.round((Date.now()-examState.startedAt)/60000)),modules:{},details:[]};questions.forEach(function(q,index){var module=examQuestionModule(q)||'其他',expected=examCorrectLetters(q),user=answers[q._key],userLetters=normalizeAnswerLetters(user),correct=expected.length===userLetters.length&&expected.slice().sort().every(function(letter,i){return letter===userLetters.slice().sort()[i];}),score=getQuestionScore(mode,q);if(!result.modules[module])result.modules[module]={score:0,full:0,total:0,correct:0};result.modules[module].total++;result.modules[module].full+=score;if(correct){result.correct++;result.modules[module].correct++;result.score+=score;result.modules[module].score+=score;}else if(user){result.wrong++;}else result.unanswered++;result.details.push({index:index,module:module,user:user||'',correctAnswer:expected.join('、'),score:correct?score:0,correct:correct});});result.rate=questions.length?Math.round(result.correct/questions.length*100):0;return result;}
+  window.examStart=examStart;
+  window.examResume=function(mode){if(examRestore(mode)){examState.phase='question';examRenderFullscreen();}};
+  window.examRenderFullscreen=function(){examRender(examState.mode);};
+  window.examSelectOption=function(key,letter){if(examState.phase!=='question')return;examState.answers[key]=letter;var q=examState.questions[examState.index];if(q&&q._zone&&db[q._zone]&&db[q._zone][q._fileId]){var file=db[q._zone][q._fileId];if(!file.answered)file.answered={};file.answered[key]=letter;saveFile(q._zone,q._fileId);}examSaveProgress();examRenderQuestion();};
+  window.examGoTo=function(index){if(index<0||index>=examState.questions.length)return;examState.index=index;examSaveProgress();examRenderQuestion();};
+  window.examSubmitPaper=function(auto){if(!auto){var unanswered=examState.questions.length-Object.keys(examState.answers).length;if(unanswered&&!confirm('还有 '+unanswered+' 题未作答，确定交卷吗？'))return;}if(examState.timerId)clearInterval(examState.timerId);examState.result=calculateScore(examState.mode,examState.answers,examState.questions);examSaveHistory(examState.mode,examState.questions.map(function(q){return q._key;}));try{localStorage.removeItem('exam_progress_'+examState.mode);}catch(e){}examState.phase='result';examRenderResult();};
+  window.examExportPDF=function(){window.print();};
 })();
 </script>
 </style>
