@@ -254,8 +254,6 @@
 
 .zone-stats span {
     flex: 1 !important;
-    text-align: center !important;
-    white-space: nowrap !important;
 }
 .zone-tab {
     font-size: 23px !important;
@@ -895,92 +893,76 @@ html, body {
 
 /* ====== 侧边栏 - 手机端适配（统一尺寸） ====== */
 @media (max-width:768px) {
-  #sidebar[style*="width: 270px"],
-  #sidebar[style*="width:270px"] {
-    width:85vw !important;
-    max-width:360px !important;
+  #sidebar > div:first-child {
+    display: grid !important;
+    grid-template-columns: auto auto !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-height: 44px !important;
+    padding: 8px 12px !important;
+    box-sizing: border-box !important;
+    gap: 4px !important;
+    overflow: visible !important;
+    background: transparent !important;
+    border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+    flex-shrink: 0 !important;
   }
-  #sidebar { font-size:14px !important; }
-  #sidebar > div:first-child { padding:14px 16px !important; }
-  #sidebar > div:first-child span { font-size:16px !important; }
-  #sidebar > div:first-child button { width:28px !important; height:28px !important; font-size:12px !important; }
-  #sidebar > div:nth-child(2) { padding:10px 12px !important; }
-  #sidebar > div:nth-child(2) > div {
-    margin-bottom:10px !important;
-    padding:10px 12px !important;
-    border-radius:8px !important;
-    background:rgba(255,255,255,0.04) !important;
-    border:1px solid rgba(255,255,255,0.06) !important;
+  #sidebar > div:first-child > div:first-child {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    flex: 0 1 auto !important;
+    overflow: visible !important;
+    gap: 4px !important;
   }
-  #sidebar .module-title,
-  #sidebar .pomodoro-title {
-    font-size:11px !important;
-    font-weight:600 !important;
-    text-transform:uppercase !important;
-    letter-spacing:0.5px !important;
-    color:#94a3b8 !important;
-    margin-bottom:6px !important;
+  #sidebar > div:first-child span {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: #fff !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    max-width: none !important;
+    overflow: visible !important;
+    line-height: 28px !important;
+    height: 28px !important;
+    display: inline-flex !important;
+    align-items: center !important;
   }
-  #sidebarAnswered, #sidebarTotalTime, #sidebarAvgTime { font-size:16px !important; }
-  #sidebar .sidebar-timer-grid { display:grid !important; grid-template-columns:1fr 1fr 1fr !important; gap:4px !important; }
-  #sidebar .sidebar-timer-grid > div { text-align:center !important; }
-  #sidebar .sidebar-timer-grid > div > div:first-child { font-size:9px !important; color:#64748b !important; }
-  #sidebarResetTimer { font-size:10px !important; padding:4px 8px !important; min-height:28px !important; margin-top:4px !important; }
-  #pomodoroTime { font-size:24px !important; }
-  #pomodoroCard .pomodoro-controls { display:flex !important; gap:4px !important; flex-wrap:wrap !important; }
-  #pomodoroCard .pomodoro-controls button { flex:1 !important; min-height:32px !important; font-size:11px !important; padding:4px 6px !important; }
-  #pomodoroDuration { min-height:32px !important; font-size:10px !important; max-width:64px !important; }
-  #pomodoroStatus { font-size:10px !important; margin-top:4px !important; }
-  #sidebar .sidebar-tool-btn {
-    min-height:36px !important;
-    font-size:11px !important;
-    padding:4px 6px !important;
-    border-radius:6px !important;
-    border:1px solid #334155 !important;
-    background:#0f172a !important;
-    color:#e2e8f0 !important;
-    display:flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-    text-align:center !important;
-    line-height:1.2 !important;
+  #sidebar > div:first-child button {
+    flex: 0 0 28px !important;
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
+    padding: 0 !important;
+    font-size: 12px !important;
+    border-radius: 6px !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    background: rgba(255,255,255,0.06) !important;
+    color: #e2e8f0 !important;
+    flex-shrink: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
   }
-  #sidebar .sidebar-tool-btn:hover { border-color:#60a5fa !important; background:#1e3a5f !important; color:#bfdbfe !important; }
-  #sidebar button[data-snd] {
-    min-height:32px !important;
-    font-size:10px !important;
-    padding:4px !important;
-    border-radius:4px !important;
-    display:flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-    text-align:center !important;
-    line-height:1.2 !important;
+  #sidebar > div:first-child #sidebarClose {
+    flex: 0 0 32px !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    padding: 0 !important;
+    font-size: 20px !important;
+    border: none !important;
+    background: transparent !important;
+    color: #94a3b8 !important;
+    flex-shrink: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
   }
-  #sidebar button[data-snd]:hover { border-color:#60a5fa !important; }
-  #sidebar button[data-snd="tick"] { border-color:#f59e0b !important; color:#f59e0b !important; }
-  #sidebar button[data-snd="bowl"] { border-color:#a78bfa !important; color:#a78bfa !important; }
-  #sidebarStopAll { min-height:32px !important; font-size:10px !important; padding:4px 6px !important; border-radius:4px !important; grid-column:span 2 !important; }
-  #customSoundBtn, #clearCustomSoundsBtn { min-height:32px !important; font-size:10px !important; padding:4px 8px !important; border-radius:4px !important; }
-  .custom-sound-btn { min-height:28px !important; font-size:10px !important; padding:2px 6px !important; border-radius:4px !important; }
-  #customSoundList { max-height:60px !important; margin-top:4px !important; gap:4px !important; }
-  #sidebarVolume { height:4px !important; }
-  #sidebarVolumeLabel { font-size:10px !important; min-width:28px !important; }
-  #sidebarStatus { font-size:10px !important; margin-top:2px !important; }
-  #sidebar #dbgBtn, #sidebar #scrollDiagBtn { min-height:32px !important; font-size:10px !important; padding:4px 8px !important; border-radius:4px !important; }
-  #scrollDiagCount { font-size:9px !important; min-width:14px !important; height:14px !important; }
-  #sidebar > div:last-child { font-size:10px !important; padding:8px 14px !important; }
-  #sidebar .sound-grid { display:grid !important; grid-template-columns:1fr 1fr !important; gap:4px !important; }
-  #sidebar[style*="width: 85vw"], #sidebar[style*="width:85vw"], #sidebar[style*="width: 270px"], #sidebar[style*="width:270px"] { width:85vw !important; max-width:360px !important; min-width:280px !important; flex-shrink:0 !important; box-sizing:border-box !important; }
-  #sidebar > div:nth-child(2) { min-width:0 !important; width:100% !important; box-sizing:border-box !important; }
-  #sidebar > div:nth-child(2) > div, #sidebar > div:nth-child(2) > #pomodoroCard {
-    width:100% !important; min-width:0 !important; min-height:0 !important; box-sizing:border-box !important;
-    padding:12px 14px !important; margin:0 0 10px !important; border-radius:8px !important;
-    background:rgba(255,255,255,0.05) !important; border:1px solid rgba(255,255,255,0.06) !important;
-    flex-shrink:0 !important; overflow:visible !important;
-  }
-  #sidebar button, #sidebar select, #sidebar input { flex-shrink:0 !important; }
-  #sidebar button { min-height:36px; box-sizing:border-box; }
 }
 
 /* ====== 暗夜模式：面试解析修复 ====== */
@@ -2785,7 +2767,7 @@ function getSpecialQuestionType(question){
   if(!question) return '';
   if(question.leafCategory) return question.leafCategory;
   if(Array.isArray(question.keypoints) && question.keypoints[0]) return question.keypoints[0].name||'';
-  return question.questionType||question.type||question.subType||'';
+  return '未分类';
 }
 function getSpecialSearchText(question){
   if(!question) return '';
@@ -8289,13 +8271,13 @@ function openSidebar(){
   var toggleBtn = document.getElementById('sidebarToggle');
   if (!sidebar) return;
   if (window.innerWidth <= 768) {
-    sidebar.style.width = '85vw';
-    sidebar.style.maxWidth = '360px';
-    sidebar.style.minWidth = '280px';
+    sidebar.style.setProperty('width', '85vw', 'important');
+    sidebar.style.setProperty('max-width', '360px', 'important');
+    sidebar.style.setProperty('min-width', '280px', 'important');
   } else {
-    sidebar.style.width = '270px';
-    sidebar.style.maxWidth = 'none';
-    sidebar.style.minWidth = '0';
+    sidebar.style.setProperty('width', '270px', 'important');
+    sidebar.style.setProperty('max-width', 'none', 'important');
+    sidebar.style.setProperty('min-width', '0', 'important');
   }
   sidebar.style.flexShrink = '0';
   sidebar.style.overflow = 'hidden';
@@ -8325,15 +8307,14 @@ function openSidebar(){
     contentArea.style.boxSizing = 'border-box';
   }
   if (toggleBtn) toggleBtn.classList.add('hidden');
-  if (window.innerWidth <= 768 && typeof forceFixSidebar === 'function') forceFixSidebar();
 }
 function closeSidebar(){
   isSidebarOpen = false;
   var sidebar = document.getElementById('sidebar');
   if (sidebar) {
-    sidebar.style.width = '0';
-    sidebar.style.maxWidth = 'none';
-    sidebar.style.minWidth = '0';
+    sidebar.style.setProperty('width', '0', 'important');
+    sidebar.style.setProperty('max-width', 'none', 'important');
+    sidebar.style.setProperty('min-width', '0', 'important');
     sidebar.style.flexShrink = '1';
   }
   var toggleBtn = document.getElementById('sidebarToggle');
@@ -8347,16 +8328,6 @@ function forceFixSidebar() {
   var sidebar = document.getElementById('sidebar');
   if (!sidebar) return;
 
-  var sidebarWidth = isSidebarOpen ? [
-    'width: 85vw !important',
-    'max-width: 360px !important',
-    'min-width: 280px !important'
-  ] : [
-    'width: 0 !important',
-    'max-width: none !important',
-    'min-width: 0 !important'
-  ];
-
   sidebar.style.cssText = sidebar.style.cssText + ';' + [
     'display: flex !important',
     'flex-direction: column !important',
@@ -8365,9 +8336,9 @@ function forceFixSidebar() {
     'top: 0 !important',
     'bottom: 0 !important',
     'z-index: 99999 !important',
-    sidebarWidth[0],
-    sidebarWidth[1],
-    sidebarWidth[2],
+    'width: 0 !important',
+    'max-width: none !important',
+    'min-width: 0 !important',
     'height: 100vh !important',
     'max-height: 100vh !important',
     'overflow: hidden !important',
@@ -8383,58 +8354,92 @@ function forceFixSidebar() {
   ].join(';') + ';';
 
   var toggle = document.getElementById('sidebarToggle');
-  if (toggle) toggle.classList.toggle('hidden', isSidebarOpen);
+  isSidebarOpen = false;
+  if (toggle) toggle.classList.remove('hidden');
 
   var header = sidebar.children[0];
   if (header) {
-    header.style.cssText = header.style.cssText + ';' + [
-      'display: flex !important',
-      'justify-content: space-between !important',
-      'align-items: center !important',
-      'flex-wrap: nowrap !important',
-      'width: 100% !important',
-      'min-height: 52px !important',
-      'box-sizing: border-box !important',
-      'padding: 12px 14px !important',
-      'gap: 4px !important',
-      'overflow: hidden !important'
-    ].join(';') + ';';
+    header.style.setProperty('display', 'grid', 'important');
+    header.style.setProperty('grid-template-columns', 'auto auto', 'important');
+    header.style.setProperty('align-items', 'center', 'important');
+    header.style.setProperty('width', '100%', 'important');
+    header.style.setProperty('min-height', '44px', 'important');
+    header.style.setProperty('padding', '8px 12px', 'important');
+    header.style.setProperty('box-sizing', 'border-box', 'important');
+    header.style.setProperty('gap', '4px', 'important');
+    header.style.setProperty('overflow', 'visible', 'important');
+    header.style.setProperty('background', 'transparent', 'important');
+    header.style.setProperty('border-bottom', '1px solid rgba(255,255,255,0.06)', 'important');
+    header.style.setProperty('flex-shrink', '0', 'important');
+
     var headerContent = header.children[0];
     if (headerContent) {
-      headerContent.style.cssText = headerContent.style.cssText + ';' + [
-        'display: flex !important',
-        'align-items: center !important',
-        'flex-wrap: nowrap !important',
-        'flex: 1 1 auto !important',
-        'width: auto !important',
-        'max-width: calc(100% - 32px) !important',
-        'min-width: 0 !important',
-        'overflow: hidden !important',
-        'gap: 4px !important'
-      ].join(';') + ';';
+      headerContent.style.setProperty('display', 'flex', 'important');
+      headerContent.style.setProperty('flex-direction', 'row', 'important');
+      headerContent.style.setProperty('align-items', 'center', 'important');
+      headerContent.style.setProperty('flex-wrap', 'nowrap', 'important');
+      headerContent.style.setProperty('flex', '0 1 auto', 'important');
+      headerContent.style.setProperty('width', 'auto', 'important');
+      headerContent.style.setProperty('max-width', 'none', 'important');
+      headerContent.style.setProperty('min-width', '0', 'important');
+      headerContent.style.setProperty('overflow', 'visible', 'important');
+      headerContent.style.setProperty('white-space', 'nowrap', 'important');
+      headerContent.style.setProperty('gap', '4px', 'important');
+
+      headerContent.querySelectorAll('span, button').forEach(function(el) {
+        el.style.setProperty('display', 'inline-flex', 'important');
+        el.style.setProperty('align-items', 'center', 'important');
+        el.style.setProperty('justify-content', 'center', 'important');
+        el.style.setProperty('flex-shrink', '0', 'important');
+        el.style.setProperty('white-space', 'nowrap', 'important');
+        el.style.setProperty('width', '26px', 'important');
+        el.style.setProperty('min-width', '26px', 'important');
+        el.style.setProperty('max-width', '26px', 'important');
+        el.style.setProperty('height', '26px', 'important');
+        el.style.setProperty('min-height', '26px', 'important');
+        el.style.setProperty('max-height', '26px', 'important');
+        el.style.setProperty('padding', '0', 'important');
+        el.style.setProperty('box-sizing', 'border-box', 'important');
+        el.style.setProperty('flex', '0 0 26px', 'important');
+      });
+
+      var titleSpan = headerContent.querySelector('span');
+      if (titleSpan) {
+        titleSpan.style.setProperty('width', 'auto', 'important');
+        titleSpan.style.setProperty('min-width', 'auto', 'important');
+        titleSpan.style.setProperty('max-width', 'none', 'important');
+        titleSpan.style.setProperty('flex', '0 1 auto', 'important');
+        titleSpan.style.setProperty('font-size', '14px', 'important');
+        titleSpan.style.setProperty('font-weight', '600', 'important');
+        titleSpan.style.setProperty('color', '#fff', 'important');
+        titleSpan.style.setProperty('padding-right', '6px', 'important');
+        titleSpan.style.setProperty('height', '26px', 'important');
+        titleSpan.style.setProperty('line-height', '26px', 'important');
+      }
     }
-    var closeButton = document.getElementById('sidebarClose');
-    if (closeButton) {
-      closeButton.style.flexShrink = '0';
-      closeButton.style.whiteSpace = 'nowrap';
-    }
-    sidebar.querySelectorAll('#sidebar > div:first-child button, #sidebar > div:first-child span').forEach(function(element) {
-      element.style.flexShrink = '0';
-      element.style.whiteSpace = 'nowrap';
-    });
-    var title = header.querySelector('span');
-    if (title) {
-      title.style.flex = '1 1 auto';
-      title.style.minWidth = '0';
-      title.style.maxWidth = 'calc(100% - 96px)';
-      title.style.overflow = 'hidden';
-      title.style.textOverflow = 'ellipsis';
-      title.style.cssText = title.style.cssText + ';white-space: nowrap !important;';
+
+    var closeBtn = header.querySelector('#sidebarClose');
+    if (closeBtn) {
+      closeBtn.style.setProperty('display', 'flex', 'important');
+      closeBtn.style.setProperty('align-items', 'center', 'important');
+      closeBtn.style.setProperty('justify-content', 'center', 'important');
+      closeBtn.style.setProperty('width', '32px', 'important');
+      closeBtn.style.setProperty('min-width', '32px', 'important');
+      closeBtn.style.setProperty('max-width', '32px', 'important');
+      closeBtn.style.setProperty('height', '32px', 'important');
+      closeBtn.style.setProperty('min-height', '32px', 'important');
+      closeBtn.style.setProperty('max-height', '32px', 'important');
+      closeBtn.style.setProperty('padding', '0', 'important');
+      closeBtn.style.setProperty('flex', '0 0 32px', 'important');
+      closeBtn.style.setProperty('flex-shrink', '0', 'important');
+      closeBtn.style.setProperty('font-size', '20px', 'important');
+      closeBtn.style.setProperty('line-height', '1', 'important');
+      closeBtn.style.setProperty('box-sizing', 'border-box', 'important');
     }
   }
 
-  var contentArea = sidebar.children.length > 1 ? sidebar.children[1] : null;
-  if (!contentArea) contentArea = sidebar.querySelector('div[style*="overflow-y:auto"]');
+  var contentArea = sidebar.querySelector('div[style*="flex:1;overflow-y:auto"]');
+  if (!contentArea && sidebar.children.length > 1) contentArea = sidebar.children[1];
   if (contentArea) {
     contentArea.style.cssText = contentArea.style.cssText + ';' + [
       'flex: 1 1 100% !important',
@@ -8454,9 +8459,10 @@ function forceFixSidebar() {
       'background: transparent !important'
     ].join(';') + ';';
   }
-
   var cards = Array.prototype.slice.call(sidebar.querySelectorAll('div')).filter(function(div) {
     if (!div || !div.children || div.children.length === 0) return false;
+    if (div === header) return false;
+    if (div === headerContent) return false;
     var text = (div.textContent || '').trim();
     if (!text) return false;
     return div !== contentArea && div.closest('#sidebar') === sidebar && !div.closest('button') && !div.closest('input') && !div.closest('select');
@@ -8524,10 +8530,10 @@ function forceFixSidebar() {
           'justify-content: center !important',
           'text-align: center !important',
           'width: 100% !important',
-          'min-height: 48px !important',
-          'height: 48px !important',
-          'padding: 8px 6px !important',
-          'font-size: 12px !important',
+          'min-height: 44px !important',
+          'height: 44px !important',
+          'padding: 6px 4px !important',
+          'font-size: 11px !important',
           'border-radius: 6px !important',
           'border: 1px solid #334155 !important',
           'background: #0f172a !important',
@@ -8536,7 +8542,7 @@ function forceFixSidebar() {
           'cursor: pointer !important',
           'word-break: break-word !important',
           'white-space: normal !important',
-          'line-height: 1.3 !important'
+          'line-height: 1.2 !important'
         ].join(';') + ';';
         if (btns.length === 3 && index === 2) btn.style.gridColumn = 'span 2';
       });
@@ -8548,7 +8554,7 @@ function forceFixSidebar() {
     btn.style.cssText = btn.style.cssText + ';' + [
       'min-height: 32px !important',
       'font-size: 11px !important',
-      'padding: 6px 10px !important',
+      'padding: 4px 8px !important',
       'border-radius: 4px !important',
       'box-sizing: border-box !important',
       'flex-shrink: 0 !important',
@@ -8557,7 +8563,6 @@ function forceFixSidebar() {
     ].join(';') + ';';
   });
 }
-
 var sidebarToggle = document.getElementById('sidebarToggle');
 var sidebarClose = document.getElementById('sidebarClose');
 if (sidebarToggle) {
