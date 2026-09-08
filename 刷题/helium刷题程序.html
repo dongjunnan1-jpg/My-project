@@ -2767,7 +2767,7 @@ function getSpecialQuestionType(question){
   if(!question) return '';
   if(question.leafCategory) return question.leafCategory;
   if(Array.isArray(question.keypoints) && question.keypoints[0]) return question.keypoints[0].name||'';
-  return '未分类';
+  return question.questionType||question.type||question.subType||'';
 }
 function getSpecialSearchText(question){
   if(!question) return '';
