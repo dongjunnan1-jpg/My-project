@@ -1616,6 +1616,69 @@ function idbDel(key){
   });
 }
 
+function idbGetAllKeys(){
+  if(!_db) return Promise.resolve([]);
+  return new Promise(function(resolve){
+    try{
+      const tx=_db.transaction(IDB_STORE,'readonly');
+      const req=tx.objectStore(IDB_STORE).getAllKeys();
+      req.onsuccess=function(){ resolve(req.result||[]); };
+      req.onerror=function(){ resolve([]); };
+    }catch(e){ resolve([]); }
+  });
+}
+function idbGetByPrefix(prefix){
+  if(!_db) return Promise.resolve([]);
+  return idbGetAllKeys().then(function(keys){
+    const matchedKeys=keys.filter(function(key){ return typeof key==='string'&&key.startsWith(prefix); });
+    return Promise.all(matchedKeys.map(function(key){ return idbGet(key).then(function(value){ return {key:key,value:value}; }); }));
+  }).then(function(results){ return results.filter(function(item){ return item.value!==null; }).map(function(item){ return item.value; }); }).catch(function(){ return []; });
+}
+function idbDeleteByPrefix(prefix){
+  if(!_db) return Promise.resolve(false);
+  return idbGetAllKeys().then(function(keys){
+    const matchedKeys=keys.filter(function(key){ return typeof key==='string'&&key.startsWith(prefix); });
+    return Promise.all(matchedKeys.map(function(key){ return idbDel(key); }));
+  }).then(function(){ return true; }).catch(function(){ return false; });
+}
+
+function migrateCustomSoundsFromLocalStorage(){
+  try{
+    const raw=localStorage.getItem('qz_custom_sounds');
+    if(raw){
+      const sounds=JSON.parse(raw);
+      if(Array.isArray(sounds)&&sounds.length){
+        return Promise.all(sounds.map(function(sound){
+          if(!sound.id) sound.id='custom_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+          return idbSet('custom_sound_'+sound.id,sound);
+        })).then(function(results){
+          if(results.some(function(saved){ return saved!==true; })) throw new Error('音效写入 IndexedDB 失败');
+          localStorage.removeItem('qz_custom_sounds');
+          console.log('✅ 已迁移 '+sounds.length+' 个自定义音效到 IndexedDB');
+        });
+      }
+    }
+  }catch(e){ console.log('音效迁移跳过:',e); }
+  return Promise.resolve();
+}
+
+function migrateChengyuFromLocalStorage(){
+  try{
+    const raw=localStorage.getItem('training_chengyu_data');
+    if(raw){
+      const data=JSON.parse(raw);
+      if(Array.isArray(data)&&data.length){
+        return idbSet('chengyu_data',data).then(function(saved){
+          if(saved!==true) throw new Error('成语写入 IndexedDB 失败');
+          localStorage.removeItem('training_chengyu_data');
+          console.log('✅ 已迁移 '+data.length+' 条成语数据到 IndexedDB');
+        });
+      }
+    }
+  }catch(e){ console.log('成语迁移跳过:',e); }
+  return Promise.resolve();
+}
+
 // —— 主数据：index + 每个文件 + 视图状态 ——
 async function loadAll(){
   const idx=await idbGet('idx');
@@ -6068,12 +6131,11 @@ async function openChatHistory() {
   const keys = Object.keys(allChats);
   const panel = document.createElement('div');
   panel.className = 'chat-history-panel';
-  let headerHtml = '<div class="chat-history-header">';
-  headerHtml += '<span>💬 对话记录 (' + keys.length + ')</span>';
-  headerHtml += '<div style="display:flex;gap:8px;align-items:center;">';
-  headerHtml += '<button class="chat-history-export-btn" onclick="exportAllChats()">📥 一键导出</button>';
-  headerHtml += '<span class="chat-history-close" onclick="this.closest(\'.chat-history-panel\').remove()">✕</span>';
-  headerHtml += '</div></div>';
+  let headerHtml = '<div class="chat-history-header" style="padding:8px 10px;gap:4px;">';
+  headerHtml += '<button class="chat-history-close" style="font-size:16px;padding:0 2px;" onclick="this.closest(\'.chat-history-panel\').remove()">✕</button>';
+  headerHtml += '<span style="flex:1;font-size:12px;">💬 对话记录 (' + keys.length + ')</span>';
+  headerHtml += '<button class="chat-history-export-btn" style="padding:4px 6px;margin-right:44px;font-size:11px;" onclick="exportAllChats()">📥 一键导出</button>';
+  headerHtml += '</div>';
   let listHtml = '<div class="chat-history-list">';
   if (!keys.length) {
     listHtml += '<div class="chat-history-empty">暂无对话记录</div>';
@@ -6105,6 +6167,10 @@ async function openChatHistory() {
   try{ await idbOpen(); }catch(e){ console.error('IndexedDB 打开失败:', e); }
   try{ await migrateFromLocalStorage(); }catch(e){}      // 一次性迁移旧 localStorage 数据
   try{ await loadAll(); }catch(e){ console.error('loadAll 失败:', e); }
+  try{
+    await migrateCustomSoundsFromLocalStorage();
+    await migrateChengyuFromLocalStorage();
+  }catch(e){ console.log('数据迁移失败（非致命）:',e); }
   
   // 补全所有题目的category和subType
   for (var zone in db) {
@@ -7524,8 +7590,8 @@ function toggleNoHack(on){
     <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06);">
       <div class="module-title" style="font-size:10px;color:#64748b;margin-bottom:4px;">📁 自定义背景音</div>
       <div style="display:flex;gap:4px;align-items:center;">
-        <input type="file" id="customSoundInput" accept="audio/*" style="display:none;" onchange="uploadCustomSound(this)">
-        <button id="customSoundBtn" style="flex:1;padding:4px 8px;border:1px solid #8b5cf6;border-radius:4px;background:#0f172a;color:#a78bfa;cursor:pointer;font-size:10px;transition:0.15s;min-height:36px;">📤 上传音频</button>
+        <label for="customSoundInput" style="flex:1;padding:8px 12px;border:1px solid #8b5cf6;border-radius:4px;background:#0f172a;color:#a78bfa;cursor:pointer;font-size:10px;text-align:center;min-height:36px;display:flex;align-items:center;justify-content:center;">📤 上传音频</label>
+        <input type="file" id="customSoundInput" accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac,.flac,.webm" style="display:none;" onchange="uploadCustomSound(this)">
         <button id="clearCustomSoundsBtn" style="padding:4px 8px;border:1px solid #ef4444;border-radius:4px;background:#0f172a;color:#ef4444;cursor:pointer;font-size:10px;transition:0.15s;min-height:36px;">🗑️</button>
       </div>
       <div id="customSoundList" style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;max-height:80px;overflow-y:auto;"></div>
@@ -8043,7 +8109,6 @@ function setSoundVolume(val) {
   saveSoundState();
 }
 
-const CUSTOM_SOUNDS_KEY = 'qz_custom_sounds';
 let customSounds = [];
 let isCustomSoundPlaying = false;
 let currentCustomSoundId = null;
@@ -8052,23 +8117,16 @@ let customSoundSource = null;
 let customSoundGain = null;
 
 function loadCustomSounds() {
-  try {
-    var raw = localStorage.getItem(CUSTOM_SOUNDS_KEY);
-    customSounds = raw ? JSON.parse(raw) : [];
-    customSounds = customSounds.filter(function(s) { return s && s.id && s.name && s.data; });
-  } catch(e) { customSounds = []; }
-  renderCustomSoundList();
+  return idbGetByPrefix('custom_sound_').then(function(sounds) {
+    customSounds = sounds.filter(function(s) { return s && s.id && s.name && s.data; });
+    renderCustomSoundList();
+  }).catch(function() { customSounds = []; renderCustomSoundList(); });
 }
 
-function saveCustomSounds() {
-  try {
-    var toSave = customSounds.map(function(s) {
-      return { id: s.id, name: s.name, data: s.data, duration: s.duration || 0 };
-    });
-    localStorage.setItem(CUSTOM_SOUNDS_KEY, JSON.stringify(toSave));
-  } catch(e) {
-    alert('存储空间不足，请删除一些旧的自定义音效');
-  }
+function saveCustomSoundToIDB(sound) {
+  return idbSet('custom_sound_' + sound.id, {
+    id: sound.id, name: sound.name, data: sound.data, duration: sound.duration || 0
+  });
 }
 
 function uploadCustomSound(input) {
@@ -8099,16 +8157,20 @@ function uploadCustomSound(input) {
     audio.src = e.target.result;
     audio.onloadedmetadata = function() {
       sound.duration = Math.round(audio.duration);
-      customSounds.push(sound);
-      saveCustomSounds();
-      renderCustomSoundList();
-      input.value = '';
+      saveCustomSoundToIDB(sound).then(function(saved) {
+        if(saved!==true) throw new Error('音效写入 IndexedDB 失败');
+        customSounds.push(sound);
+        renderCustomSoundList();
+        input.value = '';
+      }).catch(function() { alert('存储音效失败'); input.value = ''; });
     };
     audio.onerror = function() {
-      customSounds.push(sound);
-      saveCustomSounds();
-      renderCustomSoundList();
-      input.value = '';
+      saveCustomSoundToIDB(sound).then(function(saved) {
+        if(saved!==true) throw new Error('音效写入 IndexedDB 失败');
+        customSounds.push(sound);
+        renderCustomSoundList();
+        input.value = '';
+      }).catch(function() { alert('存储音效失败'); input.value = ''; });
     };
   };
   reader.onerror = function() { alert('读取文件失败'); input.value = ''; };
@@ -8185,9 +8247,10 @@ function stopCustomSound() {
 function clearAllCustomSounds() {
   if (customSounds.length === 0) return;
   if (isCustomSoundPlaying) stopCustomSound();
-  customSounds = [];
-  saveCustomSounds();
-  renderCustomSoundList();
+  return idbDeleteByPrefix('custom_sound_').then(function() {
+    customSounds = [];
+    renderCustomSoundList();
+  });
 }
 
 var originalSetSoundVolume = setSoundVolume;
@@ -8210,32 +8273,7 @@ playSound = function(type) {
 
 function initCustomSounds() {
   loadCustomSounds();
-  var customSoundBtn = document.getElementById('customSoundBtn');
-  var customSoundInput = document.getElementById('customSoundInput');
   var clearCustomSoundsBtn = document.getElementById('clearCustomSoundsBtn');
-  if(customSoundInput){
-    customSoundInput.style.display='block';
-    customSoundInput.style.position='fixed';
-    customSoundInput.style.left='0';
-    customSoundInput.style.top='0';
-    customSoundInput.style.width='1px';
-    customSoundInput.style.height='1px';
-    customSoundInput.style.opacity='0';
-    customSoundInput.style.pointerEvents='auto';
-    customSoundInput.style.zIndex='99999';
-  }
-  function openCustomSoundPicker(event){
-    if(event){ event.preventDefault(); event.stopPropagation(); }
-    if(!customSoundInput) return;
-    customSoundInput.value='';
-    customSoundInput.click();
-  }
-  if (customSoundBtn){
-    customSoundBtn.onclick=openCustomSoundPicker;
-    if (customSoundBtn.dataset.mobileUploadBound !== '1') {
-      customSoundBtn.addEventListener('touchend',openCustomSoundPicker,{passive:false});
-    }
-  }
   if (clearCustomSoundsBtn) clearCustomSoundsBtn.onclick = function() {
     if (customSounds.length === 0) return;
     if (confirm('确定清空所有自定义音效吗？')) clearAllCustomSounds();
@@ -8620,44 +8658,6 @@ if (sidebarClose) {
     }, { passive: true });
   });
 
-  var fileInput = document.getElementById('customSoundInput');
-  var uploadBtn = document.getElementById('customSoundBtn');
-  if (fileInput) {
-    fileInput.setAttribute('accept', 'audio/*,.mp3,.wav,.ogg,.m4a,.aac,.flac,.webm');
-    fileInput.style.display = 'block';
-    fileInput.style.position = 'fixed';
-    fileInput.style.left = '0';
-    fileInput.style.top = '0';
-    fileInput.style.width = '1px';
-    fileInput.style.height = '1px';
-    fileInput.style.opacity = '0';
-    fileInput.style.pointerEvents = 'auto';
-    fileInput.style.zIndex = '99999';
-    fileInput.style.overflow = 'hidden';
-    fileInput.style.border = 'none';
-    fileInput.style.padding = '0';
-    fileInput.style.margin = '0';
-  }
-  if (uploadBtn && fileInput) {
-    if (uploadBtn.dataset.mobileUploadBound === '1') return;
-    uploadBtn.dataset.mobileUploadBound = '1';
-    function triggerFileSelect(e) {
-      if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-      fileInput.value = '';
-      fileInput.click();
-    }
-    uploadBtn.onclick = null;
-    uploadBtn.addEventListener('click', triggerFileSelect);
-    uploadBtn.addEventListener('touchend', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      fileInput.value = '';
-      fileInput.click();
-    }, { passive: false });
-  }
 })();
 
 document.querySelectorAll('#sidebar button[data-snd]').forEach(function(btn) {
@@ -9102,21 +9102,42 @@ document.addEventListener('click', activateAudio);
   window.clickSchulte=function(n){var s=states.schulte;if(n===s.target){s.target++;}else{s.errors++;}save('schulte');renderSchulte();};
   window.flipMemory=function(i){var s=states.memory;if(s.flipped.length>=2||s.cards[i].matched)return;s.flipped.push(i);s.moves++;renderMemory();if(s.flipped.length===2){var a=s.cards[s.flipped[0]],b=s.cards[s.flipped[1]];if(a.pair===b.pair){a.matched=b.matched=true;s.pairs++;s.flipped=[];save('memory');renderMemory();}else{setTimeout(function(){s.flipped=[];save('memory');renderMemory();},650);}}};
 
-  var CHENGYU_DATA_KEY='training_chengyu_data';
-  var CHENGYU_STATE_KEY='training_chengyu_state';
+  var CHENGYU_STATE_KEY='chengyu_state';
+  var chengyuDataLoaded=false;
   var chengyuState={data:[],category:'all',mode:'browse',search:'',page:1,pageSize:20,mastered:{},wrong:{},reciteIndex:-1,reciteAnswer:false,test:null};
   function chengyuLoadState(){
-    try{var data=JSON.parse(localStorage.getItem(CHENGYU_DATA_KEY)||'[]');if(Array.isArray(data))chengyuState.data=data.map(chengyuNormalize).filter(Boolean);}catch(e){chengyuState.data=[];}
-    try{var saved=JSON.parse(localStorage.getItem(CHENGYU_STATE_KEY)||'null');if(saved){chengyuState.mastered=saved.mastered||{};chengyuState.wrong=saved.wrong||{};}}catch(e){}
+    try{var saved=JSON.parse(localStorage.getItem(CHENGYU_STATE_KEY)||localStorage.getItem('training_chengyu_state')||'null');if(saved){chengyuState.mastered=saved.mastered||{};chengyuState.wrong=saved.wrong||{};}}catch(e){}
   }
   function chengyuSave(){try{localStorage.setItem(CHENGYU_STATE_KEY,JSON.stringify({mastered:chengyuState.mastered,wrong:chengyuState.wrong}));}catch(e){}}
+  function chengyuLoadData(){
+    if(chengyuDataLoaded) return Promise.resolve(chengyuState.data);
+    return idbGet('chengyu_data').then(function(data){
+      if(Array.isArray(data)&&data.length){
+        chengyuState.data=data.map(chengyuNormalize).filter(Boolean);
+        chengyuDataLoaded=true;
+        return chengyuState.data;
+      }
+      return migrateChengyuFromLocalStorage().then(function(){
+        return idbGet('chengyu_data');
+      }).then(function(migrated){
+        chengyuState.data=Array.isArray(migrated)?migrated.map(chengyuNormalize).filter(Boolean):[];
+        chengyuDataLoaded=true;
+        return chengyuState.data;
+      });
+    }).catch(function(){ chengyuState.data=[]; chengyuDataLoaded=true; return chengyuState.data; });
+  }
+  function chengyuSaveData(data){
+    chengyuState.data=Array.isArray(data)?data.map(chengyuNormalize).filter(Boolean):[];
+    chengyuDataLoaded=true;
+    return idbSet('chengyu_data',chengyuState.data);
+  }
   function chengyuNormalize(item,index){
     if(!item||typeof item!=='object')return null;
     var word=String(item['成语']||item.word||'').trim(), meaning=String(item['释义']||item.meaning||'').trim();
     if(!word||!meaning)return null;
     return {id:String(index)+'_'+word,word:word,meaning:meaning,major:String(item['大类']||item.major||'未分类').trim()||'未分类',minor:String(item['小类']||item.minor||'').trim()};
   }
-  function chengyuPersistData(){try{localStorage.setItem(CHENGYU_DATA_KEY,JSON.stringify(chengyuState.data.map(function(item){return {'成语':item.word,'释义':item.meaning,'大类':item.major,'小类':item.minor};})));}catch(e){}}
+  function chengyuPersistData(){return chengyuSaveData(chengyuState.data);}
   function chengyuCategories(){var counts={};chengyuState.data.forEach(function(item){counts[item.major]=(counts[item.major]||0)+1;});return Object.keys(counts).sort().map(function(name){return {name:name,count:counts[name]};});}
   function chengyuFiltered(){var query=chengyuState.search.trim().toLowerCase();return chengyuState.data.filter(function(item){return (chengyuState.category==='all'||item.major===chengyuState.category)&&(!query||(item.word+' '+item.meaning+' '+item.minor).toLowerCase().indexOf(query)>=0);});}
   function chengyuStats(){var mastered=Object.keys(chengyuState.mastered).length,wrong=Object.keys(chengyuState.wrong).length;return '<div class="cy-stat-grid"><div class="cy-stat"><strong>'+chengyuState.data.length+'</strong>总成语数</div><div class="cy-stat"><strong>'+mastered+'</strong>已掌握</div><div class="cy-stat"><strong>'+wrong+'</strong>错题数</div></div>';}
@@ -9124,11 +9145,13 @@ document.addEventListener('click', activateAudio);
   function chengyuCategoryNav(){var html='<div class="cy-category-list"><button class="btn '+(chengyuState.category==='all'?'btn-primary':'btn-outline')+'" onclick="chengyuSetCategory(\'all\')">全部 ('+chengyuState.data.length+')</button>';chengyuCategories().forEach(function(item){html+='<button class="btn '+(chengyuState.category===item.name?'btn-primary':'btn-outline')+'" onclick="chengyuSetCategory(\''+esc(item.name)+'\')">'+esc(item.name)+' ('+item.count+')</button>';});return html+'</div>';}
   function chengyuUploadPanel(){return '<div class="tool-panel cy-upload" ondragover="event.preventDefault()" ondrop="chengyuDrop(event)"><h3>📚 导入成语数据</h3><p class="tool-muted">请选择或拖入「言语.json」，格式为成语、释义、大类、小类数组。</p><label class="btn btn-primary" for="chengyuFile">📁 选择 JSON 文件</label><input id="chengyuFile" type="file" accept=".json,application/json" onchange="chengyuReadFile(this.files[0])"><p id="chengyuUploadStatus" class="tool-muted">首次使用请先导入数据</p></div>';}
   function renderChengyu(){
-    chengyuLoadState();
-    if(!chengyuState.data.length){root().innerHTML='<div id="chengyuApp">'+chengyuUploadPanel()+'</div>';return;}
-    var content=chengyuStats()+chengyuModeNav()+chengyuCategoryNav();
-    if(chengyuState.mode==='browse')content+=chengyuRenderBrowse();else if(chengyuState.mode==='recite')content+=chengyuRenderRecite();else content+=chengyuRenderTest();
-    root().innerHTML='<div id="chengyuApp">'+content+'</div>';
+    chengyuLoadData().then(function(){
+      chengyuLoadState();
+      if(!chengyuState.data.length){root().innerHTML='<div id="chengyuApp">'+chengyuUploadPanel()+'</div>';return;}
+      var content=chengyuStats()+chengyuModeNav()+chengyuCategoryNav();
+      if(chengyuState.mode==='browse')content+=chengyuRenderBrowse();else if(chengyuState.mode==='recite')content+=chengyuRenderRecite();else content+=chengyuRenderTest();
+      root().innerHTML='<div id="chengyuApp">'+content+'</div>';
+    });
   }
   function chengyuRenderBrowse(){var list=chengyuFiltered(),pages=Math.max(1,Math.ceil(list.length/chengyuState.pageSize));chengyuState.page=Math.min(chengyuState.page,pages);var start=(chengyuState.page-1)*chengyuState.pageSize,items=list.slice(start,start+chengyuState.pageSize);var html='<div class="cy-toolbar"><input class="cy-search" value="'+esc(chengyuState.search)+'" placeholder="搜索成语、释义或小类" oninput="chengyuSearch(this.value)"><span class="cy-count">共 '+list.length+' 条</span></div><div class="cy-cards">';items.forEach(function(item){html+='<article class="cy-card"><div class="cy-word">'+esc(item.word)+'</div><div class="cy-meaning">'+esc(item.meaning)+'</div>'+(item.minor?'<span class="cy-tag">'+esc(item.minor)+'</span>':'')+'</article>';});if(!items.length)html+='<div class="tool-panel">没有匹配的成语。</div>';html+='</div><div class="cy-pager"><button class="btn btn-outline" onclick="chengyuPage(-1)" '+(chengyuState.page<=1?'disabled':'')+'>上一页</button><span class="tool-muted">第 '+chengyuState.page+' / '+pages+' 页</span><button class="btn btn-outline" onclick="chengyuPage(1)" '+(chengyuState.page>=pages?'disabled':'')+'>下一页</button></div>';return html;}
   function chengyuReciteItem(){var list=chengyuFiltered();if(!list.length)return null;if(chengyuState.reciteIndex<0||chengyuState.reciteIndex>=list.length)chengyuState.reciteIndex=Math.floor(Math.random()*list.length);return list[chengyuState.reciteIndex];}
@@ -9143,9 +9166,9 @@ document.addEventListener('click', activateAudio);
   window.chengyuMark=function(known){var item=chengyuReciteItem();if(!item)return;if(known){chengyuState.mastered[item.id]=true;delete chengyuState.wrong[item.id];}else{chengyuState.wrong[item.id]=true;}chengyuSave();chengyuState.reciteIndex=-1;chengyuState.reciteAnswer=false;renderChengyu();};
   window.chengyuRestartTest=function(){chengyuState.test=null;renderChengyu();};
   window.chengyuAnswerTest=function(index){var t=chengyuState.test,q=t&&t.questions[t.index];if(!q||q.selected)return;q.selected=q.options[index];if(q.selected===q.answer){t.right++;delete chengyuState.wrong[q.item.id];}else{chengyuState.wrong[q.item.id]=true;}chengyuSave();renderChengyu();setTimeout(function(){if(chengyuState.test===t&&t.index<9){t.index++;renderChengyu();}else if(chengyuState.test===t){t.done=true;renderChengyu();}},900);};
-  window.chengyuReadFile=function(file){if(!file)return;var reader=new FileReader();reader.onload=function(){try{var raw=JSON.parse(reader.result),items=Array.isArray(raw)?raw:raw.data;if(!Array.isArray(items))throw new Error('格式不是数组');var data=items.map(chengyuNormalize).filter(Boolean);if(!data.length)throw new Error('没有找到有效数据');chengyuState.data=data;chengyuState.category='all';chengyuState.search='';chengyuPersistData();chengyuSave();renderChengyu();}catch(e){var status=document.getElementById('chengyuUploadStatus');if(status)status.textContent='❌ 导入失败：'+e.message;}};reader.readAsText(file,'utf-8');};
+  window.chengyuReadFile=function(file){if(!file)return;var reader=new FileReader();reader.onload=function(){try{var raw=JSON.parse(reader.result),items=Array.isArray(raw)?raw:raw.data;if(!Array.isArray(items))throw new Error('格式不是数组');var data=items.map(chengyuNormalize).filter(Boolean);if(!data.length)throw new Error('没有找到有效数据');chengyuState.category='all';chengyuState.search='';chengyuSaveData(data).then(function(){chengyuSave();renderChengyu();});}catch(e){var status=document.getElementById('chengyuUploadStatus');if(status)status.textContent='❌ 导入失败：'+e.message;}};reader.readAsText(file,'utf-8');};
   window.chengyuDrop=function(event){event.preventDefault();var files=event.dataTransfer&&event.dataTransfer.files;if(files&&files[0])chengyuReadFile(files[0]);};
-  window.chengyuClearData=function(){if(!confirm('确定清除已保存的成语数据和学习进度吗？'))return;try{localStorage.removeItem(CHENGYU_DATA_KEY);localStorage.removeItem(CHENGYU_STATE_KEY);}catch(e){}chengyuState.data=[];renderChengyu();};
+  window.chengyuClearData=function(){if(!confirm('确定清除已保存的成语数据和学习进度吗？'))return;idbDel('chengyu_data').then(function(){try{localStorage.removeItem(CHENGYU_STATE_KEY);localStorage.removeItem('training_chengyu_state');}catch(e){}chengyuState.data=[];chengyuDataLoaded=true;renderChengyu();});};
 
   var EXAM_CONFIG={
     gk:{name:'国考行政执法类',icon:'🏛️',time:120,total:130,fullScore:100,modules:{'政治理论':20,'常识判断':15,'言语理解':30,'数量关系':10,'判断推理':35,'资料分析':20},moduleSources:{'政治理论':['gk','sy','mk'],'常识判断':['gk','mk','sy'],'言语理解':['gk'],'数量关系':['gk'],'判断推理':['gk'],'资料分析':['gk']},subTypes:{'判断推理':{'图形推理':10,'定义判断':10,'类比推理':10,'逻辑判断':5}}},
