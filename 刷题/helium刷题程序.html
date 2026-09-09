@@ -1294,6 +1294,42 @@ body.skin-shenburen .mian-shi-answer > div { background:#fef9e7 !important; colo
     </div>
   </div>
 </div>
+<!-- ===== 新增：左侧导航栏 ===== -->
+<nav id="appNav" class="app-nav">
+  <div class="nav-user">
+    <div class="user-avatar">🧑</div>
+    <div class="user-name">Helium</div>
+  </div>
+  <div class="mode-switch-group">
+    <div class="nav-item mode-item active" data-mode="exam" onclick="switchAppMode('exam')">
+      <span class="nav-icon">📚</span>
+      <span class="nav-label">公考刷题</span>
+    </div>
+    <div class="nav-item mode-item" data-mode="english" onclick="switchAppMode('english')">
+      <span class="nav-icon">🇬🇧</span>
+      <span class="nav-label">英语学习</span>
+    </div>
+  </div>
+  <div class="nav-divider"></div>
+  <div class="nav-footer">
+    <div class="nav-item" onclick="exportBackup()">
+      <span class="nav-icon">💾</span>
+      <span class="nav-label">导出</span>
+    </div>
+    <div class="nav-item" onclick="document.getElementById('backupInput').click()">
+      <span class="nav-icon">📥</span>
+      <span class="nav-label">导入</span>
+    </div>
+    <div class="nav-divider"></div>
+    <div class="nav-item nav-collapse" onclick="toggleNav()">
+      <span class="nav-icon">◀</span>
+      <span class="nav-label">收起</span>
+    </div>
+  </div>
+</nav>
+<button id="navExpandBtn" onclick="toggleNav()">☰</button>
+<!-- ===== 新增结束 ===== -->
+<div id="mainContent">
 <div class="container">
     <div class="header">
         <div class="header-controls">
@@ -1403,8 +1439,218 @@ body.skin-shenburen .mian-shi-answer > div { background:#fef9e7 !important; colo
     <div class="pagination" id="pagination" style="display:none;"></div>
     <div id="noResult" style="text-align:center;padding:40px;color:var(--secondary);display:none;">没有找到匹配的题目</div>
 </div>
+</div>
 
 <script>
+// ============================================================
+// 新增：导航栏 + 英语模块
+// ============================================================
+let APP_MODE = 'exam';
+let NAV_COLLAPSED = false;
+let activeEnglishModule = 'reading';
+
+function syncNavState() {
+  const nav = document.getElementById('appNav');
+  const main = document.getElementById('mainContent');
+  const btn = document.getElementById('navExpandBtn');
+  if (nav) nav.classList.toggle('collapsed', NAV_COLLAPSED);
+  if (main) main.classList.toggle('expanded', NAV_COLLAPSED);
+  if (btn) btn.classList.toggle('visible', NAV_COLLAPSED);
+}
+
+function toggleNav() {
+  NAV_COLLAPSED = !NAV_COLLAPSED;
+  syncNavState();
+  try { localStorage.setItem('nav_collapsed', JSON.stringify(NAV_COLLAPSED)); } catch (e) {}
+}
+
+function updateNavSelection() {
+  document.querySelectorAll('.mode-item').forEach(function(el) {
+    el.classList.toggle('active', el.dataset.mode === APP_MODE);
+  });
+}
+
+function switchAppMode(mode) {
+  if (APP_MODE === mode) return;
+  APP_MODE = mode;
+  try { localStorage.setItem('app_mode', mode); } catch (e) {}
+  document.body.classList.toggle('english-mode', APP_MODE === 'english');
+  updateNavSelection();
+  if (mode === 'exam') {
+    if (typeof renderAll === 'function') renderAll();
+  } else {
+    renderEnglishCenter();
+  }
+}
+
+function getEnglishStats() {
+  return {
+    totalWords: 1284,
+    mastered: 89,
+    reviewing: 23,
+    groups: 147,
+    articles: 12,
+    grammarBooks: 3
+  };
+}
+
+function renderEnglishModuleContent(moduleId) {
+  const modules = {
+    reading: `
+      <div class="module-panel">
+        <div class="panel-header">
+          <h3>📖 深度阅读</h3>
+          <div class="panel-actions">
+            <button class="btn btn-primary" style="padding:6px 14px;border-radius:8px;">📁 上传文章</button>
+            <button class="btn btn-outline" style="padding:6px 14px;border-radius:8px;">📝 粘贴文本</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <textarea class="en-textarea" placeholder="粘贴英文文章到这里..." rows="6"></textarea>
+          <button class="btn btn-primary" style="margin-top:12px;padding:8px 20px;border-radius:8px;">🔍 AI 深度解析</button>
+          <div class="parse-result">解析结果将显示在这里</div>
+        </div>
+      </div>
+    `,
+    vocabulary: `
+      <div class="module-panel">
+        <div class="panel-header">
+          <h3>📚 智能词库</h3>
+          <div class="panel-actions">
+            <button class="btn btn-primary" style="padding:6px 14px;border-radius:8px;">📁 导入词库</button>
+            <button class="btn btn-outline" style="padding:6px 14px;border-radius:8px;">📤 导出词库</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="empty-state">暂无词库，请导入 MDX/CSV 文件</div>
+        </div>
+      </div>
+    `,
+    grammar: `
+      <div class="module-panel">
+        <div class="panel-header">
+          <h3>📘 语法教材</h3>
+          <div class="panel-actions">
+            <button class="btn btn-primary" style="padding:6px 14px;border-radius:8px;">📁 上传教材</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="empty-state">暂无教材，请上传纯文本语法教材</div>
+        </div>
+      </div>
+    `,
+    review: `
+      <div class="module-panel">
+        <div class="panel-header">
+          <h3>🔄 复习</h3>
+          <div class="panel-actions">
+            <button class="btn btn-primary" style="padding:6px 14px;border-radius:8px;">🔁 开始复习</button>
+            <button class="btn btn-outline" style="padding:6px 14px;border-radius:8px;">📕 导出错词本</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="empty-state">点击「开始复习」学习今日词汇</div>
+        </div>
+      </div>
+    `
+  };
+  return modules[moduleId] || '<div class="empty-state">请选择一个模块</div>';
+}
+
+function renderEnglishCenter() {
+  const content = document.getElementById('content');
+  if (!content) return;
+
+  const stats = getEnglishStats();
+  const modules = [
+    { id: 'reading', icon: '📖', title: '深度阅读', desc: 'AI 句法标注 · 词汇难度标记', badge: stats.articles + ' 篇已读' },
+    { id: 'vocabulary', icon: '📚', title: '智能词库', desc: 'MDX/CSV 导入 · 同义词聚合', badge: stats.totalWords + ' 词 · ' + stats.groups + ' 组' },
+    { id: 'grammar', icon: '📘', title: '语法教材', desc: '教材上传 · 目录化学习 · AI 互动', badge: stats.grammarBooks + ' 本教材' },
+    { id: 'review', icon: '🔄', title: '复习', desc: '卡片记忆 · 艾宾浩斯复习计划', badge: stats.reviewing + ' 词待复习' }
+  ];
+
+  content.innerHTML = `
+    <div class="english-center">
+      <div class="english-dashboard">
+        <div class="dashboard-grid">
+          <div class="dash-item">
+            <span class="dash-icon">📚</span>
+            <span class="dash-value">${stats.totalWords}</span>
+            <span class="dash-label">总词汇</span>
+          </div>
+          <div class="dash-item">
+            <span class="dash-icon">✅</span>
+            <span class="dash-value">${stats.mastered}</span>
+            <span class="dash-label">已掌握</span>
+          </div>
+          <div class="dash-item">
+            <span class="dash-icon">🔄</span>
+            <span class="dash-value">${stats.reviewing}</span>
+            <span class="dash-label">待复习</span>
+          </div>
+          <div class="dash-item">
+            <span class="dash-icon">📂</span>
+            <span class="dash-value">${stats.groups}</span>
+            <span class="dash-label">同义词组</span>
+          </div>
+          <div class="dash-item">
+            <span class="dash-icon">📖</span>
+            <span class="dash-value">${stats.articles}</span>
+            <span class="dash-label">已读文章</span>
+          </div>
+          <div class="dash-item">
+            <span class="dash-icon">📘</span>
+            <span class="dash-value">${stats.grammarBooks}</span>
+            <span class="dash-label">语法教材</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="english-modules">
+        ${modules.map(function(m) {
+          return `
+            <div class="module-card ${m.id === activeEnglishModule ? 'active' : ''}" onclick="switchEnglishModule('${m.id}')">
+              <div class="module-icon">${m.icon}</div>
+              <div class="module-title">${m.title}</div>
+              <div class="module-desc">${m.desc}</div>
+              <div class="module-badge">${m.badge}</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+
+      <div class="module-content">
+        ${renderEnglishModuleContent(activeEnglishModule)}
+      </div>
+    </div>
+  `;
+}
+
+function switchEnglishModule(moduleId) {
+  if (activeEnglishModule === moduleId) return;
+  activeEnglishModule = moduleId;
+  renderEnglishCenter();
+}
+
+function initNav() {
+  try {
+    const mode = localStorage.getItem('app_mode');
+    if (mode === 'exam' || mode === 'english') APP_MODE = mode;
+    const storedCollapsed = localStorage.getItem('nav_collapsed');
+    if (storedCollapsed !== null) {
+      try { NAV_COLLAPSED = JSON.parse(storedCollapsed) === true; } catch (e) { NAV_COLLAPSED = false; }
+    }
+  } catch (e) {}
+  syncNavState();
+  updateNavSelection();
+  document.body.classList.toggle('english-mode', APP_MODE === 'english');
+  if (APP_MODE === 'english') {
+    renderEnglishCenter();
+  }
+}
+
+initNav();
+
 // ============================================================
 // 常量与状态
 // ============================================================
@@ -6131,10 +6377,10 @@ async function openChatHistory() {
   const keys = Object.keys(allChats);
   const panel = document.createElement('div');
   panel.className = 'chat-history-panel';
-  let headerHtml = '<div class="chat-history-header" style="padding:8px 10px;gap:4px;">';
-  headerHtml += '<button class="chat-history-close" style="font-size:16px;padding:0 2px;" onclick="this.closest(\'.chat-history-panel\').remove()">✕</button>';
-  headerHtml += '<span style="flex:1;font-size:12px;">💬 对话记录 (' + keys.length + ')</span>';
-  headerHtml += '<button class="chat-history-export-btn" style="padding:4px 6px;margin-right:44px;font-size:11px;" onclick="exportAllChats()">📥 一键导出</button>';
+  let headerHtml = '<div class="chat-history-header" style="display:flex;align-items:center;gap:8px;padding:8px 10px;">';
+  headerHtml += '<button class="chat-history-close" style="font-size:16px;padding:0 4px;flex-shrink:0;" onclick="this.closest(\'.chat-history-panel\').remove()">✕</button>';
+  headerHtml += '<span style="flex:1;font-size:12px;display:flex;align-items:center;justify-content:center;white-space:nowrap;">💬 对话记录 (' + keys.length + ')</span>';
+  headerHtml += '<button class="chat-history-export-btn" style="padding:4px 6px;font-size:11px;flex-shrink:0;" onclick="exportAllChats()">📥 一键导出</button>';
   headerHtml += '</div>';
   let listHtml = '<div class="chat-history-list">';
   if (!keys.length) {
@@ -6164,6 +6410,11 @@ async function openChatHistory() {
 // ============================================================
 // 初始化（异步：开 IDB → 迁移旧 localStorage → 加载全部数据 → 渲染）
 (async function init(){
+  const mode = localStorage.getItem('app_mode');
+  if (mode === 'english') {
+    initNav();
+    return;
+  }
   try{ await idbOpen(); }catch(e){ console.error('IndexedDB 打开失败:', e); }
   try{ await migrateFromLocalStorage(); }catch(e){}      // 一次性迁移旧 localStorage 数据
   try{ await loadAll(); }catch(e){ console.error('loadAll 失败:', e); }
