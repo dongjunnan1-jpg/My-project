@@ -6451,8 +6451,9 @@ window.updateSubTypeFilter = function() {
     leafTypeFilter.value = filterState.leafType;
   } else if (activeZone === 'mk') {
     var moduleStats = {};
-    qs.forEach(function(q) {
-      var moduleName = q.category || q.bigCategory || q.module || '';
+    var allModuleQuestions = getZoneQuestions(activeZone, '__all__');
+    allModuleQuestions.forEach(function(q) {
+      var moduleName = q.bigCategory || '';
       if (moduleName) {
         var moduleMap = {
           '言语理解与表达': '言语理解与表达',
@@ -6492,7 +6493,7 @@ window.updateSubTypeFilter = function() {
 
     var selectedModule = moduleFilter.value;
     var moduleQuestions = selectedModule === 'all' ? qs : qs.filter(function(q) {
-      var moduleName = q.category || q.bigCategory || q.module || '';
+      var moduleName = q.bigCategory || '';
       var moduleMap = {
         '言语理解与表达': '言语理解与表达',
         '言语理解': '言语理解与表达',
