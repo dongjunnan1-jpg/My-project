@@ -1285,6 +1285,81 @@ body.skin-shenburen .q-content, body.skin-shenburen .q-title { color:#1a1a2e !im
 body.skin-shenburen .q-solution { background:#fdf6e3 !important; color:#1a1a2e !important; border-left-color:#d4a820 !important; }
 body.skin-shenburen .mian-shi-answer > div { background:#fef9e7 !important; color:#1a1a2e !important; }
 
+/* ====== 题目心得（多条，只增不删） ====== */
+.q-note-btn {
+  display:inline-flex; align-items:center; gap:4px;
+  margin:8px 0 0 8px; padding:7px 14px;
+  border:0; border-radius:8px; cursor:pointer;
+  font-size:13px; font-weight:600; color:#fff;
+  background:linear-gradient(135deg,#f59e0b,#d97706);
+  box-shadow:0 2px 6px rgba(217,119,6,.28);
+  transition:transform .15s ease, box-shadow .15s ease, filter .15s ease;
+}
+.q-note-btn:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(217,119,6,.38); filter:brightness(1.05); }
+.q-note-btn:active { transform:translateY(0); }
+.q-note-btn.has-notes { background:linear-gradient(135deg,#fbbf24,#f59e0b); }
+
+/* 三个按钮间距统一：AI 简化解析 / AI 答疑 / 心得 两两间距一致（8px），
+   首个按钮（AI 简化解析）不缩进，紧贴解析框左边缘。
+   用 :first-of-type 而非相邻选择器，避免中间动态插入元素导致失效。 */
+.q-ai-btn { margin-left:0; }
+.q-chat-btn, .q-note-btn { margin-left:8px; }
+/* 面试题：心得按钮单独一行，紧贴录音区左边缘，仅保留 8px 上间距 */
+.mian-shi-question .q-note-btn { margin-left:0; }
+
+.q-note-box { display:none; margin:10px 0 0; padding:14px; border-radius:10px; background:#fffbeb; border:1px solid #fde68a; }
+.q-note-box.show { display:block; }
+.q-note-input {
+  width:100%; box-sizing:border-box; min-height:72px; resize:vertical;
+  padding:10px 12px; border:1px solid #fcd34d; border-radius:8px;
+  font-size:14px; line-height:1.6; color:#1e293b; background:#fff;
+  font-family:inherit; outline:none;
+}
+.q-note-input:focus { border-color:#f59e0b; box-shadow:0 0 0 3px rgba(245,158,11,.18); }
+.q-note-add-btn {
+  margin-top:8px; padding:8px 18px; border:0; border-radius:8px; cursor:pointer;
+  font-size:13px; font-weight:600; color:#fff;
+  background:linear-gradient(135deg,#f59e0b,#d97706);
+  box-shadow:0 2px 6px rgba(217,119,6,.28);
+  transition:transform .15s ease, filter .15s ease;
+}
+.q-note-add-btn:hover { transform:translateY(-1px); filter:brightness(1.05); }
+.q-note-add-btn:disabled { opacity:.55; cursor:not-allowed; transform:none; filter:none; }
+
+.q-note-list { margin-top:12px; display:flex; flex-direction:column; gap:8px; }
+.q-note-empty { color:#a16207; font-size:13px; text-align:center; padding:10px 0; }
+.q-note-item {
+  position:relative; padding:10px 40px 10px 12px; border-radius:8px;
+  background:#fff; border-left:4px solid #f59e0b;
+  box-shadow:0 1px 3px rgba(0,0,0,.06);
+}
+.q-note-item-content { font-size:14px; line-height:1.7; color:#1e293b; white-space:pre-wrap; word-break:break-word; }
+.q-note-item-time { margin-top:6px; font-size:11px; color:#94a3b8; }
+.q-note-del-btn {
+  position:absolute; top:8px; right:8px;
+  width:26px; height:26px; padding:0; border:0; border-radius:6px; cursor:pointer;
+  font-size:13px; line-height:1; color:#dc2626; background:rgba(220,38,38,.08);
+  transition:background .15s ease;
+}
+.q-note-del-btn:hover { background:rgba(220,38,38,.18); }
+
+/* 对话详情中的心得卡片 */
+.new-chat-detail-note {
+  padding:10px 12px; margin:8px 0; border-radius:8px;
+  background:#fffbeb; border-left:4px solid #f59e0b;
+  white-space:pre-wrap; color:#1e293b;
+}
+.new-chat-detail-note-title { font-weight:700; color:#b45309; margin-bottom:6px; }
+
+/* 深色皮肤适配 */
+body.skin-dark .q-note-box { background:#3a2f14; border-color:#7c5c12; }
+body.skin-dark .q-note-input { background:#1f2937; color:#e5e7eb; border-color:#7c5c12; }
+body.skin-dark .q-note-item { background:#1f2937; }
+body.skin-dark .q-note-item-content { color:#e5e7eb; }
+body.skin-dark .q-note-empty { color:#fbbf24; }
+body.skin-dark .new-chat-detail-note { background:#3a2f14; color:#e5e7eb; }
+body.skin-dark .new-chat-detail-note-title { color:#fbbf24; }
+
 </style>
 </head>
 <body class="pc-mode">
@@ -2834,7 +2909,7 @@ function getSpecialQuestionType(question){
   if(!question) return '';
   if(question.leafCategory) return question.leafCategory;
   if(Array.isArray(question.keypoints) && question.keypoints[0]) return question.keypoints[0].name||'';
-  return question.questionType||question.type||question.subType||'';
+  return '未分类';
 }
 function getSpecialSearchText(question){
   if(!question) return '';
@@ -4079,7 +4154,7 @@ function renderQuestions(){
       html+=`<div class="q-answer">✅ 正确答案: ${correctLetter}</div>`;
     }
     if(solutionHtml) html+=`<div class="q-solution${hasAnswered?' show':''}"><strong>💡 解析</strong><br>${solutionHtml}</div>`;
-    if(solutionHtml) html+=`<button type="button" class="q-ai-btn" onclick="simplifySolution('${key}', this)">🤖 AI 简化解析</button><button type="button" class="q-chat-btn" onclick="toggleChat('${key}', this)">💬 AI 答疑</button><div class="q-ai-result" id="ai-${key}"></div><div class="q-chat-box" id="chat-${key}"></div>`;
+    if(solutionHtml) html+=`<button type="button" class="q-ai-btn" onclick="simplifySolution('${key}', this)">🤖 AI 简化解析</button><button type="button" class="q-chat-btn" onclick="toggleChat('${key}', this)">💬 AI 答疑</button><button type="button" class="q-note-btn${getQuestionNoteCount(key)>0?' has-notes':''}" id="note-btn-${key}" onclick="toggleQuestionNote('${key}')">📝 心得${getQuestionNoteCount(key)>0?' ('+getQuestionNoteCount(key)+')':''}</button><div class="q-ai-result" id="ai-${key}"></div><div class="q-chat-box" id="chat-${key}"></div><div class="q-note-box" id="note-${key}"><textarea class="q-note-input" id="note-input-${key}" placeholder="写下这道题的心得、易错点、思路…（可多次添加，不会覆盖）"></textarea><button type="button" class="q-note-add-btn" id="note-add-${key}" onclick="submitQuestionNote('${key}')">💾 添加心得</button><div class="q-note-list" id="note-list-${key}"></div></div>`;
     html+='</div>';
   }
   content.innerHTML=html;
@@ -4217,6 +4292,8 @@ function renderMianShiQuestion(question, index, key){
   html+='<button type="button" class="ms-play-btn" data-key="'+escapeHtml(key)+'" disabled>▶️ 播放</button>';
   html+='<button type="button" class="ms-download-btn" data-key="'+escapeHtml(key)+'" disabled>💾 下载</button>';
   html+='</div><div class="ms-record-meter" data-key="'+escapeHtml(key)+'"><div class="ms-meter-fill"></div></div></div>';
+  html+='<button type="button" class="q-note-btn'+(getQuestionNoteCount(key)>0?' has-notes':'')+'" id="note-btn-'+escapeHtml(key)+'" onclick="toggleQuestionNote(\''+escapeHtml(key)+'\')">📝 心得'+(getQuestionNoteCount(key)>0?' ('+getQuestionNoteCount(key)+')':'')+'</button>';
+  html+='<div class="q-note-box" id="note-'+escapeHtml(key)+'"><textarea class="q-note-input" id="note-input-'+escapeHtml(key)+'" placeholder="写下这道题的心得、易错点、思路…（可多次添加，不会覆盖）"></textarea><button type="button" class="q-note-add-btn" id="note-add-'+escapeHtml(key)+'" onclick="submitQuestionNote(\''+escapeHtml(key)+'\')">💾 添加心得</button><div class="q-note-list" id="note-list-'+escapeHtml(key)+'"></div></div>';
   return html+'</article>';
 }
 
@@ -4676,7 +4753,8 @@ function buildExportItem(q){
     correctRatio: q.correctRatio||0,
     answered: answered===undefined ? null : answered,
     isCorrect: answered===undefined ? null : isAnsweredCorrect(exportQuestion),
-    status: answered!==undefined ? (isAnsweredCorrect(exportQuestion)?'正确':'错误') : '未做'
+    status: answered!==undefined ? (isAnsweredCorrect(exportQuestion)?'正确':'错误') : '未做',
+    notes: getQuestionNotes(q._key)
   };
 }
 
@@ -4759,12 +4837,19 @@ function buildQuestionInfoText(item){
 function buildChatExportText(messages, question){
   const safeMessages = Array.isArray(messages) ? messages.filter(Boolean) : [];
   const simplifyMessages = safeMessages.filter(function(msg){ return msg && msg.type === 'simplify'; });
-  const chatMessages = safeMessages.filter(function(msg){ return !(msg && msg.type === 'simplify'); });
+  const noteMessages = safeMessages.filter(function(msg){ return msg && msg.type === 'note'; });
+  const chatMessages = safeMessages.filter(function(msg){ return !(msg && (msg.type === 'simplify' || msg.type === 'note')); });
   let text = '';
   if (question) {
     text += buildQuestionInfoText(question);
     const aiSimplify = simplifyMessages.length ? simplifyMessages[simplifyMessages.length - 1].content : '';
     text += '\n🤖 AI 简化解析：\n' + (aiSimplify || '暂无 AI 简化解析') + '\n\n';
+  }
+  if (noteMessages.length) {
+    text += '------------------------------------------------------------\n📝 我的心得\n------------------------------------------------------------\n\n';
+    noteMessages.slice().sort(function(a,b){ return (a.at||0) - (b.at||0); }).forEach(function(msg){
+      text += '📝 我的心得：' + (msg.content || '') + '\n\n';
+    });
   }
   text += '------------------------------------------------------------\n💬 对话记录\n------------------------------------------------------------\n\n';
   if (!chatMessages.length && !simplifyMessages.length) {
@@ -4809,6 +4894,229 @@ function generateQuestionId(q){
   }
   
   return 'q_' + Math.abs(hash).toString(36);
+}
+
+// ============================================================
+// 题目心得（多条，只增不删）
+//   存储结构：{ [题目_key]: [ {id, content, at}, ... ] }
+//   - id      : Date.now() + 随机串，全局唯一
+//   - content : 原始文本（不转义、不格式化、不转换换行）
+//   - at      : 毫秒时间戳
+//   数组按 at 升序存储，展示时倒序（最新在前）。
+// ============================================================
+const QUESTION_NOTE_KEY = 'qz_question_notes';
+let questionNotes = {};
+
+// 读取全部心得（IndexedDB）
+async function loadQuestionNotes(){
+  try{
+    const data = await idbGet(QUESTION_NOTE_KEY);
+    questionNotes = (data && typeof data === 'object' && !Array.isArray(data)) ? data : {};
+  }catch(e){
+    console.warn('读取题目心得失败:', e);
+    questionNotes = {};
+  }
+  return questionNotes;
+}
+
+// 保存全部心得（IndexedDB）
+async function saveQuestionNotes(){
+  try{
+    await idbSet(QUESTION_NOTE_KEY, questionNotes);
+  }catch(e){
+    console.warn('保存题目心得失败:', e);
+  }
+}
+
+// 取某题的心得数组（副本，按 at 升序）
+function getQuestionNotes(key){
+  const list = questionNotes && questionNotes[key];
+  if(!Array.isArray(list)) return [];
+  return list.slice().sort(function(a,b){ return (a.at||0) - (b.at||0); });
+}
+
+// 取某题的心得条数
+function getQuestionNoteCount(key){
+  const list = questionNotes && questionNotes[key];
+  return Array.isArray(list) ? list.length : 0;
+}
+
+// 生成心得唯一 id
+function generateNoteId(){
+  return String(Date.now()) + '_' + Math.random().toString(36).slice(2, 10);
+}
+
+// 新增一条心得（只增不覆盖），返回新心得对象或 null
+async function addQuestionNote(key, content){
+  const text = String(content == null ? '' : content).trim();
+  if(!text) return null;
+  if(!questionNotes || typeof questionNotes !== 'object') questionNotes = {};
+  if(!Array.isArray(questionNotes[key])) questionNotes[key] = [];
+  const note = { id: generateNoteId(), content: text, at: Date.now() };
+  questionNotes[key].push(note);
+  questionNotes[key].sort(function(a,b){ return (a.at||0) - (b.at||0); });
+  await saveQuestionNotes();
+  // 自动同步到对话记录
+  try{ await syncNoteToChatHistory(key, note); }catch(e){ console.warn('同步心得至对话记录失败:', e); }
+  return note;
+}
+
+// 删除某条心得（按 id），数组为空时删除该 key
+async function removeQuestionNote(key, noteId){
+  const list = questionNotes && questionNotes[key];
+  if(!Array.isArray(list)) return false;
+  const next = list.filter(function(note){ return note && note.id !== noteId; });
+  if(next.length === list.length) return false;
+  if(next.length === 0) delete questionNotes[key];
+  else questionNotes[key] = next;
+  await saveQuestionNotes();
+  // 同步删除对话记录中对应的心得消息
+  try{ await removeNoteFromChatHistory(key, noteId); }catch(e){ console.warn('删除对话记录心得失败:', e); }
+  return true;
+}
+
+// 展开/收起心得区域
+function toggleQuestionNote(key){
+  const box = document.getElementById('note-' + key);
+  if(!box) return;
+  if(box.classList.contains('show')){
+    box.classList.remove('show');
+    return;
+  }
+  box.classList.add('show');
+  renderQuestionNoteList(key);
+  const input = document.getElementById('note-input-' + key);
+  if(input) setTimeout(function(){ try{ input.focus(); }catch(e){} }, 30);
+}
+
+// 渲染某题的心得历史列表（倒序：最新在前）
+function renderQuestionNoteList(key){
+  const list = document.getElementById('note-list-' + key);
+  if(!list) return;
+  const notes = getQuestionNotes(key).slice().reverse();
+  if(!notes.length){
+    list.innerHTML = '<div class="q-note-empty">暂无心得，写一条吧</div>';
+    return;
+  }
+  list.innerHTML = notes.map(function(note){
+    const time = new Date(note.at || Date.now()).toLocaleString();
+    return '<div class="q-note-item">'
+      + '<div class="q-note-item-content">' + escapeHtml(note.content || '') + '</div>'
+      + '<div class="q-note-item-time">' + escapeHtml(time) + '</div>'
+      + '<button type="button" class="q-note-del-btn" title="删除这条心得" onclick="deleteQuestionNote(\'' + key + '\',\'' + note.id + '\')">🗑️</button>'
+      + '</div>';
+  }).join('');
+}
+
+// 页面按钮：添加心得
+async function submitQuestionNote(key){
+  const input = document.getElementById('note-input-' + key);
+  if(!input) return;
+  const text = (input.value || '').trim();
+  if(!text){ alert('请先输入心得内容'); return; }
+  const btn = document.getElementById('note-add-' + key);
+  if(btn) btn.disabled = true;
+  try{
+    await addQuestionNote(key, text);
+    input.value = '';
+    renderQuestionNoteList(key);
+    updateQuestionNoteButton(key);
+    if(typeof refreshChatHistoryPanel === 'function'){ try{ await refreshChatHistoryPanel(); }catch(e){} }
+  }catch(e){
+    console.warn('添加心得失败:', e);
+    alert('添加心得失败：' + e.message);
+  }finally{
+    if(btn) btn.disabled = false;
+  }
+}
+
+// 页面按钮：删除心得（使用页面内确认框）
+function deleteQuestionNote(key, noteId){
+  showConfirm('确定删除这条心得吗？此操作不可撤销。', async function(){
+    try{
+      await removeQuestionNote(key, noteId);
+      renderQuestionNoteList(key);
+      updateQuestionNoteButton(key);
+      if(typeof refreshChatHistoryPanel === 'function'){ try{ await refreshChatHistoryPanel(); }catch(e){} }
+    }catch(e){
+      console.warn('删除心得失败:', e);
+      alert('删除心得失败：' + e.message);
+    }
+  });
+}
+
+// 更新心得按钮文案（有心得时显示条数）
+function updateQuestionNoteButton(key){
+  const btn = document.getElementById('note-btn-' + key);
+  if(!btn) return;
+  const count = getQuestionNoteCount(key);
+  btn.textContent = count > 0 ? ('📝 心得 (' + count + ')') : '📝 心得';
+  if(count > 0) btn.classList.add('has-notes');
+  else btn.classList.remove('has-notes');
+}
+
+// 把一条心得追加到对话记录（CHAT_DB_KEY），只增不覆盖
+async function syncNoteToChatHistory(key, note){
+  if(!note) return;
+  const allChats = await loadAllChats();
+  const messages = Array.isArray(allChats[key]) ? allChats[key] : [];
+  const exists = messages.some(function(msg){
+    return msg && msg.type === 'note' && msg.noteId === note.id;
+  });
+  if(exists) return;
+  const item = findQuestionByKey(key) || filteredQuestions.find(function(q){ return q._key === key; });
+  messages.push({
+    role: 'user',
+    type: 'note',
+    noteId: note.id,
+    content: note.content,
+    questionContent: item ? (item.content || '') : '',
+    questionOptions: item ? getOptions(item) : [],
+    at: note.at || Date.now()
+  });
+  await saveChat(key, messages);
+}
+
+// 从对话记录中删除某条心得消息
+async function removeNoteFromChatHistory(key, noteId){
+  const allChats = await loadAllChats();
+  const messages = Array.isArray(allChats[key]) ? allChats[key] : [];
+  const next = messages.filter(function(msg){
+    return !(msg && msg.type === 'note' && msg.noteId === noteId);
+  });
+  if(next.length === messages.length) return;
+  await saveChat(key, next);
+}
+
+// 通过题干前缀 + 选项前缀 + 答案 匹配题目（导入心得兜底）
+function findQuestionByFingerprint(contentPrefix, optionsPrefix, answer){
+  const norm = function(value){ return String(value == null ? '' : value).replace(/<[^>]*>/g,'').replace(/\s+/g,'').trim(); };
+  const targetContent = norm(contentPrefix);
+  const targetOptions = norm(optionsPrefix);
+  const targetAnswer = norm(answer);
+  if(!targetContent && !targetOptions) return null;
+  let partial = null;
+  for(const zone of ZONE_IDS){
+    const zoneData = db[zone] || {};
+    for(const fileId of Object.keys(zoneData)){
+      const questions = zoneData[fileId] && zoneData[fileId].questions;
+      if(!Array.isArray(questions)) continue;
+      for(let qi = 0; qi < questions.length; qi++){
+        const question = questions[qi];
+        if(!question) continue;
+        const currentContent = norm(question.content || question.question);
+        const currentOptions = norm(getOptions(question).join(''));
+        const currentAnswer = norm(getCorrectLetter(question));
+        const contentOk = targetContent && currentContent && (currentContent.startsWith(targetContent) || currentContent.includes(targetContent));
+        const optionsOk = !targetOptions || (currentOptions && (currentOptions.startsWith(targetOptions) || currentOptions.includes(targetOptions)));
+        const answerOk = !targetAnswer || currentAnswer === targetAnswer;
+        const match = { question: question, key: 'f' + fileId + '_q' + qi, zone: zone, fileId: fileId, qi: qi };
+        if(contentOk && optionsOk && answerOk) return match;
+        if(!partial && contentOk && answerOk) partial = match;
+      }
+    }
+  }
+  return partial;
 }
 
 function buildExportName(tag){
@@ -4990,6 +5298,28 @@ async function exportBackup(){
   
   const chatCount = Object.values(chatHistory).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
   
+  // 导出题目心得（只导出做过的题，按 _qid 作为键）
+  const questionNotesExport = {};
+  let noteCount = 0;
+  ZONE_IDS.forEach(zone => {
+    Object.keys(db[zone] || {}).forEach(fileId => {
+      const fileData = db[zone][fileId];
+      if (!fileData || !fileData.questions) return;
+      fileData.questions.forEach((q, qi) => {
+        const key = 'f' + fileId + '_q' + qi;
+        const userAnswer = fileData.answered && fileData.answered[key];
+        if (userAnswer === undefined || userAnswer === null) return;
+        const notes = getQuestionNotes(key);
+        if (!notes.length) return;
+        if (!q._qid) q._qid = generateQuestionId(q);
+        questionNotesExport[q._qid] = notes.map(function(note){
+          return { id: note.id, content: note.content, at: note.at };
+        });
+        noteCount += notes.length;
+      });
+    });
+  });
+  
   // 构建完整备份对象
   const backup = {
     _type: 'helium_quiz_backup_v2',
@@ -5001,6 +5331,7 @@ async function exportBackup(){
     favorites: favoritesData,
     attempts: attemptsData,
     chatHistory: chatHistory,
+    questionNotes: questionNotesExport,
     view: { activeZone, activeFile }
   };
   
@@ -5009,10 +5340,10 @@ async function exportBackup(){
   const fileSize = Math.round(backupStr.length / 1024);
   
   // 弹出确认框
-  const confirmMsg = `将导出 ${totalAnswered} 道做过的题目，含 ${chatCount} 条AI对话记录（约 ${fileSize} KB），确认继续？`;
+  const confirmMsg = `将导出 ${totalAnswered} 道做过的题目，含 ${chatCount} 条AI对话记录、${noteCount} 条题目心得（约 ${fileSize} KB），确认继续？`;
   showConfirm(confirmMsg, () => {
     downloadJSON(backup, 'Helium题库_做题备份_' + new Date().toISOString().slice(0, 10) + '.json');
-    alert(`✅ 备份导出成功！已导出 ${totalAnswered} 道题目的做题记录，含 ${chatCount} 条AI对话记录。`);
+    alert(`✅ 备份导出成功！已导出 ${totalAnswered} 道题目的做题记录，含 ${chatCount} 条AI对话记录、${noteCount} 条题目心得。`);
   });
 }
 function importBackup(input){
@@ -5191,6 +5522,98 @@ async function importBackupFromObject(data){
       }
     }
     
+    // 第六步之二：恢复题目心得（多条，合并去重）
+    let notesRestored = 0, notesSkipped = 0;
+    if (data.questionNotes && typeof data.questionNotes === 'object') {
+      try {
+        await loadQuestionNotes();
+        const noteChatAdds = {};  // key → [noteMessage]
+        Object.keys(data.questionNotes).forEach(function(qid){
+          const rawList = data.questionNotes[qid];
+          // 兼容：字符串 → 单条；对象 → 单条；数组 → 多条
+          let list = [];
+          if (Array.isArray(rawList)) list = rawList;
+          else if (typeof rawList === 'string') list = [{ content: rawList, at: Date.now() }];
+          else if (rawList && typeof rawList === 'object') list = [rawList];
+          // 归一化每条心得
+          const normalized = [];
+          list.forEach(function(entry){
+            if (entry == null) return;
+            if (typeof entry === 'string') { normalized.push({ id: generateNoteId(), content: entry, at: Date.now() }); return; }
+            if (typeof entry !== 'object') return;
+            const content = entry.content != null ? entry.content : (entry.note != null ? entry.note : '');
+            if (!String(content).trim()) return;
+            normalized.push({
+              id: entry.id || generateNoteId(),
+              content: String(content),
+              at: Number(entry.at) || Date.now()
+            });
+          });
+          if (!normalized.length) return;
+          
+          // 匹配题目：qid 精确 → 指纹 → qid 片段
+          let match = qidMap[qid];
+          if (!match) {
+            const first = normalized[0];
+            const backupQuestion = Object.values(backupData).reduce(function(found, files) {
+              if (found) return found;
+              return Object.values(files || {}).reduce(function(foundFile, fileBackup) {
+                if (foundFile) return foundFile;
+                return (fileBackup.questions || []).find(function(question) { return question && question.qid === qid; }) || null;
+              }, null);
+            }, null);
+            if (backupQuestion) {
+              match = findQuestionByFingerprint(
+                (backupQuestion.content || '').slice(0, 100),
+                (backupQuestion.options || []).join('').slice(0, 100),
+                backupQuestion.correctAnswer || backupQuestion.answer || ''
+              );
+            }
+            if (!match) match = findQuestionByQidPart(qid);
+          }
+          if (!match || !match.key) { notesSkipped += normalized.length; return; }
+          
+          const key = match.key;
+          if (!Array.isArray(questionNotes[key])) questionNotes[key] = [];
+          const existingIds = {};
+          questionNotes[key].forEach(function(note){ if (note && note.id) existingIds[note.id] = true; });
+          normalized.forEach(function(note){
+            if (existingIds[note.id]) return;
+            questionNotes[key].push(note);
+            existingIds[note.id] = true;
+            notesRestored++;
+            if (!noteChatAdds[key]) noteChatAdds[key] = [];
+            noteChatAdds[key].push(note);
+          });
+          questionNotes[key].sort(function(a,b){ return (a.at||0) - (b.at||0); });
+        });
+        await saveQuestionNotes();
+        
+        // 心得同步回对话记录
+        if (Object.keys(noteChatAdds).length) {
+          const allChats = await loadAllChats();
+          Object.keys(noteChatAdds).forEach(function(key){
+            const messages = Array.isArray(allChats[key]) ? allChats[key] : [];
+            const item = findQuestionByKey(key) || filteredQuestions.find(function(q){ return q._key === key; });
+            noteChatAdds[key].forEach(function(note){
+              const exists = messages.some(function(msg){ return msg && msg.type === 'note' && msg.noteId === note.id; });
+              if (exists) return;
+              messages.push({
+                role: 'user', type: 'note', noteId: note.id, content: note.content,
+                questionContent: item ? (item.content || '') : '',
+                questionOptions: item ? getOptions(item) : [],
+                at: note.at || Date.now()
+              });
+            });
+            allChats[key] = messages;
+          });
+          await idbSet(CHAT_DB_KEY, allChats);
+        }
+      } catch (e) {
+        console.warn('恢复题目心得失败:', e);
+      }
+    }
+    
     // 第七步：保存恢复结果
     ZONE_IDS.forEach(function(z){
       (index[z] || []).forEach(function(m){ saveFile(z, m.id); });
@@ -5206,7 +5629,8 @@ async function importBackupFromObject(data){
     renderAll();
     
     // 显示恢复结果
-    const resultMsg = `✅ 恢复完成！\n匹配成功 ${matchedCount} 题，跳过 ${skippedCount} 题（未找到对应题目）\n恢复错题集 ${wrongSetRestored} 题；恢复收藏 ${favoritesRestored} 题；恢复做题次数 ${attemptsRestored} 题；恢复AI对话 ${chatRestored} 条`;
+    let resultMsg = `✅ 恢复完成！\n匹配成功 ${matchedCount} 题，跳过 ${skippedCount} 题（未找到对应题目）\n恢复错题集 ${wrongSetRestored} 题；恢复收藏 ${favoritesRestored} 题；恢复做题次数 ${attemptsRestored} 题；恢复AI对话 ${chatRestored} 条；恢复心得 ${notesRestored} 条`;
+    if (notesSkipped > 0) resultMsg += `\n（${notesSkipped} 条心得因题目未找到已跳过）`;
     alert(resultMsg);
     return;
   }
@@ -6222,8 +6646,15 @@ async function refreshChatHistoryPanel() {
   if(!keys.length){ list.innerHTML='<div class="chat-history-empty">暂无对话记录</div>'; return; }
   list.innerHTML=keys.map(function(key){
     const messages=Array.isArray(allChats[key])?allChats[key]:[];
-    const firstUser=messages.find(function(message){ return message.role==='user'; });
-    const preview=firstUser?(firstUser.content||'').substring(0,50):'对话记录';
+    const noteMessages=messages.filter(function(message){ return message && message.type==='note'; });
+    let preview;
+    if(noteMessages.length){
+      const latest=noteMessages.slice().sort(function(a,b){ return (a.at||0)-(b.at||0); })[noteMessages.length-1];
+      preview='📝 心得：'+((latest&&latest.content)||'').substring(0,50)+'（共 '+noteMessages.length+' 条）';
+    }else{
+      const firstUser=messages.find(function(message){ return message.role==='user'; });
+      preview=firstUser?(firstUser.content||'').substring(0,50):'对话记录';
+    }
     const item=filteredQuestions.find(function(question){ return question._key===key; });
     const title=item?(item.content||'').substring(0,30):key;
     return '<div class="chat-history-item" onclick="location.hash=\'q-'+key+'\'; this.closest(\'.chat-history-panel\').remove();"><div class="chat-history-item-title">'+title+'...</div><div class="chat-history-item-preview">'+preview+'... ('+messages.length+'条消息)</div></div>';
@@ -6316,6 +6747,38 @@ async function openChatHistory() {
   loadSkin();                          // 皮肤（含墨水屏）
 loadTimerData();                     // 计时统计
 loadAIConfig();                      // AI 配置
+
+// 加载题目心得，并把尚未进入对话记录的旧心得一次性同步过去
+try{
+  await loadQuestionNotes();
+  await (async function syncExistingNotesToChat(){
+    const keys = Object.keys(questionNotes || {});
+    if(!keys.length) return;
+    const allChats = await loadAllChats();
+    let changed = false;
+    keys.forEach(function(key){
+      const notes = Array.isArray(questionNotes[key]) ? questionNotes[key] : [];
+      if(!notes.length) return;
+      const messages = Array.isArray(allChats[key]) ? allChats[key] : [];
+      const existingIds = {};
+      messages.forEach(function(msg){ if(msg && msg.type==='note' && msg.noteId) existingIds[msg.noteId]=true; });
+      const item = findQuestionByKey(key) || filteredQuestions.find(function(q){ return q._key === key; });
+      notes.forEach(function(note){
+        if(!note || !note.id || existingIds[note.id]) return;
+        messages.push({
+          role:'user', type:'note', noteId:note.id, content:note.content,
+          questionContent: item ? (item.content||'') : '',
+          questionOptions: item ? getOptions(item) : [],
+          at: note.at || Date.now()
+        });
+        existingIds[note.id]=true;
+        changed = true;
+      });
+      allChats[key] = messages;
+    });
+    if(changed) await idbSet(CHAT_DB_KEY, allChats);
+  })();
+}catch(e){ console.warn('初始化题目心得失败:', e); }
 
 // 初始化三级题型筛选：统计时只应用年份、省份、来源和关键词筛选。
 window.updateSubTypeFilter = function() {
@@ -7016,8 +7479,9 @@ function toggleNoHack(on){
       const currentQuestion=filteredQuestions.find(function(item){ return item._key===key; });
       const chatMessages=values[0][key]||[];
       const chatSimplify=chatMessages.filter(function(m){ return m.type==='simplify'; });
+      const noteMessages=chatMessages.filter(function(m){ return m && m.type==='note'; });
       const historySimplify=values[1].filter(function(m){ return m.type==='simplify'; });
-      const messages=chatMessages.filter(function(m){ return m.type!=='simplify'; })
+      const messages=chatMessages.filter(function(m){ return m.type!=='simplify' && m.type!=='note'; })
         .concat(historySimplify.length ? historySimplify : chatSimplify);
       const panel=document.createElement('div');
       panel.className=newClasses.detail;
@@ -7026,7 +7490,16 @@ function toggleNoHack(on){
       close.addEventListener('click',function(){ panel.remove(); });
       const title=document.createElement('div'); title.className='new-chat-detail-title'; title.textContent='对话详细内容';
       panel.appendChild(close); panel.appendChild(title);
-      if(!messages.length){
+      // 心得卡片（按时间升序）
+      noteMessages.slice().sort(function(a,b){ return (a.at||0)-(b.at||0); }).forEach(function(message){
+        const card=document.createElement('div'); card.className='new-chat-detail-note';
+        const head=document.createElement('div'); head.className='new-chat-detail-note-title';
+        head.textContent='📝 我的心得'+(message.at?(' · '+new Date(message.at).toLocaleString()):'');
+        const body=document.createElement('div'); body.textContent=message.content||'';
+        card.appendChild(head); card.appendChild(body);
+        panel.appendChild(card);
+      });
+      if(!messages.length && !noteMessages.length){
         const empty=document.createElement('div'); empty.textContent='暂无对话记录'; panel.appendChild(empty);
       }else{
         messages.forEach(function(message){
