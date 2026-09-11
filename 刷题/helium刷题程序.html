@@ -532,12 +532,22 @@ html, body { width:100%; max-width:100%; margin:0; padding:0; box-sizing:border-
 /* 自定义确认弹窗（替代原生 confirm）：iOS“添加到主屏幕”独立模式 / 部分 App 内置浏览器会静默禁用
    confirm()/alert()，导致删除文件、清空分区、重置进度、导入备份等依赖 confirm 的操作点不动（函数直接 return）。
    用页面内弹窗可彻底规避该问题。 */
-.confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 20px; }
+.confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 100005; padding: 20px; }
 .confirm-overlay.show { display: flex; }
 .confirm-box { background: var(--surface); border-radius: 16px; padding: 22px; max-width: 340px; width: 100%; box-shadow: 0 10px 40px rgba(0,0,0,0.25); }
 .confirm-msg { font-size: 16px; line-height: 1.6; color: var(--deep); margin-bottom: 18px; }
 .confirm-btns { display: flex; gap: 10px; }
 .confirm-btns .btn { flex: 1; min-height: 46px; font-size: 15px; }
+/* 自定义输入弹窗（替代原生 prompt）：iOS 独立模式 / 内置浏览器会静默禁用 prompt()，
+   导致「上传自定义音效」等需要输入名称的操作直接失败。 */
+.prompt-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 100005; padding: 20px; }
+.prompt-overlay.show { display: flex; }
+.prompt-box { background: var(--surface); border-radius: 16px; padding: 22px; max-width: 340px; width: 100%; box-shadow: 0 10px 40px rgba(0,0,0,0.25); }
+.prompt-msg { font-size: 16px; line-height: 1.6; color: var(--deep); margin-bottom: 12px; }
+.prompt-input { width: 100%; box-sizing: border-box; padding: 11px 13px; border: 2px solid var(--border, #d1d5db); border-radius: 10px; background: var(--surface); color: var(--text); font-size: 15px; margin-bottom: 18px; outline: none; }
+.prompt-input:focus { border-color: var(--main, #3b82f6); }
+.prompt-btns { display: flex; gap: 10px; }
+.prompt-btns .btn { flex: 1; min-height: 46px; font-size: 15px; }
 .inline-confirm-overlay { position:absolute; inset:0; z-index:20; display:flex; align-items:center; justify-content:center; padding:20px; background:var(--overlay); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); }
 .inline-confirm-box { width:min(340px,100%); padding:22px; border-radius:16px; background:var(--surface); color:var(--text); box-shadow:0 10px 40px rgba(0,0,0,0.35); }
 .confirm-title { margin-bottom:10px; color:var(--text); font-size:17px; font-weight:700; }
@@ -621,7 +631,7 @@ body.essay-zone #moduleFilter, body.essay-zone #leafTypeFilter, body.essay-zone 
 @keyframes scrollDiagBlink { 50% { opacity:.25; } }
 
 /* ====== 通用故障检测中心 ====== */
-#scrollDiagPanel { position:fixed; right:10px; bottom:80px; width:min(460px, calc(100vw - 20px)); max-height:min(600px, 70vh); overflow:auto; background:#0b1020; color:#cbd5e1; font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; padding:10px 12px; z-index:99997; border:1px solid #2563eb; box-sizing:border-box; display:none !important; box-shadow:0 8px 28px rgba(0,0,0,.3); }
+#scrollDiagPanel { position:fixed; right:10px; bottom:80px; width:min(460px, calc(100vw - 20px)); max-height:min(600px, 70vh); overflow:auto; background:#0b1020; color:#cbd5e1; font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; padding:10px 12px; z-index:100001; border:1px solid #2563eb; box-sizing:border-box; display:none !important; box-shadow:0 8px 28px rgba(0,0,0,.3); }
 #scrollDiagPanel.show { display:block !important; }
 #scrollDiagPanel header { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px; color:#fff; }
 #scrollDiagPanel button { background:transparent; color:#cbd5e1; border:1px solid #475569; border-radius:4px; padding:2px 7px; cursor:pointer; }
@@ -645,14 +655,14 @@ body.essay-zone #moduleFilter, body.essay-zone #leafTypeFilter, body.essay-zone 
 @media (max-width:768px) { #scrollDiagPanel { bottom:80px; max-height:65vh; } #scrollDiagPanel header { align-items:flex-start; } }
 
 /* ====== 皮肤面板 ====== */
-#skinPanel { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:9999; background:#1e293b; border-radius:16px; padding:20px; box-shadow:0 20px 60px rgba(0,0,0,0.5); display:none; flex-direction:column; gap:10px; min-width:300px; max-width:90vw; border:1px solid rgba(255,255,255,0.08); }
+#skinPanel { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:100002; background:#1e293b; border-radius:16px; padding:20px; box-shadow:0 20px 60px rgba(0,0,0,0.5); display:none; flex-direction:column; gap:10px; min-width:300px; max-width:90vw; border:1px solid rgba(255,255,255,0.08); }
 #skinPanel.show { display:flex; }
 .skin-opt { padding:10px 8px; border-radius:8px; border:2px solid #334155; background:#0f172a; color:#e2e8f0; cursor:pointer; font-size:12px; text-align:center; transition:all 0.2s; font-weight:600; }
 .skin-opt:hover { border-color:#60a5fa; }
 .skin-opt.active { border-color:#60a5fa; background:#1e3a5f; box-shadow:0 0 20px rgba(96,165,250,0.2); }
 
 /* ====== AI 配置面板 ====== */
-#aiPanel { position:fixed; left:20px; bottom:70px; z-index:9999; background:#fff; border-radius:12px; padding:14px; box-shadow:0 8px 32px rgba(0,0,0,0.2); display:none; flex-direction:column; gap:8px; min-width:280px; max-width:320px; }
+#aiPanel { position:fixed; left:20px; bottom:70px; z-index:100002; background:#fff; border-radius:12px; padding:14px; box-shadow:0 8px 32px rgba(0,0,0,0.2); display:none; flex-direction:column; gap:8px; min-width:280px; max-width:320px; }
 #aiPanel.show { display:flex; }
 #aiPanel label { font-size:13px; color:var(--deep); font-weight:bold; }
 #aiPanel select, #aiPanel input { padding:8px 10px; border:2px solid var(--light); border-radius:8px; font-size:13px; outline:none; background:#fff; color:var(--deep); }
@@ -1201,10 +1211,12 @@ body.skin-dark .ms-record-time { color:#94a3b8 !important; }
 #toolFullscreen { display:none; position:fixed; inset:0; z-index:100001; overflow-y:auto; background:var(--bg,#f7fafc); color:var(--text,#1f2937); padding:16px; box-sizing:border-box; }
 #toolFullscreen .tool-shell { width:min(940px,100%); min-height:100%; margin:0 auto; }
 #toolFullscreen .tool-head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 0 16px; border-bottom:2px solid var(--border,#e5e7eb); margin-bottom:20px; }
-#toolFullscreen .tool-head h2 { margin:0; color:var(--deep,#1e3a5f); font-size:clamp(20px,4vw,28px); }
+/* 修复：标题/题目/输入框不再直接用 --deep（暗夜/深色皮肤下 --deep 过暗，与背景几乎同色导致看不清），
+   改用 --main 并加兜底色，保证所有皮肤下都有足够对比度。 */
+#toolFullscreen .tool-head h2 { margin:0; color:var(--main,#1e3a5f); font-size:clamp(20px,4vw,28px); }
 #toolFullscreen .tool-actions, #toolFullscreen .tool-row { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; align-items:center; }
 #toolFullscreen .tool-panel { background:var(--card,#fff); border:1px solid var(--border,#e5e7eb); border-radius:14px; padding:24px; box-shadow:var(--shadow-strong,0 8px 24px rgba(0,0,0,.08)); }
-#toolFullscreen .tool-question { text-align:center; font-size:clamp(34px,8vw,68px); font-weight:700; color:var(--deep,#1e3a5f); padding:36px 12px; }
+#toolFullscreen .tool-question { text-align:center; font-size:clamp(34px,8vw,68px); font-weight:700; color:var(--main,#1e3a5f); padding:36px 12px; }
 #toolFullscreen .tool-input { width:min(280px,100%); padding:12px 16px; border:2px solid var(--border,#d1d5db); border-radius:10px; background:var(--surface,#fff); color:var(--text,#1f2937); font-size:22px; text-align:center; box-sizing:border-box; }
 #toolFullscreen .tool-grid { display:grid; gap:8px; justify-content:center; }
 #toolFullscreen .tool-cell, #toolFullscreen .tool-card { border:2px solid var(--border,#d1d5db); border-radius:9px; background:var(--surface,#fff); color:var(--text,#1f2937); cursor:pointer; font-weight:700; }
@@ -1215,6 +1227,26 @@ body.skin-dark .ms-record-time { color:#94a3b8 !important; }
 #toolFullscreen .tool-muted { color:var(--secondary,#64748b); }
 #toolFullscreen .tool-progress { height:6px; background:var(--surface-muted,#e5e7eb); border-radius:99px; overflow:hidden; margin:10px 0 20px; }
 #toolFullscreen .tool-progress > div { height:100%; background:var(--main,#3b82f6); transition:width .2s; }
+/* 暗夜皮肤：训练/考试工具面板强制高对比配色 */
+body.skin-dark #toolFullscreen { background:#0b1220; color:#e6edf5; }
+body.skin-dark #toolFullscreen .tool-head h2,
+body.skin-dark #toolFullscreen .tool-question { color:#93c5fd; }
+body.skin-dark #toolFullscreen .tool-panel { background:#1c2333; border-color:#52627a; }
+body.skin-dark #toolFullscreen .tool-input,
+body.skin-dark #toolFullscreen .tool-cell,
+body.skin-dark #toolFullscreen .tool-card,
+body.skin-dark #toolFullscreen .tool-option { background:#2d3748; color:#e6edf5; border-color:#52627a; }
+body.skin-dark #toolFullscreen .tool-muted { color:#94a3b8; }
+/* 申步伦黄皮肤：浅底深字，避免 --deep 与背景对比不足 */
+body.skin-shenburen #toolFullscreen { background:#f8f4e0; color:#1a1a2e; }
+body.skin-shenburen #toolFullscreen .tool-head h2,
+body.skin-shenburen #toolFullscreen .tool-question { color:#7a5c00; }
+body.skin-shenburen #toolFullscreen .tool-panel { background:#fffdf5; border-color:#e0d5a8; }
+body.skin-shenburen #toolFullscreen .tool-input,
+body.skin-shenburen #toolFullscreen .tool-cell,
+body.skin-shenburen #toolFullscreen .tool-card,
+body.skin-shenburen #toolFullscreen .tool-option { background:#fffdf5; color:#1a1a2e; border-color:#e0d5a8; }
+body.skin-shenburen #toolFullscreen .tool-muted { color:#8a7a4a; }
 .sidebar-tool-btn { padding:7px 4px; border:1px solid #334155; border-radius:5px; background:#0f172a; color:#e2e8f0; cursor:pointer; font-size:11px; transition:.15s; }
 .sidebar-tool-btn:hover, .sidebar-tool-btn.active { border-color:#60a5fa; background:#1e3a5f; color:#bfdbfe; }
 #chengyuApp .cy-mode-tabs, #chengyuApp .cy-category-list, #chengyuApp .cy-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
@@ -1265,6 +1297,25 @@ body.skin-dark .ms-record-time { color:#94a3b8 !important; }
 #examApp .exam-detail th, #examApp .exam-detail td { padding:7px 6px; border-bottom:1px solid var(--border); text-align:left; vertical-align:top; }
 #examApp .exam-detail .ok { color:#16a34a; } #examApp .exam-detail .bad { color:#dc2626; }
 @media (max-width:600px) { #examApp .exam-mode-grid { grid-template-columns:1fr; } #examApp .exam-mode-card:last-child { grid-column:auto; } #examApp .exam-nav { grid-template-columns:repeat(8,1fr); } #examApp .exam-summary { grid-template-columns:repeat(2,1fr); } #examApp .exam-detail { font-size:11px; } }
+/* 暗夜皮肤：考试工具标题/卡片强制高对比 */
+body.skin-dark #examApp .exam-mode-card strong,
+body.skin-dark #examApp .exam-result-score,
+body.skin-dark #examApp .exam-summary strong { color:#93c5fd; }
+body.skin-dark #examApp .exam-mode-card,
+body.skin-dark #examApp .exam-option,
+body.skin-dark #examApp .exam-nav button,
+body.skin-dark #examApp .exam-summary div { background:#2d3748; color:#e6edf5; border-color:#52627a; }
+body.skin-dark #examApp .exam-mode-card span { color:#94a3b8; }
+body.skin-dark #examApp .exam-detail th, body.skin-dark #examApp .exam-detail td { border-color:#52627a; color:#e6edf5; }
+/* 申步伦黄皮肤：考试工具标题/卡片高对比 */
+body.skin-shenburen #examApp .exam-mode-card strong,
+body.skin-shenburen #examApp .exam-result-score,
+body.skin-shenburen #examApp .exam-summary strong { color:#7a5c00; }
+body.skin-shenburen #examApp .exam-mode-card,
+body.skin-shenburen #examApp .exam-option,
+body.skin-shenburen #examApp .exam-nav button,
+body.skin-shenburen #examApp .exam-summary div { background:#fffdf5; color:#1a1a2e; border-color:#e0d5a8; }
+body.skin-shenburen #examApp .exam-mode-card span { color:#8a7a4a; }
 @media (max-width:600px) { #toolFullscreen { padding:10px; } #toolFullscreen .tool-panel { padding:16px 10px; } #toolFullscreen .tool-head { align-items:flex-start; } }
 
 /* ====== 主题切换后的题目与答案可读性 ====== */
@@ -1370,6 +1421,17 @@ body.skin-dark .new-chat-detail-note-title { color:#fbbf24; }
     <div class="confirm-btns">
       <button id="confirmNo" class="btn btn-outline" type="button">取消</button>
       <button id="confirmYes" class="btn btn-danger" type="button">确定</button>
+    </div>
+  </div>
+</div>
+<!-- 自定义输入弹窗（替代原生 prompt，避免 iOS 独立模式/内置浏览器禁用对话框导致上传音效等操作失效） -->
+<div id="promptOverlay" class="prompt-overlay">
+  <div class="prompt-box">
+    <div class="prompt-msg" id="promptMsg"></div>
+    <input id="promptInput" class="prompt-input" type="text" autocomplete="off" />
+    <div class="prompt-btns">
+      <button id="promptNo" class="btn btn-outline" type="button">取消</button>
+      <button id="promptYes" class="btn btn-primary" type="button">确定</button>
     </div>
   </div>
 </div>
@@ -2392,6 +2454,45 @@ function showInlineConfirm(panel, message, onYes){
   no.onclick=cleanup;
   yes.onclick=function(){ cleanup(); onYes&&onYes(); };
   document.addEventListener('keydown', onKey);
+}
+
+// 自定义输入弹窗（替代原生 prompt）。onSubmit(value) 在用户点确定时调用；
+// 用户取消或输入为空时不调用。回调式设计，兼容同步调用方。
+function showPrompt(message, defaultValue, onSubmit){
+  const overlay=document.getElementById('promptOverlay');
+  const msgEl=document.getElementById('promptMsg');
+  const inputEl=document.getElementById('promptInput');
+  const yesBtn=document.getElementById('promptYes');
+  const noBtn=document.getElementById('promptNo');
+  if(!overlay||!msgEl||!inputEl||!yesBtn||!noBtn){ // 极端兜底：元素缺失时回退原生 prompt
+    var v = (typeof prompt==='function') ? prompt(message, defaultValue||'') : (defaultValue||'');
+    if(v){ onSubmit&&onSubmit(v); }
+    return;
+  }
+  msgEl.textContent=message;
+  inputEl.value=defaultValue||'';
+  overlay.classList.add('show');
+  setTimeout(function(){ try{ inputEl.focus(); inputEl.select(); }catch(e){} }, 30);
+  function cleanup(){
+    overlay.classList.remove('show');
+    yesBtn.onclick=null;
+    noBtn.onclick=null;
+    inputEl.onkeydown=null;
+    overlay.removeEventListener('click', onOverlayClick);
+    document.removeEventListener('keydown', onKey);
+  }
+  function submit(){
+    var v=(inputEl.value||'').trim();
+    cleanup();
+    if(v) onSubmit&&onSubmit(v);
+  }
+  function onKey(e){ if(e.key==='Escape'){ cleanup(); } }
+  function onOverlayClick(e){ if(e.target===overlay) cleanup(); }
+  document.addEventListener('keydown', onKey);
+  overlay.addEventListener('click', onOverlayClick);
+  inputEl.onkeydown=function(e){ if(e.key==='Enter'){ e.preventDefault(); submit(); } };
+  yesBtn.onclick=submit;
+  noBtn.onclick=cleanup;
 }
 
 function getFilterBaseQuestions(){
@@ -3715,6 +3816,59 @@ window.fullDiagnosticScan = function() {
                     fix: '关闭代理软件，或在代码中使用 axios + proxy:false 绕过'
                 });
             }
+        }
+    } catch (e) {}
+
+    // ----- 1.13 检查自定义音效 -----
+    try {
+        if (typeof window.__getCustomSoundState === 'function') {
+            var cs = window.__getCustomSoundState();
+            details.customSounds = cs.count + ' 个';
+            if (cs.count > 0) {
+                var badSounds = (cs.sounds || []).filter(function(s) { return !s || !s.id || !s.name || !s.data; });
+                if (badSounds.length > 0) {
+                    issues.push({ level: 'warning', type: '音效', message: badSounds.length + ' 个自定义音效数据不完整', fix: '删除损坏的音效后重新上传' });
+                }
+            }
+            if (cs.playing && !cs.hasSource) {
+                issues.push({ level: 'warning', type: '音效', message: '自定义音效状态异常（标记为播放中但无音源）', fix: '点击停止按钮重置音效状态' });
+            }
+        }
+    } catch (e) {}
+
+    // ----- 1.14 检查 AI 配置 -----
+    try {
+        var aiCfg = (typeof aiConfig !== 'undefined') ? aiConfig : null;
+        if (aiCfg) {
+            if (!aiCfg.apiKey) {
+                issues.push({ level: 'info', type: 'AI', message: '未配置 AI API Key，AI 答疑/简化解析不可用', fix: '在 AI 设置面板中填入 API Key' });
+            } else {
+                details.aiConfig = '✅ 已配置';
+            }
+            if (aiCfg.apiKey && !aiCfg.model) {
+                issues.push({ level: 'warning', type: 'AI', message: '已配置 API Key 但未选择模型', fix: '在 AI 设置面板中选择模型' });
+            }
+        }
+    } catch (e) {}
+
+    // ----- 1.15 检查训练工具状态 -----
+    try {
+        var trainingKeys = ['training_bhf', 'training_calc', 'training_formula', 'training_schulte', 'training_memory'];
+        var trainingFound = 0;
+        trainingKeys.forEach(function(k) {
+            try { if (localStorage.getItem(k)) trainingFound++; } catch(e) {}
+        });
+        details.trainingState = trainingFound + '/' + trainingKeys.length + ' 项有记录';
+    } catch (e) {}
+
+    // ----- 1.16 检查关键 DOM 元素 -----
+    try {
+        var criticalEls = ['content', 'sidebar', 'confirmOverlay', 'promptOverlay', 'scrollDiagPanel', 'toolFullscreen'];
+        var missingEls = criticalEls.filter(function(id) { return !document.getElementById(id); });
+        if (missingEls.length > 0) {
+            issues.push({ level: 'error', type: 'DOM', message: '缺少关键元素: ' + missingEls.join(', '), fix: '页面可能未完整加载，请刷新页面' });
+        } else {
+            details.domElements = '✅ 完整';
         }
     } catch (e) {}
 
@@ -7986,7 +8140,7 @@ function toggleNoHack(on){
 <button id="backToTop" type="button" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="返回顶部">↑</button>
 <button id="skinToggleBtn" type="button" onclick="toggleSkinPanel()" title="皮肤切换">🎨</button>
 <!-- 皮肤主题面板 - 居中弹出 -->
-<div id="skinPanel" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;background:#1e293b;border-radius:16px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,0.5);display:none;flex-direction:column;gap:10px;min-width:300px;max-width:90vw;border:1px solid rgba(255,255,255,0.08);">
+<div id="skinPanel" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:100002;background:#1e293b;border-radius:16px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,0.5);display:none;flex-direction:column;gap:10px;min-width:300px;max-width:90vw;border:1px solid rgba(255,255,255,0.08);">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
     <span style="color:#e2e8f0;font-size:16px;font-weight:700;">🎨 颜色主题</span>
     <button type="button" onclick="toggleSkinPanel()" style="background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer;padding:0 4px;">✕</button>
@@ -8406,6 +8560,8 @@ function stopAllSounds() {
 
 function playSound(type) {
   var c = getSoundContext();
+  // 修复：先停自定义音效（替代原来的二次包装），避免两种背景音同时播放
+  if (isCustomSoundPlaying) stopCustomSound();
   if (isSoundPlaying && currentSoundType === type) { stopAllSounds(); return; }
   stopAllSounds();
   isSoundPlaying = true;
@@ -8555,6 +8711,12 @@ function playSound(type) {
   }
 
   if (type === 'pomodoro') {
+    // 修复：开始时重新读取时长选择器，避免用户改了时长但未重置导致不一致
+    var durationSelect = document.getElementById('pomodoroDuration');
+    if (durationSelect) {
+      pomodoroTotalSeconds = (parseInt(durationSelect.value, 10) || 25) * 60;
+    }
+    pomodoroElapsedSeconds = 0;
     var total = pomodoroTotalSeconds;
     var elapsed = 0;
     var tg = c.createGain();
@@ -8696,6 +8858,16 @@ let customSoundCtx = null;
 let customSoundSource = null;
 let customSoundGain = null;
 
+// 暴露给第一个 script 块中的 fullDiagnosticScan 使用（跨 script 块无法直接访问 let 变量）
+window.__getCustomSoundState = function() {
+  return {
+    count: customSounds.length,
+    playing: isCustomSoundPlaying,
+    hasSource: !!customSoundSource,
+    sounds: customSounds
+  };
+};
+
 function loadCustomSounds() {
   return idbGetByPrefix('custom_sound_').then(function(sounds) {
     customSounds = sounds.filter(function(s) { return s && s.id && s.name && s.data; });
@@ -8725,33 +8897,37 @@ function uploadCustomSound(input) {
   }
   var reader = new FileReader();
   reader.onload = function(e) {
-    var name = prompt('给这段音频起个名字：', file.name.replace(/\.[^/.]+$/, ''));
-    if (!name) { input.value = ''; return; }
-    var sound = {
-      id: 'custom_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
-      name: name,
-      data: e.target.result,
-      duration: 0
-    };
-    var audio = new Audio();
-    audio.src = e.target.result;
-    audio.onloadedmetadata = function() {
-      sound.duration = Math.round(audio.duration);
-      saveCustomSoundToIDB(sound).then(function(saved) {
-        if(saved!==true) throw new Error('音效写入 IndexedDB 失败');
-        customSounds.push(sound);
-        renderCustomSoundList();
-        input.value = '';
-      }).catch(function() { alert('存储音效失败'); input.value = ''; });
-    };
-    audio.onerror = function() {
-      saveCustomSoundToIDB(sound).then(function(saved) {
-        if(saved!==true) throw new Error('音效写入 IndexedDB 失败');
-        customSounds.push(sound);
-        renderCustomSoundList();
-        input.value = '';
-      }).catch(function() { alert('存储音效失败'); input.value = ''; });
-    };
+    var defaultName = file.name.replace(/\.[^/.]+$/, '');
+    // 修复：用页面内输入弹窗替代原生 prompt()（iOS 独立模式/内置浏览器会静默禁用 prompt）
+    showPrompt('给这段音频起个名字：', defaultName, function(name) {
+      var sound = {
+        id: 'custom_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        name: name,
+        data: e.target.result,
+        duration: 0
+      };
+      var audio = new Audio();
+      audio.src = e.target.result;
+      audio.onloadedmetadata = function() {
+        sound.duration = Math.round(audio.duration);
+        saveCustomSoundToIDB(sound).then(function(saved) {
+          if(saved!==true) throw new Error('音效写入 IndexedDB 失败');
+          customSounds.push(sound);
+          renderCustomSoundList();
+          input.value = '';
+        }).catch(function() { alert('存储音效失败'); input.value = ''; });
+      };
+      audio.onerror = function() {
+        saveCustomSoundToIDB(sound).then(function(saved) {
+          if(saved!==true) throw new Error('音效写入 IndexedDB 失败');
+          customSounds.push(sound);
+          renderCustomSoundList();
+          input.value = '';
+        }).catch(function() { alert('存储音效失败'); input.value = ''; });
+      };
+    });
+    // 用户取消输入时清空 input，便于再次选择同一文件
+    setTimeout(function(){ if(!document.getElementById('promptOverlay').classList.contains('show')) input.value=''; }, 100);
   };
   reader.onerror = function() { alert('读取文件失败'); input.value = ''; };
   reader.readAsDataURL(file);
@@ -8839,17 +9015,10 @@ setSoundVolume = function(val) {
   if (customSoundGain) customSoundGain.gain.value = soundVolume * 0.5;
 };
 
-var originalStopAllSounds = stopAllSounds;
-stopAllSounds = function() {
-  originalStopAllSounds();
-  if (isCustomSoundPlaying) stopCustomSound();
-};
-
-var originalPlaySound = playSound;
-playSound = function(type) {
-  if (isCustomSoundPlaying) stopCustomSound();
-  originalPlaySound(type);
-};
+// 修复：不再二次包装 playSound / stopAllSounds。
+// 二次包装会导致 onclick 绑定的引用与实际执行的函数不一致（时序问题），
+// 且 stopAllSounds 被包装后，playSound 内部调用的是原始版本，自定义音效不会被停止。
+// 改为在 playSound 函数体开头直接处理自定义音效停止（见 playSound 定义处）。
 
 function initCustomSounds() {
   loadCustomSounds();
