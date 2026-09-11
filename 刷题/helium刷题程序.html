@@ -369,7 +369,7 @@ body {
   --shadow-strong:0 2px 8px rgba(0,0,0,0.10);
   --fs: 16px;
 }
-body { font-family: -apple-system, "Microsoft YaHei", sans-serif; padding: 20px; background: var(--bg); margin: 0; color: var(--text); font-size: var(--fs); }
+body { font-family: -apple-system, "Microsoft YaHei", sans-serif; padding: 0; background: var(--bg); margin: 0; color: var(--text); font-size: var(--fs); }
 html, body { width:100%; max-width:100%; margin:0; padding:0; box-sizing:border-box; }
 .container { width:100%; max-width:1180px; margin:0 auto; box-sizing:border-box; }
 #content { width:100%; box-sizing:border-box; }
@@ -1281,6 +1281,95 @@ body.skin-shenburen .q-content, body.skin-shenburen .q-title { color:#1a1a2e !im
 body.skin-shenburen .q-solution { background:#fdf6e3 !important; color:#1a1a2e !important; border-left-color:#d4a820 !important; }
 body.skin-shenburen .mian-shi-answer > div { background:#fef9e7 !important; color:#1a1a2e !important; }
 
+/* ===== 新增：左侧抽屉菜单 ===== */
+#drawerMask { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 10001; display: none; opacity: 0; transition: opacity .3s ease; }
+#drawerMask.show { display: block; opacity: 1; }
+#drawerToggle { position: fixed; left: 12px; top: 12px; z-index: 10000; width: 44px; height: 44px; border: none; border-radius: 12px; background: rgba(255,255,255,.9); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 2px 12px rgba(0,0,0,.12); font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #334155; transition: all .25s ease; }
+#drawerToggle:hover { transform: scale(1.05); }
+#appDrawer { position: fixed; left: 0; top: 0; bottom: 0; width: 260px; background: #ffffff; z-index: 10002; display: flex; flex-direction: column; padding: 20px 0; box-shadow: 4px 0 24px rgba(0,0,0,.12); transform: translateX(-100%); transition: transform .3s cubic-bezier(.22,1,.36,1); overflow-y: auto; }
+#appDrawer.show { transform: translateX(0); }
+body.skin-dark #appDrawer { background: #1e293b; box-shadow: 4px 0 24px rgba(0,0,0,.5); }
+body.skin-eye #appDrawer { background: #e8f5e9; }
+.drawer-header { display: flex; align-items: center; gap: 12px; padding: 0 20px 20px; border-bottom: 1px solid rgba(0,0,0,.06); margin-bottom: 12px; flex-shrink: 0; }
+body.skin-dark .drawer-header { border-bottom-color: rgba(255,255,255,.08); }
+.drawer-avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--main), var(--mid)); display: flex; align-items: center; justify-content: center; font-size: 22px; color: #fff; flex-shrink: 0; }
+.drawer-name { font-size: 17px; font-weight: 700; color: #1e293b; }
+body.skin-dark .drawer-name { color: #e2e8f0; }
+.drawer-menu { flex: 1; display: flex; flex-direction: column; gap: 4px; padding: 0 12px; overflow-y: auto; }
+.drawer-footer { display: flex; flex-direction: column; gap: 4px; padding: 12px 12px 0; border-top: 1px solid rgba(0,0,0,.06); margin-top: 12px; flex-shrink: 0; }
+body.skin-dark .drawer-footer { border-top-color: rgba(255,255,255,.08); }
+.drawer-item { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; cursor: pointer; color: #64748b; font-size: 15px; font-weight: 500; transition: all .2s ease; user-select: none; }
+body.skin-dark .drawer-item { color: #94a3b8; }
+.drawer-item:hover { background: rgba(0,0,0,.04); color: #1e293b; }
+body.skin-dark .drawer-item:hover { background: rgba(255,255,255,.06); color: #e2e8f0; }
+.drawer-item.active { background: linear-gradient(135deg, var(--mid), var(--main)); color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+.drawer-icon { font-size: 20px; width: 26px; text-align: center; flex-shrink: 0; }
+.drawer-label { white-space: nowrap; }
+#mainContent { padding: 0 20px 20px; min-height: 100vh; }
+.english-center { max-width: 1000px; margin: 0 auto; padding-top: 60px; }
+.english-dashboard { background: #fff; border-radius: 16px; padding: 20px 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+body.skin-dark .english-dashboard { background: #1e293b; }
+.dashboard-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+.dash-item { text-align: center; padding: 10px 4px; border-radius: 10px; background: rgba(0,0,0,.03); }
+body.skin-dark .dash-item { background: rgba(255,255,255,.04); }
+.dash-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+.dash-value { font-size: 22px; font-weight: 700; color: #1e293b; display: block; }
+body.skin-dark .dash-value { color: #e2e8f0; }
+.dash-label { font-size: 11px; color: #64748b; }
+.english-modules { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+.module-card { background: #fff; border: 2px solid transparent; border-radius: 14px; padding: 20px 16px; cursor: pointer; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,.06); transition: all .25s ease; }
+body.skin-dark .module-card { background: #1e293b; }
+.module-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,.1); }
+.module-card.active { border-color: var(--main); background: rgba(91,155,213,.06); }
+.module-icon { font-size: 32px; }
+.module-title { font-size: 16px; font-weight: 600; color: #1e293b; margin-top: 6px; }
+body.skin-dark .module-title { color: #e2e8f0; }
+.module-desc { font-size: 12px; color: #64748b; margin-top: 4px; }
+.module-badge { font-size: 11px; color: var(--main); margin-top: 8px; background: rgba(91,155,213,.1); padding: 2px 12px; border-radius: 12px; display: inline-block; }
+.module-panel { background: #fff; border-radius: 14px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+body.skin-dark .module-panel { background: #1e293b; }
+.panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+.panel-header h3 { margin: 0; font-size: 18px; color: #1e293b; }
+body.skin-dark .panel-header h3 { color: #e2e8f0; }
+.panel-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.en-textarea { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; font-family: inherit; resize: vertical; background: #f8fafc; color: #1e293b; box-sizing: border-box; }
+body.skin-dark .en-textarea { background: #0f172a; color: #e2e8f0; border-color: #334155; }
+.empty-state { text-align: center; padding: 40px 20px; color: #94a3b8; font-size: 14px; }
+.parse-result { margin-top: 16px; padding: 16px; background: rgba(0,0,0,.03); border-radius: 10px; }
+body.skin-dark .parse-result { background: rgba(255,255,255,.04); }
+@media (max-width: 768px) { #appDrawer { width: 240px; } #mainContent { padding: 0 12px 12px; } .dashboard-grid { grid-template-columns: repeat(3, 1fr); } .english-modules { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .dashboard-grid { grid-template-columns: repeat(2, 1fr); } .english-modules { grid-template-columns: 1fr; } }
+
+/* ===== 英语模块：阅读、词库、教材、复习样式 ===== */
+.en-article-list,.en-grammar-books { display:flex; flex-direction:column; gap:8px; margin-bottom:16px; }
+.en-article-item,.en-grammar-book { position:relative; padding:12px 40px 12px 14px; border:1px solid #e2e8f0; border-radius:10px; background:#fff; cursor:pointer; }
+body.skin-dark .en-article-item,body.skin-dark .en-grammar-book { background:#0f172a; border-color:#334155; }
+.en-article-item:hover,.en-grammar-book:hover { border-color:var(--main); }
+.en-article-title,.en-grammar-book-title { font-weight:600; font-size:14px; }
+.en-article-meta,.en-grammar-book-meta { font-size:12px; color:#94a3b8; margin-top:2px; }
+.en-article-del,.en-grammar-book-del { position:absolute; top:8px; right:8px; width:24px; height:24px; border:0; border-radius:50%; background:rgba(0,0,0,.06); color:#64748b; cursor:pointer; }
+.en-article-del:hover,.en-grammar-book-del:hover { background:#ef4444; color:#fff; }
+.en-parsed-title { font-size:16px; font-weight:700; color:#1e293b; margin-bottom:12px; }
+body.skin-dark .en-parsed-title { color:#e2e8f0; }
+.en-parsed-body { display:flex; flex-direction:column; gap:16px; }
+.en-sentence { padding:14px 16px; border-radius:10px; background:#f8fafc; border-left:3px solid var(--main); }
+body.skin-dark .en-sentence { background:#0f172a; }
+.en-sentence-slash { font-size:15px; line-height:1.8; color:#1e293b; font-family:Georgia,serif; }
+body.skin-dark .en-sentence-slash { color:#e2e8f0; }
+.en-svoc { margin-top:8px; font-size:12px; color:#64748b; }
+.en-tokens { margin-top:10px; line-height:2.2; }
+.en-token { display:inline-block; padding:1px 6px; border-radius:5px; font-size:14px; cursor:help; }
+.en-token-meaning { font-size:11px; color:#94a3b8; font-style:normal; margin-left:2px; }
+.en-token.lv-easy { background:rgba(59,130,246,.1); color:#2563eb; }.en-token.lv-hs { background:rgba(245,158,11,.15); color:#b45309; }.en-token.lv-c4 { background:rgba(239,68,68,.12); color:#dc2626; }.en-token.lv-c6 { background:rgba(139,92,246,.12); color:#7c3aed; }
+.en-vocab-stats,.en-review-stats { display:flex; gap:16px; padding:12px 16px; background:rgba(0,0,0,.03); border-radius:10px; margin-bottom:16px; }
+body.skin-dark .en-vocab-stats,body.skin-dark .en-review-stats { background:rgba(255,255,255,.04); }
+.en-vocab-stat { font-size:13px; color:#64748b; }.en-vocab-stat strong { color:#1e293b; font-size:16px; margin-left:4px; }body.skin-dark .en-vocab-stat strong { color:#e2e8f0; }
+.en-search { width:100%; padding:10px 14px; border:2px solid #e2e8f0; border-radius:10px; font-size:14px; margin-bottom:12px; box-sizing:border-box; }body.skin-dark .en-search { background:#0f172a; color:#e2e8f0; border-color:#334155; }
+.en-vocab-list { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; max-height:500px; overflow-y:auto; }.en-vocab-item { padding:10px 12px; border:1px solid #e2e8f0; border-radius:8px; background:#fff; }.en-vocab-item.mastered { background:rgba(74,222,128,.08); border-color:#4ade80; }body.skin-dark .en-vocab-item { background:#0f172a; border-color:#334155; }.en-vocab-word { font-weight:700; font-size:15px; color:#1e293b; }body.skin-dark .en-vocab-word { color:#e2e8f0; }.en-vocab-meaning { font-size:12px; color:#64748b; margin-top:2px; }.en-vocab-diff { font-size:10px; color:#94a3b8; margin-top:4px; }
+.en-grammar-content { display:grid; grid-template-columns:260px 1fr; gap:16px; }.en-grammar-toc { padding:12px; background:#f8fafc; border-radius:10px; max-height:500px; overflow-y:auto; }body.skin-dark .en-grammar-toc { background:#0f172a; }.en-grammar-toc-title { font-weight:700; font-size:14px; margin-bottom:10px; }.en-grammar-toc-item { padding:6px 0; font-size:13px; cursor:pointer; color:#475569; border-radius:6px; }body.skin-dark .en-grammar-toc-item { color:#cbd5e1; }.en-grammar-toc-item:hover { background:rgba(0,0,0,.04); color:var(--main); }.en-grammar-chapter-view { padding:16px; background:#fff; border-radius:10px; line-height:1.9; }body.skin-dark .en-grammar-chapter-view { background:#1e293b; color:#e2e8f0; }
+.en-review-card { padding:40px 20px; text-align:center; background:#fff; border-radius:14px; box-shadow:0 2px 8px rgba(0,0,0,.06); }body.skin-dark .en-review-card { background:#1e293b; }.en-review-word { font-size:48px; font-weight:700; color:#1e293b; margin-bottom:12px; font-family:Georgia,serif; }body.skin-dark .en-review-word { color:#e2e8f0; }.en-review-hint { font-size:14px; color:#94a3b8; margin-bottom:16px; }.en-review-answer { font-size:20px; color:var(--main); padding:16px; background:rgba(91,155,213,.08); border-radius:10px; margin:16px auto; max-width:400px; }.en-review-actions { display:flex; gap:12px; justify-content:center; margin-top:20px; }
+@media (max-width:600px) { .en-vocab-list { grid-template-columns:repeat(2,1fr); } .en-grammar-content { grid-template-columns:1fr; } }
+
 </style>
 </head>
 <body class="pc-mode">
@@ -1294,40 +1383,26 @@ body.skin-shenburen .mian-shi-answer > div { background:#fef9e7 !important; colo
     </div>
   </div>
 </div>
-<!-- ===== 新增：左侧导航栏 ===== -->
-<nav id="appNav" class="app-nav">
-  <div class="nav-user">
-    <div class="user-avatar">🧑</div>
-    <div class="user-name">Helium</div>
+<!-- ===== 新增：左侧抽屉菜单 ===== -->
+<div id="drawerMask" onclick="toggleDrawer()"></div>
+<button id="drawerToggle" onclick="toggleDrawer()">☰</button>
+<nav id="appDrawer" class="app-drawer">
+  <div class="drawer-header">
+    <span class="drawer-avatar">🧑</span>
+    <span class="drawer-name">Helium</span>
   </div>
-  <div class="mode-switch-group">
-    <div class="nav-item mode-item active" data-mode="exam" onclick="switchAppMode('exam')">
-      <span class="nav-icon">📚</span>
-      <span class="nav-label">公考刷题</span>
-    </div>
-    <div class="nav-item mode-item" data-mode="english" onclick="switchAppMode('english')">
-      <span class="nav-icon">🇬🇧</span>
-      <span class="nav-label">英语学习</span>
-    </div>
+  <div class="drawer-menu">
+    <div class="drawer-item active" data-mode="exam" onclick="switchAppMode('exam')"><span class="drawer-icon">🏛️</span><span class="drawer-label">公考刷题</span></div>
+    <div class="drawer-item" data-mode="english" onclick="switchAppMode('english')"><span class="drawer-icon">🇬🇧</span><span class="drawer-label">英语学习</span></div>
+    <div class="drawer-item" onclick="viewWrongSet()"><span class="drawer-icon">📚</span><span class="drawer-label">错题本</span></div>
+    <div class="drawer-item" onclick="alert('报告功能开发中')"><span class="drawer-icon">📊</span><span class="drawer-label">报告</span></div>
   </div>
-  <div class="nav-divider"></div>
-  <div class="nav-footer">
-    <div class="nav-item" onclick="exportBackup()">
-      <span class="nav-icon">💾</span>
-      <span class="nav-label">导出</span>
-    </div>
-    <div class="nav-item" onclick="document.getElementById('backupInput').click()">
-      <span class="nav-icon">📥</span>
-      <span class="nav-label">导入</span>
-    </div>
-    <div class="nav-divider"></div>
-    <div class="nav-item nav-collapse" onclick="toggleNav()">
-      <span class="nav-icon">◀</span>
-      <span class="nav-label">收起</span>
-    </div>
+  <div class="drawer-footer">
+    <div class="drawer-item" onclick="drawerExport()"><span class="drawer-icon">💾</span><span class="drawer-label">导出</span></div>
+    <div class="drawer-item" onclick="drawerImport()"><span class="drawer-icon">📥</span><span class="drawer-label">导入</span></div>
+    <input type="file" id="englishBackupInput" accept="application/json,.json" style="display:none;" onchange="importEnglishBackup(this)">
   </div>
 </nav>
-<button id="navExpandBtn" onclick="toggleNav()">☰</button>
 <!-- ===== 新增结束 ===== -->
 <div id="mainContent">
 <div class="container">
@@ -1439,6 +1514,7 @@ body.skin-shenburen .mian-shi-answer > div { background:#fef9e7 !important; colo
     <div class="pagination" id="pagination" style="display:none;"></div>
     <div id="noResult" style="text-align:center;padding:40px;color:var(--secondary);display:none;">没有找到匹配的题目</div>
 </div>
+<div id="englishCenterContainer" style="display:none;"></div>
 </div>
 
 <script>
@@ -1446,53 +1522,67 @@ body.skin-shenburen .mian-shi-answer > div { background:#fef9e7 !important; colo
 // 新增：导航栏 + 英语模块
 // ============================================================
 let APP_MODE = 'exam';
-let NAV_COLLAPSED = false;
+let DRAWER_OPEN = false;
 let activeEnglishModule = 'reading';
 
-function syncNavState() {
-  const nav = document.getElementById('appNav');
-  const main = document.getElementById('mainContent');
-  const btn = document.getElementById('navExpandBtn');
-  if (nav) nav.classList.toggle('collapsed', NAV_COLLAPSED);
-  if (main) main.classList.toggle('expanded', NAV_COLLAPSED);
-  if (btn) btn.classList.toggle('visible', NAV_COLLAPSED);
+function toggleDrawer() {
+  DRAWER_OPEN = !DRAWER_OPEN;
+  document.getElementById('appDrawer').classList.toggle('show', DRAWER_OPEN);
+  document.getElementById('drawerMask').classList.toggle('show', DRAWER_OPEN);
 }
 
-function toggleNav() {
-  NAV_COLLAPSED = !NAV_COLLAPSED;
-  syncNavState();
-  try { localStorage.setItem('nav_collapsed', JSON.stringify(NAV_COLLAPSED)); } catch (e) {}
-}
-
-function updateNavSelection() {
-  document.querySelectorAll('.mode-item').forEach(function(el) {
+function updateDrawerSelection() {
+  document.querySelectorAll('.drawer-item[data-mode]').forEach(function(el) {
     el.classList.toggle('active', el.dataset.mode === APP_MODE);
   });
 }
 
 function switchAppMode(mode) {
-  if (APP_MODE === mode) return;
+  if (APP_MODE === mode) { if (DRAWER_OPEN) toggleDrawer(); return; }
   APP_MODE = mode;
   try { localStorage.setItem('app_mode', mode); } catch (e) {}
   document.body.classList.toggle('english-mode', APP_MODE === 'english');
-  updateNavSelection();
+  updateDrawerSelection();
+  const exportLabel = document.querySelector('.drawer-footer .drawer-item:nth-child(1) .drawer-label');
+  const importLabel = document.querySelector('.drawer-footer .drawer-item:nth-child(2) .drawer-label');
+  if (exportLabel && importLabel) {
+    exportLabel.textContent = APP_MODE === 'english' ? '导出英语' : '导出公考';
+    importLabel.textContent = APP_MODE === 'english' ? '导入英语' : '导入公考';
+  }
+  if (DRAWER_OPEN) toggleDrawer();
+  const exam = document.querySelector('.container');
+  const english = document.getElementById('englishCenterContainer');
   if (mode === 'exam') {
+    if (exam) exam.style.display = '';
+    if (english) english.style.display = 'none';
     if (typeof renderAll === 'function') renderAll();
   } else {
+    if (exam) exam.style.display = 'none';
+    if (english) english.style.display = 'block';
     renderEnglishCenter();
   }
 }
 
-function getEnglishStats() {
-  return {
-    totalWords: 1284,
-    mastered: 89,
-    reviewing: 23,
-    groups: 147,
-    articles: 12,
-    grammarBooks: 3
-  };
+// ===== 英语模块：数据访问层 =====
+const EN_KEYS = { articles:'en_articles', vocabulary:'en_vocabulary', groups:'en_groups', grammarBooks:'en_grammar_books', reviewState:'en_review_state', stats:'en_stats' };
+async function enGetArticles(){ return (await idbGet(EN_KEYS.articles))||[]; }
+async function enSetArticles(list){ return idbSet(EN_KEYS.articles,list); }
+async function enGetVocabulary(){ return (await idbGet(EN_KEYS.vocabulary))||{}; }
+async function enSetVocabulary(value){ return idbSet(EN_KEYS.vocabulary,value); }
+async function enGetGroups(){ return (await idbGet(EN_KEYS.groups))||[]; }
+async function enSetGroups(value){ return idbSet(EN_KEYS.groups,value); }
+async function enGetGrammarBooks(){ return (await idbGet(EN_KEYS.grammarBooks))||[]; }
+async function enSetGrammarBooks(value){ return idbSet(EN_KEYS.grammarBooks,value); }
+async function enGetReviewState(){ return (await idbGet(EN_KEYS.reviewState))||{queue:[],history:{},stats:{}}; }
+async function enSetReviewState(value){ return idbSet(EN_KEYS.reviewState,value); }
+async function enComputeStats(){
+  const data=await Promise.all([enGetVocabulary(),enGetGroups(),enGetArticles(),enGetGrammarBooks()]);
+  const vocab=data[0], words=Object.keys(vocab), now=Date.now();
+  const stats={totalWords:words.length, mastered:words.filter(function(w){return vocab[w].mastered;}).length, reviewing:words.filter(function(w){return !vocab[w].mastered&&(vocab[w].nextReviewAt||0)<=now;}).length, groups:data[1].length, articles:data[2].length, grammarBooks:data[3].length};
+  await idbSet(EN_KEYS.stats,stats);
+  return stats;
 }
+async function getEnglishStats(){ return enComputeStats(); }
 
 function renderEnglishModuleContent(moduleId) {
   const modules = {
@@ -1557,11 +1647,11 @@ function renderEnglishModuleContent(moduleId) {
   return modules[moduleId] || '<div class="empty-state">请选择一个模块</div>';
 }
 
-function renderEnglishCenter() {
-  const content = document.getElementById('content');
+async function renderEnglishCenter() {
+  const content = document.getElementById('englishCenterContainer');
   if (!content) return;
 
-  const stats = getEnglishStats();
+  const stats = await getEnglishStats();
   const modules = [
     { id: 'reading', icon: '📖', title: '深度阅读', desc: 'AI 句法标注 · 词汇难度标记', badge: stats.articles + ' 篇已读' },
     { id: 'vocabulary', icon: '📚', title: '智能词库', desc: 'MDX/CSV 导入 · 同义词聚合', badge: stats.totalWords + ' 词 · ' + stats.groups + ' 组' },
@@ -1620,36 +1710,148 @@ function renderEnglishCenter() {
       </div>
 
       <div class="module-content">
-        ${renderEnglishModuleContent(activeEnglishModule)}
+        ${renderEnglishModuleContentLive(activeEnglishModule)}
       </div>
     </div>
   `;
+  setTimeout(function(){ enInitActiveModule(); }, 0);
 }
 
-function switchEnglishModule(moduleId) {
+async function switchEnglishModule(moduleId) {
   if (activeEnglishModule === moduleId) return;
   activeEnglishModule = moduleId;
-  renderEnglishCenter();
+  await renderEnglishCenter();
 }
 
-function initNav() {
+// ===== 英语模块：功能界面 =====
+function renderEnglishModuleContentLive(moduleId){
+  const templates={
+    reading:'<div class="module-panel"><div class="panel-header"><h3>📖 深度阅读</h3><div class="panel-actions"><label for="enArticleInput" class="btn btn-primary" style="padding:6px 14px;border-radius:8px;cursor:pointer;">📁 上传文章</label><input type="file" id="enArticleInput" accept=".txt,.md" style="display:none;" onchange="enUploadArticle(this)"><button class="btn btn-outline" onclick="enPasteArticle()" style="padding:6px 14px;border-radius:8px;">📝 粘贴文本</button></div></div><div class="panel-body"><div id="enArticleList" class="en-article-list"></div><div id="enArticleParseArea"></div></div></div>',
+    vocabulary:'<div class="module-panel"><div class="panel-header"><h3>📚 智能词库</h3><div class="panel-actions"><label for="enVocabInput" class="btn btn-primary" style="padding:6px 14px;border-radius:8px;cursor:pointer;">📁 导入词库</label><input type="file" id="enVocabInput" accept=".csv,.txt,.json" style="display:none;" onchange="enImportVocab(this)"><button class="btn btn-outline" onclick="enExportVocab()" style="padding:6px 14px;border-radius:8px;">📤 导出词库</button><button class="btn btn-outline" onclick="enAggregateGroups()" style="padding:6px 14px;border-radius:8px;">🔗 同义词聚合</button></div></div><div class="panel-body"><div id="enVocabStats" class="en-vocab-stats"></div><input type="text" id="enVocabSearch" class="en-search" placeholder="🔍 搜索单词..." oninput="enRenderVocabList(this.value)"><div id="enVocabList" class="en-vocab-list"></div></div></div>',
+    grammar:'<div class="module-panel"><div class="panel-header"><h3>📘 语法教材</h3><div class="panel-actions"><label for="enGrammarInput" class="btn btn-primary" style="padding:6px 14px;border-radius:8px;cursor:pointer;">📁 上传教材</label><input type="file" id="enGrammarInput" accept=".txt,.md" style="display:none;" onchange="enUploadGrammar(this)"></div></div><div class="panel-body"><div id="enGrammarBooks" class="en-grammar-books"></div><div id="enGrammarContent" class="en-grammar-content"></div></div></div>',
+    review:'<div class="module-panel"><div class="panel-header"><h3>🔄 复习</h3><div class="panel-actions"><button class="btn btn-primary" onclick="enStartReview()" style="padding:6px 14px;border-radius:8px;">🔁 开始复习</button></div></div><div class="panel-body"><div id="enReviewStats" class="en-review-stats"></div><div id="enReviewCard" class="en-review-card"></div></div></div>'
+  };
+  return templates[moduleId]||'<div class="empty-state">请选择一个模块</div>';
+}
+async function enInitActiveModule(){
+  if(activeEnglishModule==='reading') await enRenderArticleList();
+  else if(activeEnglishModule==='vocabulary') await enRenderVocabModule();
+  else if(activeEnglishModule==='grammar') await enRenderGrammar();
+  else if(activeEnglishModule==='review') await enRenderReview();
+}
+
+// ===== 英语模块：深度阅读 =====
+async function enUploadArticle(input){ const file=input.files[0]; if(!file)return; await enAddArticle(file.name.replace(/\.[^.]+$/,''),await file.text()); input.value=''; }
+async function enPasteArticle(){ const text=prompt('请粘贴英文文章（点击确定后开始解析）'); if(text&&text.trim()) await enAddArticle('粘贴文章 '+new Date().toLocaleString(),text); }
+async function enAddArticle(title,content){ const articles=await enGetArticles(); const article={id:'a_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),title:title,content:content,createdAt:Date.now(),parsed:null}; articles.unshift(article); await enSetArticles(articles); await enRenderArticleList(); await enParseArticle(article.id); }
+async function enRenderArticleList(){ const el=document.getElementById('enArticleList'); if(!el)return; const articles=await enGetArticles(); if(!articles.length){el.innerHTML='<div class="empty-state">暂无文章，点击上方按钮上传或粘贴</div>';return;} el.innerHTML=articles.map(function(a){return '<div class="en-article-item" onclick="enParseArticle(\''+a.id+'\')"><div class="en-article-title">📄 '+escapeHtml(a.title)+'</div><div class="en-article-meta">'+new Date(a.createdAt).toLocaleString()+' · '+(a.parsed?'✅ 已解析':'⏳ 未解析')+'</div><button class="en-article-del" onclick="event.stopPropagation();enDeleteArticle(\''+a.id+'\')">✕</button></div>';}).join(''); }
+async function enDeleteArticle(id){ showConfirm('确定删除这篇文章吗？',async function(){await enSetArticles((await enGetArticles()).filter(function(a){return a.id!==id;})); await enRenderArticleList(); const el=document.getElementById('enArticleParseArea'); if(el)el.innerHTML='';}); }
+async function enParseArticle(id){ const articles=await enGetArticles(), article=articles.find(function(a){return a.id===id;}), area=document.getElementById('enArticleParseArea'); if(!article||!area)return; if(article.parsed){enRenderParsed(article);return;} if(!aiConfig.apiKey){area.innerHTML='<div style="color:#dc2626;padding:20px;">请先配置 AI API Key</div>';return;} const ep=AI_ENDPOINTS[aiConfig.provider]; if(!ep){area.innerHTML='<div style="color:#dc2626;padding:20px;">未知 AI 服务商</div>';return;} area.innerHTML='<div style="padding:20px;text-align:center;">⏳ AI 正在解析...</div>'; try{const response=await axios({method:'post',url:ep.url,headers:{'Content-Type':'application/json','Authorization':'Bearer '+aiConfig.apiKey},data:{model:aiConfig.model||ep.model,messages:[{role:'system',content:'你是英语语法专家。请将文章按句切分，输出 JSON：{"sentences":[{"text":"原句","svoc":{"s":"","v":"","o":"","c":""},"slash":"意群/划分","tokens":[{"word":"cat","pos":"n.","meaning":"猫","difficulty":"高中"}]}]}。只输出 JSON。'},{role:'user',content:article.content.substring(0,3000)}],temperature:.3,max_tokens:4000},timeout:60000,proxy:false}); const text=response.data.choices[0].message.content,jsonMatch=text.match(/\{[\s\S]*\}/); if(!jsonMatch)throw new Error('AI 未返回有效 JSON'); article.parsed=JSON.parse(jsonMatch[0]); const all=await enGetArticles(),index=all.findIndex(function(a){return a.id===id;}); if(index>=0)all[index]=article; await enSetArticles(all); await enExtractVocabularyFromParsed(article.parsed); enRenderParsed(article); }catch(e){area.innerHTML='<div style="color:#dc2626;padding:20px;">❌ AI 解析失败：'+escapeHtml(e.message)+'</div>';} }
+function enRenderParsed(article){ const area=document.getElementById('enArticleParseArea'); if(!area)return; let html='<div class="en-parsed-title">📖 '+escapeHtml(article.title)+'</div><div class="en-parsed-body">'; (article.parsed.sentences||[]).forEach(function(sent){html+='<div class="en-sentence"><div class="en-sentence-slash">'+escapeHtml(sent.slash||sent.text)+'</div>'; if(sent.svoc)html+='<div class="en-svoc">【主干】主：'+escapeHtml(sent.svoc.s||'')+'　谓：'+escapeHtml(sent.svoc.v||'')+'　宾：'+escapeHtml(sent.svoc.o||'')+'　补：'+escapeHtml(sent.svoc.c||'')+'</div>'; if(sent.tokens&&sent.tokens.length){html+='<div class="en-tokens">'; sent.tokens.forEach(function(t){const cls=t.difficulty==='高中'?'lv-hs':t.difficulty==='四级'?'lv-c4':t.difficulty==='六级'?'lv-c6':'lv-easy'; html+='<span class="en-token '+cls+'" title="'+escapeHtml((t.pos||'')+' '+(t.meaning||''))+'">'+escapeHtml(t.word||'')+(t.meaning&&t.difficulty!=='初中'?'<em class="en-token-meaning">'+escapeHtml(t.meaning)+'</em>':'')+'</span> ';}); html+='</div>';} html+='</div>';}); area.innerHTML=html+'</div>'; }
+async function enExtractVocabularyFromParsed(parsed){ const vocab=await enGetVocabulary(); let changed=false; (parsed.sentences||[]).forEach(function(s){(s.tokens||[]).forEach(function(t){if(t.word&&t.meaning&&t.difficulty!=='初中'){const key=t.word.toLowerCase();if(!vocab[key]){vocab[key]={meaning:t.meaning,pos:t.pos||'',difficulty:t.difficulty||'',mastered:false,wrongCount:0,createdAt:Date.now()};changed=true;}}});}); if(changed)await enSetVocabulary(vocab); }
+
+// ===== 英语模块：智能词库 =====
+async function enImportVocab(input){ const file=input.files[0]; if(!file)return; const text=await file.text(),vocab=await enGetVocabulary(); let count=0; if(/\.json$/i.test(file.name)){try{const data=JSON.parse(text),arr=Array.isArray(data)?data:(data.words||[]); arr.forEach(function(item){if(item.word){vocab[item.word.toLowerCase()]={meaning:item.meaning||item.def||'',pos:item.pos||'',difficulty:item.difficulty||'',mastered:false,wrongCount:0,createdAt:Date.now()};count++;}});}catch(e){alert('JSON 解析失败：'+e.message);return;}}else{text.split(/\r?\n/).forEach(function(line){const p=line.split(/[,\t]/).map(function(s){return s.trim();});if(p[0]&&/^[a-zA-Z][a-zA-Z\s'-]*$/.test(p[0])){vocab[p[0].toLowerCase()]={meaning:p[1]||'',pos:'',difficulty:'',mastered:false,wrongCount:0,createdAt:Date.now()};count++;}});} await enSetVocabulary(vocab); input.value=''; alert('✅ 导入成功，新增 '+count+' 个词条'); await enRenderVocabModule(); }
+async function enExportVocab(){ const vocab=await enGetVocabulary(),arr=Object.keys(vocab).map(function(w){return Object.assign({word:w},vocab[w]);}); if(!arr.length){alert('词库为空');return;} const url=URL.createObjectURL(new Blob([JSON.stringify(arr,null,2)],{type:'application/json'})),a=document.createElement('a'); a.href=url;a.download='vocab_'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(function(){URL.revokeObjectURL(url);},1000); }
+async function enRenderVocabModule(){ const stats=document.getElementById('enVocabStats'),list=document.getElementById('enVocabList'); if(!stats||!list)return; const vocab=await enGetVocabulary(),words=Object.keys(vocab),mastered=words.filter(function(w){return vocab[w].mastered;}).length; stats.innerHTML='<div class="en-vocab-stat">📚 总词汇 <strong>'+words.length+'</strong></div><div class="en-vocab-stat">✅ 已掌握 <strong>'+mastered+'</strong></div><div class="en-vocab-stat">🔄 待复习 <strong>'+(words.length-mastered)+'</strong></div>'; await enRenderVocabList(''); }
+async function enRenderVocabList(keyword){ const list=document.getElementById('enVocabList');if(!list)return;const vocab=await enGetVocabulary(),kw=(keyword||'').toLowerCase().trim(),words=Object.keys(vocab).filter(function(w){return !kw||w.includes(kw)||(vocab[w].meaning||'').includes(kw);}).slice(0,200);if(!words.length){list.innerHTML='<div class="empty-state">'+(kw?'没有匹配的词':'词库为空，请先导入')+'</div>';return;}list.innerHTML=words.map(function(w){const v=vocab[w];return '<div class="en-vocab-item '+(v.mastered?'mastered':'')+'"><div class="en-vocab-word">'+escapeHtml(w)+'</div><div class="en-vocab-meaning">'+escapeHtml(v.meaning||'—')+'</div>'+(v.difficulty?'<div class="en-vocab-diff">'+escapeHtml(v.difficulty)+'</div>':'')+'</div>';}).join(''); }
+async function enAggregateGroups(){ const vocab=await enGetVocabulary(),words=Object.keys(vocab);if(words.length<4){alert('词库太少（至少 4 个词）');return;}if(!aiConfig.apiKey){alert('请先配置 AI API Key');return;}const ep=AI_ENDPOINTS[aiConfig.provider],stats=document.getElementById('enVocabStats');if(!ep)return;if(stats)stats.innerHTML='<div style="padding:12px;text-align:center;">🔗 AI 正在聚类...</div>';try{const response=await axios({method:'post',url:ep.url,headers:{'Content-Type':'application/json','Authorization':'Bearer '+aiConfig.apiKey},data:{model:aiConfig.model||ep.model,messages:[{role:'system',content:'请将英文单词按语义聚类，输出 JSON 数组：[ {"name":"情感","emoji":"😊","words":["happy"]} ]，只输出 JSON。'},{role:'user',content:words.slice(0,100).join(', ')}],temperature:.3,max_tokens:2000},timeout:60000,proxy:false});const match=response.data.choices[0].message.content.match(/\[[\s\S]*\]/);if(!match)throw new Error('AI 未返回有效 JSON');const groups=JSON.parse(match[0]).map(function(g,i){return{id:'g_'+Date.now()+'_'+i,name:g.name,emoji:g.emoji||'📁',words:g.words||[]};});groups.forEach(function(g){g.words.forEach(function(w){if(vocab[w.toLowerCase()])vocab[w.toLowerCase()].groupId=g.id;});});await enSetGroups(groups);await enSetVocabulary(vocab);alert('✅ 聚合完成，共 '+groups.length+' 组');await enRenderVocabModule();}catch(e){alert('AI 聚合失败：'+e.message);await enRenderVocabModule();} }
+
+// ===== 英语模块：语法教材 =====
+function enParseChapters(text){const lines=text.split(/\r?\n/),chapters=[];let current=null,buffer=[];function flush(){if(current){current.content=buffer.join('\n').trim();chapters.push(current);}buffer=[];}lines.forEach(function(line){const m=line.match(/^(#{1,3})\s+(.+)$/);if(m){flush();current={id:'c_'+Date.now()+'_'+chapters.length,level:m[1].length,title:m[2].trim(),content:''};}else if(current)buffer.push(line);});flush();if(!chapters.length)chapters.push({id:'c_'+Date.now(),level:1,title:'正文',content:text.trim()});return chapters;}
+async function enUploadGrammar(input){const file=input.files[0];if(!file)return;const books=await enGetGrammarBooks();books.unshift({id:'b_'+Date.now(),title:file.name.replace(/\.[^.]+$/,''),chapters:enParseChapters(await file.text()),createdAt:Date.now()});await enSetGrammarBooks(books);input.value='';alert('✅ 教材导入成功');await enRenderGrammar();}
+async function enRenderGrammar(){const list=document.getElementById('enGrammarBooks');if(!list)return;const books=await enGetGrammarBooks();if(!books.length){list.innerHTML='<div class="empty-state">暂无教材，请上传 .txt 或 .md 文件</div>';return;}list.innerHTML=books.map(function(b){return '<div class="en-grammar-book" onclick="enOpenGrammarBook(\''+b.id+'\')"><div class="en-grammar-book-title">📘 '+escapeHtml(b.title)+'</div><div class="en-grammar-book-meta">'+b.chapters.length+' 章节</div><button class="en-grammar-book-del" onclick="event.stopPropagation();enDeleteGrammarBook(\''+b.id+'\')">✕</button></div>';}).join('');}
+async function enOpenGrammarBook(id){const book=(await enGetGrammarBooks()).find(function(b){return b.id===id;}),area=document.getElementById('enGrammarContent');if(!book||!area)return;let html='<div class="en-grammar-toc"><div class="en-grammar-toc-title">'+escapeHtml(book.title)+'</div>';book.chapters.forEach(function(ch,i){html+='<div class="en-grammar-toc-item" style="padding-left:'+(12+(ch.level-1)*16)+'px" onclick="enShowChapter(\''+id+'\','+i+')">'+(ch.level===1?'📖 ':ch.level===2?'📄 ':'· ')+escapeHtml(ch.title)+'</div>';});area.innerHTML=html+'</div><div id="enGrammarChapterView" class="en-grammar-chapter-view"></div>';}
+async function enShowChapter(bookId,index){const book=(await enGetGrammarBooks()).find(function(b){return b.id===bookId;}),ch=book&&book.chapters[index],view=document.getElementById('enGrammarChapterView');if(!ch||!view)return;view.innerHTML='<h3>'+escapeHtml(ch.title)+'</h3><div class="en-grammar-chapter-body">'+escapeHtml(ch.content).replace(/\n/g,'<br>')+'</div>';view.scrollIntoView({behavior:'smooth',block:'nearest'});}
+async function enDeleteGrammarBook(id){showConfirm('确定删除这本教材吗？',async function(){await enSetGrammarBooks((await enGetGrammarBooks()).filter(function(b){return b.id!==id;}));await enRenderGrammar();const el=document.getElementById('enGrammarContent');if(el)el.innerHTML='';});}
+
+// ===== 英语模块：复习（艾宾浩斯） =====
+const EBBINGHAUS=[5*60*1000,30*60*1000,12*3600*1000,24*3600*1000,2*24*3600*1000,4*24*3600*1000,7*24*3600*1000,15*24*3600*1000];
+async function enRenderReview(){const stats=document.getElementById('enReviewStats'),card=document.getElementById('enReviewCard');if(!stats||!card)return;const vocab=await enGetVocabulary(),words=Object.keys(vocab),now=Date.now(),due=words.filter(function(w){return !vocab[w].mastered&&(vocab[w].nextReviewAt||0)<=now;});stats.innerHTML='<div class="en-vocab-stat">📚 总词汇 <strong>'+words.length+'</strong></div><div class="en-vocab-stat">🔄 今日待复习 <strong>'+due.length+'</strong></div>';card.innerHTML='';}
+async function enStartReview(){const vocab=await enGetVocabulary(),due=Object.keys(vocab).filter(function(w){return !vocab[w].mastered&&(vocab[w].nextReviewAt||0)<=Date.now();}),card=document.getElementById('enReviewCard');if(!card)return;if(!due.length){card.innerHTML='<div class="empty-state">🎉 暂无待复习的词</div>';return;}const word=due[Math.floor(Math.random()*due.length)],v=vocab[word];card.innerHTML='<div class="en-review-word">'+escapeHtml(word)+'</div><div class="en-review-hint">'+escapeHtml(v.pos||'')+' · 选择记忆结果</div><div class="en-review-answer">'+escapeHtml(v.meaning||'—')+'</div><div class="en-review-actions"><button class="btn btn-outline" onclick="enReviewAction(\''+word.replace(/'/g,"\\'")+'\',false)">🔁 不认识</button><button class="btn btn-primary" onclick="enReviewAction(\''+word.replace(/'/g,"\\'")+'\',true)">✅ 认识</button></div>';}
+async function enReviewAction(word,known){const vocab=await enGetVocabulary(),v=vocab[word];if(!v)return;const now=Date.now();if(known){v.correctCount=(v.correctCount||0)+1;v.nextReviewAt=now+EBBINGHAUS[Math.min(v.correctCount-1,EBBINGHAUS.length-1)];if(v.correctCount>=5)v.mastered=true;}else{v.correctCount=0;v.wrongCount=(v.wrongCount||0)+1;v.nextReviewAt=now+EBBINGHAUS[0];}v.reviewedAt=now;await enSetVocabulary(vocab);await enRenderReview();await enStartReview();}
+
+// ============================================================
+// 抽屉菜单统一导出/导入
+// ============================================================
+function drawerExport(){
+  if(APP_MODE==='english') exportEnglishBackup();
+  else exportBackup();
+}
+function drawerImport(){
+  const input=document.getElementById(APP_MODE==='english'?'englishBackupInput':'backupInput');
+  if(input){ input.value=''; input.click(); }
+}
+
+// ============================================================
+// 英语模块：导出备份
+// ============================================================
+async function exportEnglishBackup(){
+  try{
+    const data=await Promise.all([enGetArticles(),enGetVocabulary(),enGetGroups(),enGetGrammarBooks(),enGetReviewState(),idbGet(EN_KEYS.stats)]);
+    const articles=data[0],vocabulary=data[1],groups=data[2],grammarBooks=data[3],reviewState=data[4],stats=data[5];
+    const statsInfo={totalWords:Object.keys(vocabulary||{}).length,totalArticles:(articles||[]).length,totalGrammarBooks:(grammarBooks||[]).length,totalGroups:(groups||[]).length};
+    const backup={_type:'helium_english_backup_v1',version:1,exportTime:new Date().toISOString(),stats:statsInfo,data:{articles:articles||[],vocabulary:vocabulary||{},groups:groups||[],grammarBooks:grammarBooks||[],reviewState:reviewState||{history:{}},stats:stats||{}}};
+    const backupStr=JSON.stringify(backup),fileSizeKB=Math.round(backupStr.length/1024),fileSizeMB=(backupStr.length/1048576).toFixed(2),sizeText=fileSizeKB>1024?fileSizeMB+' MB':fileSizeKB+' KB';
+    showConfirm('将导出英语学习数据：\n  📚 单词 '+statsInfo.totalWords+' 个\n  📖 文章 '+statsInfo.totalArticles+' 篇\n  📘 教材 '+statsInfo.totalGrammarBooks+' 本\n  📂 词组 '+statsInfo.totalGroups+' 组\n  （约 '+sizeText+'）\n\n确认继续？',function(){downloadJSON(backup,'Helium英语备份_'+new Date().toISOString().slice(0,10)+'.json');alert('✅ 英语备份导出成功！');});
+  }catch(e){ alert('❌ 导出失败：'+e.message); }
+}
+
+// ============================================================
+// 英语模块：导入备份
+// ============================================================
+function importEnglishBackup(input){
+  const file=input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{ importEnglishBackupFromObject(JSON.parse(e.target.result)); }
+    catch(err){ alert('导入失败：'+err.message); }
+    input.value='';
+  };
+  reader.readAsText(file);
+}
+async function importEnglishBackupFromObject(data){
+  if(!data||typeof data!=='object'){ alert('数据格式错误：不是有效的 JSON 对象'); return; }
+  if(data._type!=='helium_english_backup_v1'){ alert('数据格式错误：不是英语备份文件（缺少 _type: helium_english_backup_v1 标记）'); return; }
+  const backupData=data.data||{},statsInfo=data.stats||{};
+  showConfirm('检测到英语备份文件，将导入以下数据：\n  📚 单词 '+(statsInfo.totalWords||0)+' 个\n  📖 文章 '+(statsInfo.totalArticles||0)+' 篇\n  📘 教材 '+(statsInfo.totalGrammarBooks||0)+' 本\n  📂 词组 '+(statsInfo.totalGroups||0)+' 组\n\n⚠️ 导入将覆盖当前英语数据（AI 配置不受影响）\n\n确认继续？',async function(){
+    try{
+      if(backupData.articles)await enSetArticles(backupData.articles);
+      if(backupData.vocabulary)await enSetVocabulary(backupData.vocabulary);
+      if(backupData.groups)await enSetGroups(backupData.groups);
+      if(backupData.grammarBooks)await enSetGrammarBooks(backupData.grammarBooks);
+      if(backupData.reviewState)await enSetReviewState(backupData.reviewState);
+      if(backupData.stats)await idbSet(EN_KEYS.stats,backupData.stats);
+      if(APP_MODE==='english')await renderEnglishCenter();
+      alert('✅ 英语备份导入成功！');
+    }catch(e){ alert('❌ 导入失败：'+e.message); }
+  });
+}
+
+function initDrawer() {
   try {
     const mode = localStorage.getItem('app_mode');
     if (mode === 'exam' || mode === 'english') APP_MODE = mode;
-    const storedCollapsed = localStorage.getItem('nav_collapsed');
-    if (storedCollapsed !== null) {
-      try { NAV_COLLAPSED = JSON.parse(storedCollapsed) === true; } catch (e) { NAV_COLLAPSED = false; }
-    }
   } catch (e) {}
-  syncNavState();
-  updateNavSelection();
+  updateDrawerSelection();
   document.body.classList.toggle('english-mode', APP_MODE === 'english');
+  const exam = document.querySelector('.container');
+  const english = document.getElementById('englishCenterContainer');
   if (APP_MODE === 'english') {
-    renderEnglishCenter();
+    if (exam) exam.style.display = 'none';
+    if (english) english.style.display = 'block';
+    renderEnglishCenter().catch(function(e){ console.error('渲染英语中心失败:', e); });
+  } else if (english) {
+    english.style.display = 'none';
+  }
+  const exportLabel = document.querySelector('.drawer-footer .drawer-item:nth-child(1) .drawer-label');
+  const importLabel = document.querySelector('.drawer-footer .drawer-item:nth-child(2) .drawer-label');
+  if (exportLabel && importLabel) {
+    exportLabel.textContent = APP_MODE === 'english' ? '导出英语' : '导出公考';
+    importLabel.textContent = APP_MODE === 'english' ? '导入英语' : '导入公考';
   }
 }
-
-initNav();
 
 // ============================================================
 // 常量与状态
@@ -6410,9 +6612,12 @@ async function openChatHistory() {
 // ============================================================
 // 初始化（异步：开 IDB → 迁移旧 localStorage → 加载全部数据 → 渲染）
 (async function init(){
+  try{ await idbOpen(); }catch(e){ console.error('IndexedDB 打开失败:', e); }
+  initDrawer();  // 无条件初始化抽屉（内部会判断 APP_MODE）
+
   const mode = localStorage.getItem('app_mode');
   if (mode === 'english') {
-    initNav();
+    // 英语模式：只需加载英语相关数据，不加载公考数据
     return;
   }
   try{ await idbOpen(); }catch(e){ console.error('IndexedDB 打开失败:', e); }
