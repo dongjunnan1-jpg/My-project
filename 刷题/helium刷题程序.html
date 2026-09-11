@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Helium题库 · 三分区刷题</title>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/js-mdict@1.0.6/dist/mdict.min.js"></script>
 <style>/* 最终统一 - PC手机完全一致 */
 /* 手机窄屏时保持PC布局，横向滚动 */
 .zone-tabs,
@@ -1396,6 +1397,169 @@ body.skin-dark .en-vocab-stats,body.skin-dark .en-review-stats { background:rgba
 .en-review-card { padding:40px 20px; text-align:center; background:#fff; border-radius:14px; box-shadow:0 2px 8px rgba(0,0,0,.06); }body.skin-dark .en-review-card { background:#1e293b; }.en-review-word { font-size:48px; font-weight:700; color:#1e293b; margin-bottom:12px; font-family:Georgia,serif; }body.skin-dark .en-review-word { color:#e2e8f0; }.en-review-hint { font-size:14px; color:#94a3b8; margin-bottom:16px; }.en-review-answer { font-size:20px; color:var(--main); padding:16px; background:rgba(91,155,213,.08); border-radius:10px; margin:16px auto; max-width:400px; }.en-review-actions { display:flex; gap:12px; justify-content:center; margin-top:20px; }
 @media (max-width:600px) { .en-vocab-list { grid-template-columns:repeat(2,1fr); } .en-grammar-content { grid-template-columns:1fr; } }
 
+/* ===== 英语词库：单词网格（一行 3 个） ===== */
+.en-vocab-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.en-vocab-grid-item {
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-height: 70px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+}
+.en-vocab-grid-item:hover {
+  border-color: var(--main);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+.en-vocab-grid-item.mastered {
+  background: rgba(74, 222, 128, 0.08);
+  border-color: #4ade80;
+}
+body.skin-dark .en-vocab-grid-item {
+  background: #0f172a;
+  border-color: #334155;
+}
+body.skin-dark .en-vocab-grid-item:hover {
+  border-color: var(--main);
+}
+.en-vocab-grid-word {
+  font-weight: 700;
+  font-size: 15px;
+  color: #1e293b;
+  word-break: break-word;
+}
+body.skin-dark .en-vocab-grid-word { color: #e2e8f0; }
+.en-vocab-grid-meaning {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.en-vocab-grid-meaning.no-meaning {
+  color: #a78bfa;
+  font-style: italic;
+}
+.ai-hint {
+  font-size: 11px;
+  color: #a78bfa;
+}
+
+/* ===== 单词详情页 ===== */
+.en-word-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1e293b;
+  text-align: center;
+  padding: 20px 0;
+  font-family: Georgia, serif;
+}
+body.skin-dark .en-word-title { color: #e2e8f0; }
+.en-word-ai-content {
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 10px;
+  line-height: 1.8;
+}
+body.skin-dark .en-word-ai-content {
+  background: #0f172a;
+  color: #e2e8f0;
+}
+.en-word-ai-body h3 {
+  font-size: 15px;
+  color: var(--main);
+  margin: 16px 0 8px;
+}
+.en-word-ai-body ul, .en-word-ai-body ol {
+  padding-left: 22px;
+  margin: 6px 0;
+}
+.en-word-ai-body li {
+  margin-bottom: 6px;
+}
+.en-word-ai-body strong {
+  color: #1e293b;
+}
+body.skin-dark .en-word-ai-body strong { color: #e2e8f0; }
+.ai-loading {
+  text-align: center;
+  color: #a78bfa;
+  font-style: italic;
+  padding: 30px 20px;
+}
+
+/* 手机端：单词网格改为一行 2 个 */
+@media (max-width: 480px) {
+  .en-vocab-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ===== 词库网格分页 ===== */
+.en-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 20px 0;
+}
+.en-pagination button {
+  padding: 6px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  color: #475569;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.en-pagination button:hover:not(:disabled) {
+  border-color: var(--main);
+  color: var(--main);
+}
+.en-pagination button.active {
+  background: var(--main);
+  border-color: var(--main);
+  color: #fff;
+  font-weight: 700;
+}
+.en-pagination button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+body.skin-dark .en-pagination button {
+  background: #0f172a;
+  border-color: #334155;
+  color: #cbd5e1;
+}
+body.skin-dark .en-pagination button.active {
+  background: var(--main);
+  border-color: var(--main);
+  color: #fff;
+}
+.en-page-meta {
+  width: 100%;
+  text-align: center;
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 6px;
+}
+
 </style>
 </head>
 <body class="pc-mode">
@@ -1756,12 +1920,19 @@ async function renderEnglishCenter() {
 async function switchEnglishModule(moduleId) {
   if (activeEnglishModule === moduleId) return;
   window.__enDetailView = null;
+  window.__enVocabView = { level: 'files' };
   activeEnglishModule = moduleId;
   await renderEnglishCenter();
 }
 
 // ===== 英语模块：功能界面 =====
 function renderEnglishModuleContentLive(moduleId){
+  if(moduleId==='vocabulary'){
+    const view=window.__enVocabView||{level:'files'};
+    if(view.level==='word')return renderVocabWordDetail(view);
+    if(view.level==='words')return renderVocabWordsGrid(view);
+    return renderVocabFilesPanel();
+  }
   const templates={
     reading:'<div class="module-panel"><div class="panel-header"><h3>📖 深度阅读</h3><div class="panel-actions"><label for="enArticleInput" class="btn btn-primary" style="padding:6px 14px;border-radius:8px;cursor:pointer;">📁 上传文章</label><input type="file" id="enArticleInput" accept=".txt,.md" style="display:none;" onchange="enUploadArticle(this)"><button class="btn btn-outline" onclick="enPasteArticle()" style="padding:6px 14px;border-radius:8px;">📝 粘贴文本</button><button class="btn btn-outline en-batch-del-btn" data-module="reading" onclick="enToggleBatchMode(\'reading\')" style="padding:6px 14px;border-radius:8px;">☑️ 批量</button><button class="btn btn-danger en-batch-delete-btn" data-module="reading" onclick="enDeleteSelected(\'reading\')" style="padding:6px 14px;border-radius:8px;display:none;">🗑️ 删除选中(<span id="enSelectedCount-reading">0</span>)</button></div></div><div class="panel-body"><div id="enFileList-reading" class="en-file-list"></div></div></div>',
     vocabulary:'<div class="module-panel"><div class="panel-header"><h3>📚 智能词库</h3><div class="panel-actions"><label for="enVocabInput" class="btn btn-primary" style="padding:6px 14px;border-radius:8px;cursor:pointer;">📁 导入词库</label><input type="file" id="enVocabInput" accept=".csv,.txt,.json,.mdx,.mdd" style="display:none;" onchange="enImportVocab(this)"><button class="btn btn-outline" onclick="enExportVocab()" style="padding:6px 14px;border-radius:8px;">📤 导出词库</button><button class="btn btn-outline" onclick="enAggregateGroups()" style="padding:6px 14px;border-radius:8px;">🔗 同义词聚合</button><button class="btn btn-outline en-batch-del-btn" data-module="vocabulary" onclick="enToggleBatchMode(\'vocabulary\')" style="padding:6px 14px;border-radius:8px;">☑️ 批量</button><button class="btn btn-danger en-batch-delete-btn" data-module="vocabulary" onclick="enDeleteSelected(\'vocabulary\')" style="padding:6px 14px;border-radius:8px;display:none;">🗑️ 删除选中(<span id="enSelectedCount-vocabulary">0</span>)</button></div></div><div class="panel-body"><div id="enFileList-vocabulary" class="en-file-list"></div></div></div>',
@@ -1772,7 +1943,12 @@ function renderEnglishModuleContentLive(moduleId){
 }
 async function enInitActiveModule(){
   if(activeEnglishModule==='reading') await enRenderFileList('reading');
-  else if(activeEnglishModule==='vocabulary'){ await enRenderFileList('vocabulary'); await enRenderVocabModule(); }
+  else if(activeEnglishModule==='vocabulary'){
+    const view=window.__enVocabView||{level:'files'};
+    if(view.level==='files') await enRenderFileList('vocabulary');
+    else if(view.level==='words') await enLoadVocabGrid(view.fileId,view.page||1,view.search||'');
+    else if(view.level==='word') await enLoadWordAIDetail(view.word);
+  }
   else if(activeEnglishModule==='grammar') await enRenderFileList('grammar');
   else if(activeEnglishModule==='review') await enRenderReview();
 }
@@ -1834,7 +2010,7 @@ async function enRenderFileList(moduleType){
   listEl.innerHTML=files.map(function(file){
     const checked=batchMode&&selected[file.id],id=escapeHtml(file.id),title=escapeHtml(file.title),count=escapeHtml(file.count);
     let openAction='';
-    if(!batchMode)openAction='enOpenEnglishDetail(\''+moduleType+'\',\''+file.id+'\')';
+    if(!batchMode)openAction=moduleType==='vocabulary'?'enOpenVocabGrid(\''+file.id+'\')':'enOpenEnglishDetail(\''+moduleType+'\',\''+file.id+'\')';
     return '<div class="en-file-item '+(checked?'selected':'')+'" data-file-id="'+id+'">'+(batchMode?'<input type="checkbox" class="en-file-checkbox" data-id="'+id+'" '+(checked?'checked':'')+' onchange="enToggleFileSelection(\''+moduleType+'\',\''+file.id+'\')">':'')+'<div class="en-file-info" '+(batchMode?'onclick="enToggleFileSelection(\''+moduleType+'\',\''+file.id+'\')"':'onclick="'+openAction+'"')+'><div class="en-file-title">📄 '+title+'</div><div class="en-file-meta">'+count+' · '+new Date(file.createdAt||Date.now()).toLocaleString()+'</div></div>'+(!batchMode?'<button class="en-file-del" onclick="event.stopPropagation();enDeleteFile(\''+moduleType+'\',\''+file.id+'\')" title="删除">✕</button>':'')+'</div>';
   }).join('');
   const countEl=document.getElementById('enSelectedCount-'+moduleType); if(countEl)countEl.textContent=Object.keys(selected).filter(function(id){return selected[id];}).length;
@@ -1847,7 +2023,7 @@ async function enDeleteFile(moduleType,fileId){
       await enSetVocabFiles((await enGetVocabFiles()).filter(function(file){return file.id!==fileId;}));
       const vocab=await enGetVocabulary(); Object.keys(vocab).forEach(function(word){if(vocab[word].fileId===fileId)delete vocab[word];}); await enSetVocabulary(vocab);
     }else if(moduleType==='grammar')await enSetGrammarBooks((await enGetGrammarBooks()).filter(function(book){return book.id!==fileId;}));
-    window['__enBatch_'+moduleType]=false; window['__enBatchSelected_'+moduleType]={}; await enRenderFileList(moduleType); if(moduleType==='vocabulary')await enRenderVocabModule(); await renderEnglishCenter();
+    window['__enBatch_'+moduleType]=false; window['__enBatchSelected_'+moduleType]={}; await enRenderFileList(moduleType); await renderEnglishCenter();
   });
 }
 
@@ -1869,7 +2045,7 @@ async function enDeleteSelected(moduleType){
     else if(moduleType==='vocabulary'){
       await enSetVocabFiles((await enGetVocabFiles()).filter(function(file){return !selectedSet[file.id];})); const vocab=await enGetVocabulary(); Object.keys(vocab).forEach(function(word){if(selectedSet[vocab[word].fileId])delete vocab[word];}); await enSetVocabulary(vocab);
     }else if(moduleType==='grammar')await enSetGrammarBooks((await enGetGrammarBooks()).filter(function(book){return !selectedSet[book.id];}));
-    window['__enBatch_'+moduleType]=false; window['__enBatchSelected_'+moduleType]={}; await enRenderFileList(moduleType); if(moduleType==='vocabulary')await enRenderVocabModule(); await renderEnglishCenter();
+    window['__enBatch_'+moduleType]=false; window['__enBatchSelected_'+moduleType]={}; await enRenderFileList(moduleType); await renderEnglishCenter();
   });
 }
 async function enSelectVocabFile(fileId){window.__enVocabFileId=fileId; await enRenderVocabList('');}
@@ -1885,9 +2061,305 @@ function enRenderParsed(article){ const area=document.getElementById('enArticleP
 async function enExtractVocabularyFromParsed(parsed){ const vocab=await enGetVocabulary(); let changed=false; (parsed.sentences||[]).forEach(function(s){(s.tokens||[]).forEach(function(t){if(t.word&&t.meaning&&t.difficulty!=='初中'){const key=t.word.toLowerCase();if(!vocab[key]){vocab[key]={meaning:t.meaning,pos:t.pos||'',difficulty:t.difficulty||'',mastered:false,wrongCount:0,createdAt:Date.now()};changed=true;}}});}); if(changed)await enSetVocabulary(vocab); }
 
 // ===== 英语模块：智能词库 =====
-async function enImportVocab(input){ const file=input.files[0]; if(!file)return; const text=await file.text(),vocab=await enGetVocabulary(),vocabFiles=await enGetVocabFiles(),fileId='vf_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),fileName=file.name.replace(/\.[^.]+$/,''); let count=0; if(/\.json$/i.test(file.name)){try{const data=JSON.parse(text),arr=Array.isArray(data)?data:(data.words||[]); arr.forEach(function(item){if(item.word){vocab[item.word.toLowerCase()]={meaning:item.meaning||item.def||'',pos:item.pos||'',difficulty:item.difficulty||'',fileId:fileId,mastered:false,wrongCount:0,createdAt:Date.now()};count++;}});}catch(e){alert('JSON 解析失败：'+e.message);return;}}else{text.split(/\r?\n/).forEach(function(line){const p=line.split(/[,\t]/).map(function(s){return s.trim();});if(p[0]&&/^[a-zA-Z][a-zA-Z\s'-]*$/.test(p[0])){vocab[p[0].toLowerCase()]={meaning:p[1]||'',pos:'',difficulty:'',fileId:fileId,mastered:false,wrongCount:0,createdAt:Date.now()};count++;}});} if(count>0)vocabFiles.unshift({id:fileId,fileName:fileName,count:count,createdAt:Date.now()}); await enSetVocabulary(vocab); await enSetVocabFiles(vocabFiles); input.value=''; alert('✅ 导入成功，新增 '+count+' 个词条'); await enRenderFileList('vocabulary'); await enRenderVocabModule(); }
+async function enImportVocab(input){
+  const file=input.files[0]; if(!file)return;
+  const vocab=await enGetVocabulary(),vocabFiles=await enGetVocabFiles();
+  const fileId='vf_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+  const fileName=file.name.replace(/\.[^.]+$/,'');
+  let count=0;
+  const lower=file.name.toLowerCase();
+
+  if(lower.endsWith('.mdx')){
+    // ===== MDX 分支（js-mdict） =====
+    try{
+      const buffer=await file.arrayBuffer();
+      const dict=new Mdict(buffer);
+      const entries=dict.toHtmlArray?dict.toHtmlArray():(dict.toArray?dict.toArray():[]);
+      entries.forEach(function(entry){
+        const word=String(entry.key||entry.word||'').trim();
+        const meaning=String(entry.value||entry.definition||'').trim();
+        if(word&&/^[a-zA-Z][a-zA-Z\s'-]*$/.test(word)){
+          vocab[word.toLowerCase()]={meaning:meaning.substring(0,500),pos:'',difficulty:'',fileId:fileId,mastered:false,wrongCount:0,createdAt:Date.now()};
+          count++;
+        }
+      });
+    }catch(e){
+      alert('MDX 解析失败：'+e.message+'\n\n建议先用欧路词典把 MDX 转为 CSV/TXT 再上传。');
+      input.value=''; return;
+    }
+  }else if(lower.endsWith('.json')){
+    // ===== JSON 分支 =====
+    const text=await file.text();
+    try{
+      const data=JSON.parse(text),arr=Array.isArray(data)?data:(data.words||[]);
+      arr.forEach(function(item){
+        if(item.word){
+          const key=item.word.toLowerCase();
+          vocab[key]=Object.assign({mastered:false,wrongCount:0,createdAt:Date.now(),fileId:fileId},vocab[key]||{},{meaning:item.meaning||item.def||'',pos:item.pos||'',difficulty:item.difficulty||''});
+          count++;
+        }
+      });
+    }catch(e){ alert('JSON 解析失败：'+e.message); input.value=''; return; }
+  }else{
+    // ===== CSV/TXT 分支 =====
+    const text=await file.text();
+    text.split(/\r?\n/).forEach(function(line){
+      if(!line.trim())return;
+      const p=line.split(/[,\t]/).map(function(s){return s.trim();});
+      if(p[0]&&/^[a-zA-Z][a-zA-Z\s'-]*$/.test(p[0])){
+        const key=p[0].toLowerCase();
+        vocab[key]=Object.assign({mastered:false,wrongCount:0,createdAt:Date.now(),fileId:fileId},vocab[key]||{},{meaning:p[1]||'',pos:p[2]||'',difficulty:p[3]||''});
+        count++;
+      }
+    });
+  }
+
+  if(count>0)vocabFiles.unshift({id:fileId,fileName:fileName,count:count,createdAt:Date.now()});
+  await enSetVocabulary(vocab); await enSetVocabFiles(vocabFiles);
+  input.value='';
+  alert('✅ 导入成功，新增 '+count+' 个词条');
+  await enRenderFileList('vocabulary');
+}
 async function enExportVocab(){ const vocab=await enGetVocabulary(),arr=Object.keys(vocab).map(function(w){return Object.assign({word:w},vocab[w]);}); if(!arr.length){alert('词库为空');return;} const url=URL.createObjectURL(new Blob([JSON.stringify(arr,null,2)],{type:'application/json'})),a=document.createElement('a'); a.href=url;a.download='vocab_'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(function(){URL.revokeObjectURL(url);},1000); }
 async function enRenderVocabModule(){ const stats=document.getElementById('enVocabStats'),list=document.getElementById('enVocabList'); if(!stats||!list)return; const vocab=await enGetVocabulary(),words=Object.keys(vocab),mastered=words.filter(function(w){return vocab[w].mastered;}).length; stats.innerHTML='<div class="en-vocab-stat">📚 总词汇 <strong>'+words.length+'</strong></div><div class="en-vocab-stat">✅ 已掌握 <strong>'+mastered+'</strong></div><div class="en-vocab-stat">🔄 待复习 <strong>'+(words.length-mastered)+'</strong></div>'; await enRenderVocabList(''); }
+
+// ===== 英语词库：三级页面（文件列表 → 单词网格 → 单词详情） =====
+const EN_VOCAB_GRID_PAGE_SIZE = 60; // 一行 3 个 × 20 行
+
+function renderVocabFilesPanel() {
+  return `
+    <div class="module-panel">
+      <div class="panel-header">
+        <h3>📚 智能词库</h3>
+        <div class="panel-actions">
+          <label for="enVocabInput" class="btn btn-primary" style="padding:6px 14px;border-radius:8px;cursor:pointer;">📁 导入词库</label>
+          <input type="file" id="enVocabInput" accept=".csv,.txt,.json,.mdx,.mdd" style="display:none;" onchange="enImportVocab(this)">
+          <button class="btn btn-outline" onclick="enExportVocab()" style="padding:6px 14px;border-radius:8px;">📤 导出全部</button>
+          <button class="btn btn-outline en-batch-del-btn" data-module="vocabulary" onclick="enToggleBatchMode('vocabulary')" style="padding:6px 14px;border-radius:8px;">☑️ 批量</button>
+          <button class="btn btn-danger en-batch-delete-btn" data-module="vocabulary" onclick="enDeleteSelected('vocabulary')" style="padding:6px 14px;border-radius:8px;display:none;">🗑️ 删除选中(<span id="enSelectedCount-vocabulary">0</span>)</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div id="enFileList-vocabulary" class="en-file-list"></div>
+      </div>
+    </div>
+  `;
+}
+
+function renderVocabWordsGrid(view) {
+  const fileId = view.fileId;
+  return `
+    <div class="module-panel en-detail-panel">
+      <div class="panel-header">
+        <h3>📚 词库详情</h3>
+        <div class="panel-actions">
+          <button class="btn btn-outline" onclick="enVocabBackToFiles()" style="padding:6px 14px;border-radius:8px;">← 返回词库列表</button>
+          <button class="btn btn-outline" onclick="enExportVocabFile('${fileId}')" style="padding:6px 14px;border-radius:8px;">📤 导出此文件</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <input type="text" id="enVocabGridSearch" class="en-search" placeholder="🔍 搜索单词..." oninput="enVocabGridSearchChange(this.value)" value="${escapeHtml(view.search || '')}">
+        <div id="enVocabGrid" class="en-vocab-grid"></div>
+        <div id="enVocabGridPagination" class="en-pagination"></div>
+      </div>
+    </div>
+  `;
+}
+
+function renderVocabWordDetail(view) {
+  const word = view.word;
+  return `
+    <div class="module-panel en-detail-panel">
+      <div class="panel-header">
+        <h3>📖 单词详情</h3>
+        <div class="panel-actions">
+          <button class="btn btn-outline" onclick="enWordBackToGrid()" style="padding:6px 14px;border-radius:8px;">← 返回单词列表</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="en-word-title">${escapeHtml(word)}</div>
+        <div id="enWordAIContent" class="en-word-ai-content">
+          <div class="ai-loading">⏳ 正在加载释义...</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function enLoadVocabGrid(fileId, page, search) {
+  page = page || 1;
+  search = search || '';
+  const gridEl = document.getElementById('enVocabGrid');
+  const pageEl = document.getElementById('enVocabGridPagination');
+  if (!gridEl) return;
+
+  const vocab = await enGetVocabulary();
+  const kw = (search || '').toLowerCase().trim();
+
+  let words = Object.keys(vocab).filter(function (k) { return vocab[k].fileId === fileId; });
+  if (kw) {
+    words = words.filter(function (k) { return k.includes(kw) || (vocab[k].meaning || '').toLowerCase().includes(kw); });
+  }
+  words.sort();
+
+  const total = words.length;
+  const totalPages = Math.max(1, Math.ceil(total / EN_VOCAB_GRID_PAGE_SIZE));
+  if (page > totalPages) page = totalPages;
+  if (page < 1) page = 1;
+
+  const start = (page - 1) * EN_VOCAB_GRID_PAGE_SIZE;
+  const pageWords = words.slice(start, start + EN_VOCAB_GRID_PAGE_SIZE);
+
+  if (window.__enVocabView) {
+    window.__enVocabView.page = page;
+    window.__enVocabView.search = search;
+  }
+
+  if (!pageWords.length) {
+    gridEl.innerHTML = '<div class="empty-state" style="grid-column:1/-1;">' + (kw ? '没有匹配的单词' : '这个文件没有词条') + '</div>';
+  } else {
+    gridEl.innerHTML = pageWords.map(function (w) {
+      const v = vocab[w];
+      const hasMeaning = v.meaning && v.meaning.trim();
+      return '<div class="en-vocab-grid-item ' + (v.mastered ? 'mastered' : '') + '" onclick="enOpenWordDetail(\'' + escapeHtml(w).replace(/'/g, "\\'") + '\')">' +
+        '<div class="en-vocab-grid-word">' + escapeHtml(w) + '</div>' +
+        '<div class="en-vocab-grid-meaning ' + (hasMeaning ? '' : 'no-meaning') + '">' +
+        (hasMeaning ? escapeHtml(v.meaning) : '<span class="ai-hint">🤖 点击查释义</span>') +
+        '</div></div>';
+    }).join('');
+  }
+
+  if (pageEl) {
+    if (totalPages <= 1) {
+      pageEl.innerHTML = '<div class="en-page-meta">共 ' + total + ' 个单词</div>';
+    } else {
+      let ph = '<button onclick="enVocabGridGoPage(1)" ' + (page === 1 ? 'disabled' : '') + '>首页</button>';
+      ph += '<button onclick="enVocabGridGoPage(' + (page - 1) + ')" ' + (page === 1 ? 'disabled' : '') + '>上一页</button>';
+      const startPage = Math.max(1, page - 3);
+      const endPage = Math.min(totalPages, page + 3);
+      for (let p = startPage; p <= endPage; p++) {
+        ph += '<button onclick="enVocabGridGoPage(' + p + ')" class="' + (p === page ? 'active' : '') + '">' + p + '</button>';
+      }
+      ph += '<button onclick="enVocabGridGoPage(' + (page + 1) + ')" ' + (page === totalPages ? 'disabled' : '') + '>下一页</button>';
+      ph += '<button onclick="enVocabGridGoPage(' + totalPages + ')" ' + (page === totalPages ? 'disabled' : '') + '>末页</button>';
+      ph += '<div class="en-page-meta">共 ' + total + ' 个单词 · 第 ' + page + '/' + totalPages + ' 页</div>';
+      pageEl.innerHTML = ph;
+    }
+  }
+}
+
+function enVocabGridGoPage(page) {
+  if (!window.__enVocabView) return;
+  enLoadVocabGrid(window.__enVocabView.fileId, page, window.__enVocabView.search || '');
+}
+
+function enVocabGridSearchChange(value) {
+  if (!window.__enVocabView) return;
+  enLoadVocabGrid(window.__enVocabView.fileId, 1, value);
+}
+
+function enVocabBackToFiles() {
+  window.__enVocabView = { level: 'files' };
+  renderEnglishCenter();
+}
+
+async function enOpenVocabGrid(fileId) {
+  window.__enVocabView = { level: 'words', fileId: fileId, page: 1, search: '' };
+  await renderEnglishCenter();
+  setTimeout(function () { enLoadVocabGrid(fileId, 1, ''); }, 0);
+}
+
+async function enOpenWordDetail(word) {
+  if (!window.__enVocabView) return;
+  const prev = window.__enVocabView;
+  window.__enVocabView = { level: 'word', fileId: prev.fileId, word: word, page: prev.page || 1, search: prev.search || '' };
+  await renderEnglishCenter();
+  setTimeout(function () { enLoadWordAIDetail(word); }, 0);
+}
+
+function enWordBackToGrid() {
+  if (!window.__enVocabView) return;
+  const view = window.__enVocabView;
+  window.__enVocabView = { level: 'words', fileId: view.fileId, page: view.page || 1, search: view.search || '' };
+  renderEnglishCenter();
+  setTimeout(function () { enLoadVocabGrid(view.fileId, view.page || 1, view.search || ''); }, 0);
+}
+
+async function enExportVocabFile(fileId) {
+  const vocab = await enGetVocabulary();
+  const arr = Object.keys(vocab).filter(function (w) { return vocab[w].fileId === fileId; }).map(function (w) { return Object.assign({ word: w }, vocab[w]); });
+  if (!arr.length) { alert('该词库为空'); return; }
+  const url = URL.createObjectURL(new Blob([JSON.stringify(arr, null, 2)], { type: 'application/json' }));
+  const a = document.createElement('a');
+  a.href = url; a.download = 'vocab_' + fileId + '.json'; a.click();
+  setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+}
+
+// ===== AI 加载单词详情 =====
+async function enLoadWordAIDetail(word) {
+  const el = document.getElementById('enWordAIContent');
+  if (!el) return;
+
+  const cacheKey = 'en_word_ai_' + word.toLowerCase();
+  const cached = await idbGet(cacheKey);
+  if (cached) { el.innerHTML = cached; return; }
+
+  if (!aiConfig.apiKey) {
+    el.innerHTML = '<div style="color:#dc2626;padding:20px;">请先在左下角 ⚙️ 配置 AI API Key</div>';
+    return;
+  }
+  const ep = AI_ENDPOINTS[aiConfig.provider];
+  if (!ep) {
+    el.innerHTML = '<div style="color:#dc2626;padding:20px;">未知 AI 服务商</div>';
+    return;
+  }
+
+  const systemPrompt = '你是英语词典助手。请对给定英文单词输出以下内容，用简洁的 HTML 格式：\n\n1. **音标**：英式/美式音标\n2. **词性**：主要词性（n./v./adj./adv. 等）\n3. **中文释义**：按词性分组，列出常见义项\n4. **例句**：2-3 个典型例句，附中文翻译\n5. **词根词缀**：（可选）如有明显的词根词缀，简述\n6. **常用搭配**：3-5 个常见搭配\n\n输出格式为 HTML，只输出内容，不要用 markdown 代码块包裹。';
+
+  try {
+    const response = await axios({
+      method: 'post',
+      url: ep.url,
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + aiConfig.apiKey },
+      data: {
+        model: aiConfig.model || ep.model,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: '单词：' + word }
+        ],
+        temperature: 0.5,
+        max_tokens: 1000
+      },
+      timeout: 30000,
+      proxy: false
+    });
+    const text = response.data.choices[0].message.content;
+    if (!text) throw new Error('返回格式异常');
+
+    const cleaned = text.replace(/^```html\s*/i, '').replace(/```\s*$/, '').trim();
+    const formatted = '<div class="en-word-ai-body">' + cleaned + '</div>';
+    el.innerHTML = formatted;
+    await idbSet(cacheKey, formatted);
+
+    const vocab = await enGetVocabulary();
+    const key = word.toLowerCase();
+    if (vocab[key] && !vocab[key].meaning) {
+      const firstMeaningMatch = cleaned.match(/<li[^>]*>([^<]+)<\/li>/) || cleaned.match(/中文释义[^>]*>([^<]+)</);
+      if (firstMeaningMatch) {
+        vocab[key].meaning = firstMeaningMatch[1].trim();
+        await enSetVocabulary(vocab);
+      }
+    }
+  } catch (e) {
+    el.innerHTML = '<div style="color:#dc2626;padding:20px;">❌ AI 加载失败：' + escapeHtml(e.message) + '</div>' +
+      '<div style="margin-top:12px;"><button class="btn btn-outline" onclick="enReloadWordAI(\'' + escapeHtml(word).replace(/'/g, "\\'") + '\')">🔄 重试</button></div>';
+  }
+}
+
+async function enReloadWordAI(word) {
+  await idbDel('en_word_ai_' + word.toLowerCase());
+  enLoadWordAIDetail(word);
+}
 async function enRenderVocabList(keyword){
   const list=document.getElementById('enVocabList'); if(!list)return;
   const vocab=await enGetVocabulary(),kw=(keyword||'').toLowerCase().trim(),fileId=window.__enVocabFileId;
@@ -1902,7 +2374,7 @@ async function enRenderVocabList(keyword){
 }
 async function enChangeVocabPage(page){if(!window.__enDetailView||window.__enDetailView.moduleType!=='vocabulary')return;window.__enDetailView.page=page;await enRenderVocabList((document.getElementById('enVocabSearch')||{}).value||'');}
 async function enVocabSearchChanged(keyword){if(window.__enDetailView&&window.__enDetailView.moduleType==='vocabulary')window.__enDetailView.page=1;await enRenderVocabList(keyword);}
-async function enAggregateGroups(){ const vocab=await enGetVocabulary(),words=Object.keys(vocab);if(words.length<4){alert('词库太少（至少 4 个词）');return;}if(!aiConfig.apiKey){alert('请先配置 AI API Key');return;}const ep=AI_ENDPOINTS[aiConfig.provider],stats=document.getElementById('enVocabStats');if(!ep)return;if(stats)stats.innerHTML='<div style="padding:12px;text-align:center;">🔗 AI 正在聚类...</div>';try{const response=await axios({method:'post',url:ep.url,headers:{'Content-Type':'application/json','Authorization':'Bearer '+aiConfig.apiKey},data:{model:aiConfig.model||ep.model,messages:[{role:'system',content:'请将英文单词按语义聚类，输出 JSON 数组：[ {"name":"情感","emoji":"😊","words":["happy"]} ]，只输出 JSON。'},{role:'user',content:words.slice(0,100).join(', ')}],temperature:.3,max_tokens:2000},timeout:60000,proxy:false});const match=response.data.choices[0].message.content.match(/\[[\s\S]*\]/);if(!match)throw new Error('AI 未返回有效 JSON');const groups=JSON.parse(match[0]).map(function(g,i){return{id:'g_'+Date.now()+'_'+i,name:g.name,emoji:g.emoji||'📁',words:g.words||[]};});groups.forEach(function(g){g.words.forEach(function(w){if(vocab[w.toLowerCase()])vocab[w.toLowerCase()].groupId=g.id;});});await enSetGroups(groups);await enSetVocabulary(vocab);alert('✅ 聚合完成，共 '+groups.length+' 组');await enRenderVocabModule();}catch(e){alert('AI 聚合失败：'+e.message);await enRenderVocabModule();} }
+async function enAggregateGroups(){ const vocab=await enGetVocabulary(),words=Object.keys(vocab);if(words.length<4){alert('词库太少（至少 4 个词）');return;}if(!aiConfig.apiKey){alert('请先配置 AI API Key');return;}const ep=AI_ENDPOINTS[aiConfig.provider],stats=document.getElementById('enVocabStats');if(!ep)return;if(stats)stats.innerHTML='<div style="padding:12px;text-align:center;">🔗 AI 正在聚类...</div>';try{const response=await axios({method:'post',url:ep.url,headers:{'Content-Type':'application/json','Authorization':'Bearer '+aiConfig.apiKey},data:{model:aiConfig.model||ep.model,messages:[{role:'system',content:'请将英文单词按语义聚类，输出 JSON 数组：[ {"name":"情感","emoji":"😊","words":["happy"]} ]，只输出 JSON。'},{role:'user',content:words.slice(0,100).join(', ')}],temperature:.3,max_tokens:2000},timeout:60000,proxy:false});const match=response.data.choices[0].message.content.match(/\[[\s\S]*\]/);if(!match)throw new Error('AI 未返回有效 JSON');const groups=JSON.parse(match[0]).map(function(g,i){return{id:'g_'+Date.now()+'_'+i,name:g.name,emoji:g.emoji||'📁',words:g.words||[]};});groups.forEach(function(g){g.words.forEach(function(w){if(vocab[w.toLowerCase()])vocab[w.toLowerCase()].groupId=g.id;});});await enSetGroups(groups);await enSetVocabulary(vocab);alert('✅ 聚合完成，共 '+groups.length+' 组');await enRenderFileList('vocabulary');}catch(e){alert('AI 聚合失败：'+e.message);await enRenderFileList('vocabulary');} }
 
 // ===== 英语模块：语法教材 =====
 function enParseChapters(text){const lines=text.split(/\r?\n/),chapters=[];let current=null,buffer=[];function flush(){if(current){current.content=buffer.join('\n').trim();chapters.push(current);}buffer=[];}lines.forEach(function(line){const m=line.match(/^(#{1,3})\s+(.+)$/);if(m){flush();current={id:'c_'+Date.now()+'_'+chapters.length,level:m[1].length,title:m[2].trim(),content:''};}else if(current)buffer.push(line);});flush();if(!chapters.length)chapters.push({id:'c_'+Date.now(),level:1,title:'正文',content:text.trim()});return chapters;}
