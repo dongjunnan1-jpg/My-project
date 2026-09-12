@@ -2034,8 +2034,19 @@ function detectZone(name){
   return '';
 }
 const ESSAY_PROVINCES = ['国考','安徽','北京','福建','甘肃','广东','广西','贵州','海南','河北','河南','黑龙江','湖北','湖南','吉林','江苏','江西','辽宁','内蒙古','宁夏','青海','山东','山西','陕西','上海','四川','天津','新疆','云南','浙江','重庆','广州','深圳','联考'];
+const ESSAY_PROVINCE_ALIASES = {
+  '国家公务员': '国考',
+  '国家公考': '国考',
+  '副省级': '国考',
+  '副省': '国考',
+  '地市级': '国考',
+  '地市': '国考'
+};
 function extractProvince(paperName){
   const name=String(paperName||'');
+  for(const alias in ESSAY_PROVINCE_ALIASES){
+    if(name.includes(alias)) return ESSAY_PROVINCE_ALIASES[alias];
+  }
   for(const province of ESSAY_PROVINCES){ if(name.includes(province)) return province; }
   return '其他';
 }
@@ -2567,12 +2578,17 @@ function renderModuleBar(){
   } else {
     qs.forEach(function(q) {
       var m = getQuestionBigCategory(q);
-      m = normalizeModuleName(m);
+      m = normalizeModuleName(m) || '未分类';
       if (!counts[m]) counts[m] = 0;
       counts[m]++;
     });
     var html = '<button class="module-btn ' + (filterState.module === 'all' ? 'active' : '') + '" data-module="all">📂 全部<span class="count">' + counts.all + ' 题</span></button>';
-    MODS.forEach(function(m) {
+    // 已知模块按固定顺序优先展示，其余（含“未分类”）按题数从多到少追加
+    var orderedModules = MODS.filter(function(m) { return counts[m] && counts[m] > 0; });
+    Object.keys(counts).sort(function(a, b) { return counts[b] - counts[a]; }).forEach(function(m) {
+      if (m !== 'all' && orderedModules.indexOf(m) === -1) orderedModules.push(m);
+    });
+    orderedModules.forEach(function(m) {
       if (counts[m] && counts[m] > 0) {
         html += '<button class="module-btn ' + (filterState.module === m ? 'active' : '') + '" data-module="' + m + '">' + m + '<span class="count">' + counts[m] + ' 题</span></button>';
       }
@@ -2633,7 +2649,11 @@ function updateEssaySelects(){
   bar.querySelectorAll('.essay-dynamic').forEach(function(element){ element.remove(); });
   var current={year:filterState.year,province:filterState.province,subType:filterState.subType,leafType:filterState.leafType};
   bar.insertAdjacentHTML('beforeend',buildEssaySelect('slYearFilter','📅 全部年份',getEssayOptionStats('year'),function(a,b){ return Number(b)-Number(a); })+
-    buildEssaySelect('slProvinceFilter','📍 全部省份',getEssayOptionStats('province'))+
+    buildEssaySelect('slProvinceFilter','📍 全部省份',getEssayOptionStats('province'),function(a,b){
+      if(a==='国考'&&b!=='国考') return -1;
+      if(b==='国考'&&a!=='国考') return 1;
+      return String(a).localeCompare(String(b),'zh-CN');
+    })+
     buildEssaySelect('slTopicFilter','🏷️ 全部话题',getEssayOptionStats('subType'))+
     buildEssaySelect('slLeafFilter','📋 全部题型',getEssayOptionStats('leafType'))+
     '<button class="essay-dynamic" id="slClearFilter" type="button">✕ 清除筛选</button>'+
@@ -3005,6 +3025,33 @@ function extractSeasonNum(source){
     return head2*10 + tail2;
   }
   return map[numStr] || 0;
+}
+// 从选项文本中提取年份/月份，用于“细分题型/年份”选项按时间从新到旧排序。
+// 支持 “2026年”、“2026年3月”、“2026年3月第2周”、“2026上半年” 等格式。
+function extractOptionYearMonth(text){
+  var str=String(text||'');
+  var yearMatch=str.match(/(20\d{2})\s*年?/);
+  if(!yearMatch) return {year:0, month:0};
+  var year=parseInt(yearMatch[1],10);
+  var month=0;
+  var monthMatch=str.match(/(\d{1,2})\s*月/);
+  if(monthMatch) month=parseInt(monthMatch[1],10);
+  else if(/上半年/.test(str)) month=6;
+  else if(/下半年/.test(str)) month=12;
+  return {year:year, month:month};
+}
+// 排序：含年份的选项按年份（及月份）从新到旧排在前，无年份的按题数从多到少排在后。
+function sortOptionsByYearDesc(keys, stats){
+  return keys.slice().sort(function(a,b){
+    var ya=extractOptionYearMonth(a), yb=extractOptionYearMonth(b);
+    if(ya.year!==yb.year) return yb.year-ya.year;
+    if(ya.month!==yb.month) return yb.month-ya.month;
+    if(ya.year===0 && yb.year===0){
+      var ca=(stats&&stats[a])||0, cb=(stats&&stats[b])||0;
+      if(ca!==cb) return cb-ca;
+    }
+    return String(a).localeCompare(String(b),'zh-CN');
+  });
 }
 function getSpecialQuestionType(question){
   if(!question) return '';
@@ -4596,15 +4643,39 @@ if (isMobile) {
     }, 100);
   }, { passive: true });
 }
-function loadNotes(){
-  try{ const data=localStorage.getItem(NOTE_KEY); return data ? JSON.parse(data) : {}; }catch(e){ return {}; }
+let essayNotesCache = null;
+
+async function loadNotesAsync(){
+  if(essayNotesCache) return essayNotesCache;
+  let data = null;
+  try{ data = await idbGet('essay_notes'); }catch(e){ data = null; }
+  if(!data || typeof data !== 'object'){
+    try{
+      const legacy = localStorage.getItem(NOTE_KEY);
+      if(legacy){
+        const parsed = JSON.parse(legacy);
+        if(parsed && typeof parsed === 'object' && Object.keys(parsed).length){
+          data = parsed;
+          await idbSet('essay_notes', data);
+          localStorage.removeItem(NOTE_KEY);
+        }
+      }
+    }catch(e){}
+  }
+  essayNotesCache = (data && typeof data === 'object' && !Array.isArray(data)) ? data : {};
+  return essayNotesCache;
 }
+
+function loadNotes(){
+  return essayNotesCache || {};
+}
+
 function saveNote(key, content){
   if(!key) return;
-  const notes=loadNotes();
-  if(String(content||'').trim()) notes[key]=content;
-  else delete notes[key];
-  try{ localStorage.setItem(NOTE_KEY, JSON.stringify(notes)); }catch(e){}
+  if(!essayNotesCache) essayNotesCache = {};
+  if(String(content||'').trim()) essayNotesCache[key] = content;
+  else delete essayNotesCache[key];
+  idbSet('essay_notes', essayNotesCache);
 }
 function restoreNotes(){
   const notes=loadNotes();
@@ -4612,7 +4683,10 @@ function restoreNotes(){
     const key=textarea.dataset.key;
     if(key && notes[key]) textarea.value=notes[key];
     if(!textarea.dataset.noteBound){
-      textarea.addEventListener('input', function(){ saveNote(this.dataset.key, this.value); });
+      textarea.addEventListener('input', function(){
+        this.dataset.userTyped = '1';
+        saveNote(this.dataset.key, this.value);
+      });
       textarea.dataset.noteBound='1';
     }
   });
@@ -4663,6 +4737,16 @@ function restoreNotes(){
       }.bind(this));
     });
     button.dataset.noteCopyBound='1';
+  });
+
+  loadNotesAsync().then(function(allNotes){
+    document.querySelectorAll('.essay-note-input').forEach(function(textarea){
+      const key = textarea.dataset.key;
+      if(!key) return;
+      if(allNotes[key] && textarea.value !== allNotes[key] && !textarea.dataset.userTyped){
+        textarea.value = allNotes[key];
+      }
+    });
   });
 }
 
@@ -5475,6 +5559,8 @@ async function exportBackup(){
   });
   
   // 构建完整备份对象
+  let essayNotesExport = {};
+  try{ await loadNotesAsync(); essayNotesExport = Object.assign({}, essayNotesCache || {}); }catch(e){}
   const backup = {
     _type: 'helium_quiz_backup_v2',
     version: 2,
@@ -5486,6 +5572,7 @@ async function exportBackup(){
     attempts: attemptsData,
     chatHistory: chatHistory,
     questionNotes: questionNotesExport,
+    essayNotes: essayNotesExport,
     view: { activeZone, activeFile }
   };
   
@@ -5768,6 +5855,30 @@ async function importBackupFromObject(data){
       }
     }
     
+    // 第六步之三：恢复申论笔记
+    let essayNotesRestored = 0;
+    if (data.essayNotes && typeof data.essayNotes === 'object') {
+      try {
+        const current = (essayNotesCache && typeof essayNotesCache === 'object') ? essayNotesCache : {};
+        Object.keys(data.essayNotes).forEach(function(k){
+          const v = data.essayNotes[k];
+          if (v === undefined || v === null) return;
+          current[k] = v;
+          essayNotesRestored++;
+        });
+        essayNotesCache = current;
+        await idbSet('essay_notes', essayNotesCache);
+        if (activeZone === 'sl' && typeof restoreNotes === 'function') {
+          document.querySelectorAll('.essay-note-input').forEach(function(textarea){
+            const key = textarea.dataset.key;
+            if(key && essayNotesCache[key]) textarea.value = essayNotesCache[key];
+          });
+        }
+      } catch (e) {
+        console.warn('恢复申论笔记失败:', e);
+      }
+    }
+    
     // 第七步：保存恢复结果
     ZONE_IDS.forEach(function(z){
       (index[z] || []).forEach(function(m){ saveFile(z, m.id); });
@@ -5783,7 +5894,7 @@ async function importBackupFromObject(data){
     renderAll();
     
     // 显示恢复结果
-    let resultMsg = `✅ 恢复完成！\n匹配成功 ${matchedCount} 题，跳过 ${skippedCount} 题（未找到对应题目）\n恢复错题集 ${wrongSetRestored} 题；恢复收藏 ${favoritesRestored} 题；恢复做题次数 ${attemptsRestored} 题；恢复AI对话 ${chatRestored} 条；恢复心得 ${notesRestored} 条`;
+    let resultMsg = `✅ 恢复完成！\n匹配成功 ${matchedCount} 题，跳过 ${skippedCount} 题（未找到对应题目）\n恢复错题集 ${wrongSetRestored} 题；恢复收藏 ${favoritesRestored} 题；恢复做题次数 ${attemptsRestored} 题；恢复AI对话 ${chatRestored} 条；恢复心得 ${notesRestored} 条；恢复申论笔记 ${essayNotesRestored} 条`;
     if (notesSkipped > 0) resultMsg += `\n（${notesSkipped} 条心得因题目未找到已跳过）`;
     alert(resultMsg);
     return;
@@ -6903,6 +7014,7 @@ loadTimerData();                     // 计时统计
 loadAIConfig();                      // AI 配置
 
 // 加载题目心得，并把尚未进入对话记录的旧心得一次性同步过去
+try{ await loadNotesAsync(); }catch(e){ console.warn('加载申论笔记失败:', e); }
 try{
   await loadQuestionNotes();
   await (async function syncExistingNotesToChat(){
@@ -6945,7 +7057,18 @@ window.updateSubTypeFilter = function() {
   if(activeZone==='ms'){
     var specialQs=getZoneQuestions(activeZone,'__all__');
     var unique=function(list){ return Array.from(new Set(list.filter(Boolean))); };
-    var makeOptions=function(label,list){ return '<option value="all">'+label+'</option>'+list.map(function(value){ return '<option value="'+escapeHtml(value)+'">'+escapeHtml(value)+'</option>'; }).join(''); };
+    // 统计题数并生成带题数的选项：`名称 (N题)`
+    var buildStats=function(list){
+      var stats={};
+      list.forEach(function(value){ value=value||'其他'; stats[value]=(stats[value]||0)+1; });
+      return stats;
+    };
+    var makeOptions=function(label,stats,order){
+      var keys=Object.keys(stats);
+      if(order){ keys.sort(function(a,b){ var ia=order.indexOf(a), ib=order.indexOf(b); if(ia===-1&&ib===-1) return a.localeCompare(b,'zh-CN'); if(ia===-1) return 1; if(ib===-1) return -1; return ia-ib; }); }
+      else { keys.sort(function(a,b){ return a.localeCompare(b,'zh-CN'); }); }
+      return '<option value="all">'+label+'</option>'+keys.map(function(value){ return '<option value="'+escapeHtml(value)+'">'+escapeHtml(value)+' ('+stats[value]+'题)</option>'; }).join('');
+    };
     var years=unique(specialQs.map(function(q){ return q.year; })).sort(function(a,b){ return Number(b)-Number(a); });
     var topics=unique(specialQs.map(function(q){ return q.topic||'其他'; })).sort();
     var regions=unique(specialQs.map(function(q){ return q.region||'其他'; })).sort();
@@ -6958,15 +7081,28 @@ window.updateSubTypeFilter = function() {
     moduleFilter.style.display='';
     subTypeFilter.style.display='none';
     leafTypeFilter.style.display='none';
-    yearFilter.innerHTML=makeOptions('📅 全部年份',years);
-    provinceFilter.innerHTML=makeOptions(activeZone==='sl'?'🏷️ 全部话题':'📍 全部地区',activeZone==='sl'?topics:regions);
-    moduleFilter.innerHTML=makeOptions('📋 全部题型',types);
+    yearFilter.innerHTML=makeOptions('📅 全部年份',buildStats(years));
+    // 地区选项：显示题数
+    var regionStats=buildStats(specialQs.map(function(q){ return q.region||'其他'; }));
+    provinceFilter.innerHTML=makeOptions(activeZone==='sl'?'🏷️ 全部话题':'📍 全部地区',activeZone==='sl'?buildStats(specialQs.map(function(q){ return q.topic||'其他'; })):regionStats);
+    // 题型选项：按当前选中的地区联动统计题数
+    var selectedRegion=filterState.province||'all';
+    var typeSourceQs=(activeZone==='sl'||selectedRegion==='all') ? specialQs : specialQs.filter(function(q){ return (q.region||'其他')===selectedRegion; });
+    var typeStats=buildStats(typeSourceQs.map(getSpecialQuestionType));
+    moduleFilter.innerHTML=makeOptions('📋 全部题型 ('+typeSourceQs.length+'题)',typeStats);
     setSelectValue(yearFilter,filterState.year);
     setSelectValue(provinceFilter,filterState.province);
     setSelectValue(moduleFilter,activeZone==='sl'?filterState.leafType:filterState.module);
     searchBox.placeholder=activeZone==='sl'?'🔍 搜索试卷或题干...':'🔍 搜索题干或来源...';
     yearFilter.onchange=function(){ filterState.year=this.value; currentPage=1; saveView(); renderQuestions(); };
-    provinceFilter.onchange=function(){ filterState.province=this.value; currentPage=1; saveView(); renderQuestions(); };
+    provinceFilter.onchange=function(){
+      filterState.province=this.value;
+      // 地区变化时联动刷新题型选项的题数
+      filterState.module='all';
+      currentPage=1; saveView();
+      window.updateSubTypeFilter();
+      renderQuestions();
+    };
     moduleFilter.onchange=function(){
       if(activeZone==='sl') filterState.leafType=this.value;
       else filterState.module=this.value;
@@ -7067,26 +7203,13 @@ window.updateSubTypeFilter = function() {
     if (filterState.leafType !== 'all' && !sourceStats[filterState.leafType]) filterState.leafType = 'all';
     leafTypeFilter.value = filterState.leafType;
   } else if (activeZone === 'mk') {
+    // 动态统计所有 bigCategory（含“未分类”），不再使用固定分类白名单
     var moduleStats = {};
     var allModuleQuestions = getZoneQuestions(activeZone, '__all__');
     allModuleQuestions.forEach(function(q) {
-      var moduleName = q.bigCategory || '';
-      if (moduleName) {
-        var moduleMap = {
-          '言语理解与表达': '言语理解与表达',
-          '言语理解': '言语理解与表达',
-          '判断推理': '判断推理',
-          '数量关系': '数量关系',
-          '资料分析': '资料分析',
-          '常识判断': '常识判断',
-          '政治理论': '政治理论'
-        };
-        var normalized = moduleMap[moduleName] || moduleName;
-        if (['言语理解与表达','判断推理','数量关系','资料分析','常识判断','政治理论'].indexOf(normalized) !== -1) {
-          if (!moduleStats[normalized]) moduleStats[normalized] = 0;
-          moduleStats[normalized]++;
-        }
-      }
+      var normalized = normalizeModuleName(q.bigCategory || '') || '未分类';
+      if (!moduleStats[normalized]) moduleStats[normalized] = 0;
+      moduleStats[normalized]++;
     });
 
     if (filterState.module !== 'all' && !moduleStats[filterState.module]) {
@@ -7096,8 +7219,13 @@ window.updateSubTypeFilter = function() {
     }
 
     moduleFilter.innerHTML = '<option value="all">📂 全部模块 (' + qs.length + '题)</option>';
+    // 已知模块按固定顺序优先展示，其余（含“未分类”）按题数从多到少追加
     var moduleOrder = ['常识判断', '政治理论', '言语理解与表达', '数量关系', '判断推理', '资料分析'];
-    moduleOrder.forEach(function(module) {
+    var orderedModules = moduleOrder.filter(function(module) { return moduleStats[module] > 0; });
+    Object.keys(moduleStats).sort(function(a, b) { return moduleStats[b] - moduleStats[a]; }).forEach(function(module) {
+      if (orderedModules.indexOf(module) === -1) orderedModules.push(module);
+    });
+    orderedModules.forEach(function(module) {
       var count = moduleStats[module] || 0;
       if (count > 0) {
         var option = document.createElement('option');
@@ -7110,17 +7238,7 @@ window.updateSubTypeFilter = function() {
 
     var selectedModule = moduleFilter.value;
     var moduleQuestions = selectedModule === 'all' ? qs : qs.filter(function(q) {
-      var moduleName = q.bigCategory || '';
-      var moduleMap = {
-        '言语理解与表达': '言语理解与表达',
-        '言语理解': '言语理解与表达',
-        '判断推理': '判断推理',
-        '数量关系': '数量关系',
-        '资料分析': '资料分析',
-        '常识判断': '常识判断',
-        '政治理论': '政治理论'
-      };
-      var normalized = moduleMap[moduleName] || moduleName;
+      var normalized = normalizeModuleName(q.bigCategory || '') || '未分类';
       return normalized === selectedModule;
     });
 
@@ -7138,7 +7256,7 @@ window.updateSubTypeFilter = function() {
       filterState.leafType = 'all';
     }
     subTypeFilter.innerHTML = '<option value="all">📋 全部题型 (' + moduleQuestions.length + '题)</option>';
-    subTypes.sort(function(a, b) { return subTypeStats[b] - subTypeStats[a]; });
+    subTypes = sortOptionsByYearDesc(subTypes, subTypeStats);
     subTypes.forEach(function(subType) {
       var option = document.createElement('option');
       option.value = subType;
@@ -7163,7 +7281,7 @@ window.updateSubTypeFilter = function() {
       filterState.leafType = 'all';
     }
     leafTypeFilter.innerHTML = '<option value="all">📋 全部细分题型 (' + leafQuestions.length + '题)</option>';
-    leafTypes.sort(function(a, b) { return leafTypeStats[b] - leafTypeStats[a]; });
+    leafTypes = sortOptionsByYearDesc(leafTypes, leafTypeStats);
     leafTypes.forEach(function(leafType) {
       var option = document.createElement('option');
       option.value = leafType;
@@ -7207,7 +7325,7 @@ window.updateSubTypeFilter = function() {
       filterState.leafType = 'all';
     }
     subTypeFilter.innerHTML = '<option value="all">📋 全部题型 (' + moduleQuestions.length + '题)</option>';
-    subTypes.sort(function(a, b) { return subTypeStats[b] - subTypeStats[a]; });
+    subTypes = sortOptionsByYearDesc(subTypes, subTypeStats);
     subTypes.forEach(function(subType) {
       var option = document.createElement('option');
       option.value = subType;
@@ -7228,7 +7346,7 @@ window.updateSubTypeFilter = function() {
       filterState.leafType = 'all';
     }
     leafTypeFilter.innerHTML = '<option value="all">📋 全部细分题型 (' + leafQuestions.length + '题)</option>';
-    leafTypes.sort(function(a, b) { return leafTypeStats[b] - leafTypeStats[a]; });
+    leafTypes = sortOptionsByYearDesc(leafTypes, leafTypeStats);
     leafTypes.forEach(function(leafType) {
       var option = document.createElement('option');
       option.value = leafType;
