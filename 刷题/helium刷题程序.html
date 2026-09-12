@@ -6612,6 +6612,23 @@ const AI_ENDPOINTS={
   zhipu:{url:'https://open.bigmodel.cn/api/paas/v4/chat/completions', model:'glm-4-flash'},
   openai:{url:'https://api.openai.com/v1/chat/completions', model:'gpt-4o-mini'}
 };
+// AI 请求带自动重试：App WebView 网络不稳时，失败后隔 1 秒重试，最多 3 次
+async function axiosWithRetry(config, retries){
+  retries = (typeof retries === 'number') ? retries : 3;
+  let lastError = null;
+  for(let i = 0; i <= retries; i++){
+    try{
+      return await axios(config);
+    }catch(e){
+      lastError = e;
+      if(i >= retries) break;
+      const wait = 1000 * (i + 1);   // 1秒、2秒、3秒，逐次加长
+      console.log('[AI] 请求失败，' + (wait/1000) + ' 秒后重试（第 ' + (i+1) + '/' + retries + ' 次）：', e.message || e);
+      await new Promise(function(r){ setTimeout(r, wait); });
+    }
+  }
+  throw lastError;
+}
 function loadAIConfig(){
   try{ const r=localStorage.getItem(AI_KEY); if(r) aiConfig=JSON.parse(r); }catch(e){}
   if(!aiConfig||typeof aiConfig!=='object') aiConfig={provider:'',apiKey:'',model:'',enableSearch:false};
@@ -6820,7 +6837,7 @@ async function simplifySolution(key, btn){
   result.className='q-ai-result show';
   result.innerHTML='<span class="q-ai-loading">🤖 AI 正在简化解析...</span>';
   try{
-    const response = await axios({
+    const response = await axiosWithRetry({
       method: 'post',
       url: ep.url,
       headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+aiConfig.apiKey},
@@ -6955,7 +6972,7 @@ async function sendChatMessage(key) {
     if (aiConfig.provider === 'qwen' && enableSearch) {
       requestBody.search = true;
     }
-    const response = await axios({
+    const response = await axiosWithRetry({
       method: 'post',
       url: ep.url,
       headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + aiConfig.apiKey},
