@@ -595,6 +595,35 @@ html, body { width:100%; max-width:100%; margin:0; padding:0; box-sizing:border-
 .essay-note-box { margin:12px 0; padding:10px; border:1px solid #f59e0b; border-radius:8px; background:#fffbeb; }
 .essay-note-label { color:#f59e0b; font-size:12px; font-weight:bold; margin-bottom:6px; }
 .essay-note-input { display:block; width:100%; min-height:58px; padding:8px; border:1px solid #fcd34d; border-radius:6px; background:#fff; color:#374151; font:inherit; resize:vertical; }
+.essay-note-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  justify-content: flex-end;
+}
+.essay-note-actions .essay-note-clear-btn2 {
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 36px;
+  transition: all .15s ease;
+  border: 1px solid #ef4444;
+  background: #fff;
+  color: #ef4444;
+}
+.essay-note-actions .essay-note-clear-btn2:hover {
+  background: #ef4444;
+  color: #fff;
+}
+@media (max-width: 768px) {
+  .essay-note-actions .essay-note-clear-btn2 {
+    flex: 1;
+    min-height: 44px;
+    font-size: 14px;
+  }
+}
 body.skin-dark .essay-answer > div, body.skin-dark .essay-analysis > div { background:#0f172a !important; color:#e2e8f0 !important; padding:14px 16px !important; border-radius:6px !important; border:1px solid #334155 !important; }
 body.skin-dark .essay-answer strong, body.skin-dark .essay-analysis strong,
 body.skin-dark .essay-answer summary, body.skin-dark .essay-analysis summary { color:#fcd34d !important; }
@@ -902,7 +931,7 @@ html, body {
   .essay-note-box { padding:14px !important; margin:16px 0 !important; border-radius:12px !important; }
   .essay-note-input { min-height:120px !important; font-size:17px !important; line-height:2 !important; padding:14px !important; border-radius:10px !important; }
   .essay-note-label { font-size:14px !important; }
-  .essay-note-box .essay-note-clear-btn, .essay-note-box .essay-note-copy-btn { padding:10px 16px !important; font-size:14px !important; min-height:44px !important; flex:1 !important; text-align:center !important; }
+  .essay-note-box .essay-note-clear-btn2 { padding:10px 16px !important; font-size:14px !important; min-height:44px !important; flex:1 !important; text-align:center !important; }
 }
 
 /* ====== 侧边栏 - 手机端适配（统一尺寸） ====== */
@@ -4437,13 +4466,11 @@ function renderQuestion(question, materialIndex, globalIndex){
   if(refNames.length) result+='<div class="essay-material-ref">根据'+refNames.join('、')+'</div>';
   result+='<div class="q-content">'+fixProtocols(question&&question.content||'')+'</div>';
   result+='<div class="essay-note-box" style="margin:12px 0; padding:10px; border:1px solid #f59e0b; border-radius:8px; background:#fffbeb;">';
-  result+='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;">';
-  result+='<div class="essay-note-label" style="color:#f59e0b;font-size:12px;font-weight:bold;margin:0;">✏️ 我的笔记</div>';
-  result+='<div style="display:flex;gap:8px;">';
-  result+='<button type="button" class="essay-note-clear-btn" style="padding:4px 8px;border:1px solid #ef4444;border-radius:6px;background:#fff;color:#ef4444;font-size:12px;cursor:pointer;">🗑️ 清空</button>';
-  result+='<button type="button" class="essay-note-copy-btn" style="padding:4px 8px;border:1px solid #3b82f6;border-radius:6px;background:#fff;color:#3b82f6;font-size:12px;cursor:pointer;">📋 复制笔记</button>';
-  result+='</div></div>';
+  result+='<div class="essay-note-label" style="color:#f59e0b;font-size:12px;font-weight:bold;margin-bottom:6px;">✏️ 我的笔记</div>';
   result+='<textarea class="essay-note-input" data-key="'+escapeHtml(question&&question._noteKey||'')+'" style="display:block; width:100%; min-height:58px; padding:8px; border:1px solid #fcd34d; border-radius:6px; background:#fff; color:#374151; font:inherit; resize:vertical; box-sizing:border-box;" placeholder="记录你的答题思路、要点..."></textarea>';
+  result+='<div class="essay-note-actions">';
+  result+='<button type="button" class="essay-note-clear-btn2" data-key="'+escapeHtml(question&&question._noteKey||'')+'">🗑️ 清除</button>';
+  result+='</div>';
   result+='</div>';
   if(answer) result+='<details class="essay-answer"><summary>参考答案</summary><div>'+fixProtocols(answer)+'</div></details>';
   if(analysis) result+='<details class="essay-analysis"><summary>解析</summary><div>'+fixProtocols(analysis)+'</div></details>';
@@ -4470,7 +4497,13 @@ function renderShenLunPaper(question, index, key){
   if(answer) html+='<details class="essay-answer"><summary>📖 参考答案</summary><div>'+fixProtocols(answer)+'</div></details>';
   if(analysis) html+='<details class="essay-analysis"><summary>💡 解析</summary><div>'+fixProtocols(analysis)+'</div></details>';
   question._noteKey='sl_note_'+String(question._paperId||question._paperName||key)+'_'+String(question.id||question._qi||index);
-  html+='<div class="essay-note-box"><div class="essay-note-label">✏️ 我的笔记</div><textarea class="essay-note-input" data-key="'+escapeHtml(question._noteKey)+'" placeholder="记录你的答题思路..."></textarea></div>';
+  html+='<div class="essay-note-box">'
+      + '<div class="essay-note-label">✏️ 我的笔记</div>'
+      + '<textarea class="essay-note-input" data-key="'+escapeHtml(question._noteKey)+'" placeholder="记录你的答题思路..."></textarea>'
+      + '<div class="essay-note-actions">'
+      +   '<button type="button" class="essay-note-clear-btn2" data-key="'+escapeHtml(question._noteKey)+'">🗑️ 清除</button>'
+      + '</div>'
+      + '</div>';
   return html+'</article>';
 }
 
@@ -4505,144 +4538,113 @@ function getEssayNoteTargetBySelection(){
   if(!selectedText) return null;
   const range=selection.getRangeAt(0);
   const container=range.commonAncestorContainer;
-  const materialElement = container && container.nodeType === 1
-    ? container.closest('.essay-material, .q-material')
-    : (container && container.parentElement ? container.parentElement.closest('.essay-material, .q-material') : null);
-  if(!materialElement) return null;
-  const paperDetails=materialElement.closest('.essay-paper');
-  if(!paperDetails) return null;
+  const startEl = container && container.nodeType === 1
+    ? container
+    : (container && container.parentElement ? container.parentElement : null);
+  if(!startEl || !startEl.closest) return null;
+  if(startEl.closest('.essay-note-input')) return null;
 
-  var allMaterials = paperDetails.querySelectorAll('.essay-material, .q-material');
-  var materialIndex = -1;
-  for (var i = 0; i < allMaterials.length; i++) {
-    if (allMaterials[i] === materialElement || allMaterials[i].contains(materialElement)) {
-      materialIndex = i;
-      break;
+  const paper = startEl.closest('.essay-paper') || document;
+  const noteBoxes = Array.from(paper.querySelectorAll('.essay-note-box'));
+  if(!noteBoxes.length) return null;
+
+  const materialEl = startEl.closest('.essay-material, .q-material');
+
+  let chosenBox = null;
+  if(materialEl){
+    let node = materialEl;
+    while(node && !chosenBox){
+      node = node.nextElementSibling;
+      if(!node) break;
+      if(node.classList && node.classList.contains('essay-note-box')){ chosenBox = node; break; }
+      if(node.querySelector){
+        const box = node.querySelector('.essay-note-box');
+        if(box){ chosenBox = box; break; }
+      }
     }
   }
-  if (materialIndex === -1) return null;
+  if(!chosenBox) chosenBox = noteBoxes[0];
 
-  var allQuestions = paperDetails.querySelectorAll('.question');
-  var targetQuestion = null;
-  for (var j = 0; j < allQuestions.length; j++) {
-    if (j === materialIndex) {
-      targetQuestion = allQuestions[j];
-      break;
-    }
-  }
-  if (!targetQuestion) return null;
-
-  var textarea = targetQuestion.querySelector('.essay-note-input');
-  if (!textarea) return null;
+  const textarea = chosenBox.querySelector('.essay-note-input');
+  if(!textarea) return null;
   return { textarea: textarea, text: selectedText };
 }
 
 document.addEventListener('mouseup', function(e){
-  if(e.target && e.target.closest && (e.target.closest('.essay-note-input') || e.target.closest('.essay-note-clear-btn') || e.target.closest('.essay-note-copy-btn'))) return;
-  lastEssayNoteInfo = getEssayNoteTargetBySelection();
+  if(e.target && e.target.closest && (e.target.closest('.essay-note-input') || e.target.closest('.essay-note-clear-btn') || e.target.closest('.essay-note-clear-btn2') || e.target.closest('.essay-note-copy-btn'))) return;
+  var sel = window.getSelection();
+  var text = sel ? sel.toString().trim() : '';
+  if(!text) return;
+  var info = getEssayNoteTargetBySelection();
+  if(info && info.text) lastEssayNoteInfo = info;
+});
+
+// selectionchange 兜底：防止 mouseup 时选区已被清空
+document.addEventListener('selectionchange', function(){
+  clearTimeout(window.__essayRecTimer);
+  window.__essayRecTimer = setTimeout(function(){
+    var sel = window.getSelection();
+    var text = sel ? sel.toString().trim() : '';
+    if(!text) return;
+    var info = getEssayNoteTargetBySelection();
+    if(info && info.text) lastEssayNoteInfo = info;
+  }, 80);
 });
 
 document.addEventListener('copy', function(e){
-  if(!lastEssayNoteInfo) return;
-  const textarea=lastEssayNoteInfo.textarea;
-  const text=lastEssayNoteInfo.text;
-  textarea.value = textarea.value ? textarea.value + '\n' + text : text;
+  let info = lastEssayNoteInfo;
+  if(!info && typeof getEssayNoteTargetBySelection === 'function'){
+    info = getEssayNoteTargetBySelection();
+  }
+  if(!info || !info.textarea) return;
+  const textarea = info.textarea;
+  if(!textarea.isConnected) return;
+  textarea.value = textarea.value ? textarea.value + '\n' + info.text : info.text;
   textarea.dispatchEvent(new Event('input', { bubbles: true }));
   lastEssayNoteInfo = null;
 });
 
-var isMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-if (isMobile) {
-  document.addEventListener('touchend', function(e){
-    if (e.target && e.target.closest && (e.target.closest('.essay-note-input') || e.target.closest('.essay-note-clear-btn') || e.target.closest('.essay-note-copy-btn'))) return;
-    setTimeout(function(){
-      var selection = window.getSelection();
-      if (!selection) return;
-      var text = selection.toString().trim();
-      if (!text) {
-        window._lastNoteSelection = null;
-        lastEssayNoteInfo = null;
-        return;
-      }
+// 部分手机浏览器先触发 beforecopy，用它提前记录目标
+document.addEventListener('beforecopy', function(){
+  const sel = window.getSelection();
+  const text = sel ? sel.toString().trim() : '';
+  if(!text) return;
+  const info = getEssayNoteTargetBySelection();
+  if(info && info.text) lastEssayNoteInfo = info;
+});
 
-      var range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
-      if (!range) return;
-      var container = range.commonAncestorContainer;
-      var el = container && container.nodeType === 1 ? container : (container && container.parentElement ? container.parentElement : null);
-      if (!el) return;
+// ===== 手机端：长按选中文字 → 系统复制菜单 → 点「复制」写入笔记 =====
+// 手机复制流程：长按选中 → 弹系统菜单 → 点「复制」触发 copy 事件。
+// touchend 时机早于选区定型，selectionchange 在长按时会多次触发，故：
+//   - touchend 后延时记录（等选区稳定）
+//   - selectionchange 防抖记录（长按拖动时）
+//   - copy / beforecopy 实时兜底（最关键，复制那一刻一定能拿到选区）
+let _touchRecordTimer = null;
 
-      var materialEl = null;
-      var temp = el;
-      while (temp) {
-        if (temp.classList && (temp.classList.contains('essay-material') || temp.classList.contains('q-material'))) {
-          materialEl = temp;
-          break;
-        }
-        temp = temp.parentElement;
-      }
-      if (!materialEl) {
-        window._lastNoteSelection = null;
-        lastEssayNoteInfo = null;
-        return;
-      }
-
-      var parentDetails = materialEl.closest ? materialEl.closest('.essay-paper') : null;
-      if (!parentDetails) {
-        var temp2 = materialEl;
-        while (temp2) {
-          if (temp2.tagName === 'DETAILS' && temp2.classList && temp2.classList.contains('essay-paper')) {
-            parentDetails = temp2;
-            break;
-          }
-          temp2 = temp2.parentElement;
-        }
-      }
-      if (!parentDetails) {
-        window._lastNoteSelection = null;
-        lastEssayNoteInfo = null;
-        return;
-      }
-
-      var allMaterials = parentDetails.querySelectorAll('.essay-material, .q-material');
-      var materialIndex = -1;
-      for (var i = 0; i < allMaterials.length; i++) {
-        if (allMaterials[i] === materialEl || allMaterials[i].contains(materialEl)) {
-          materialIndex = i;
-          break;
-        }
-      }
-      if (materialIndex === -1) {
-        window._lastNoteSelection = null;
-        lastEssayNoteInfo = null;
-        return;
-      }
-
-      var allQuestions = parentDetails.querySelectorAll('.question');
-      var targetQuestion = null;
-      for (var j = 0; j < allQuestions.length; j++) {
-        if (j === materialIndex) {
-          targetQuestion = allQuestions[j];
-          break;
-        }
-      }
-      if (!targetQuestion) {
-        window._lastNoteSelection = null;
-        lastEssayNoteInfo = null;
-        return;
-      }
-
-      var textarea = targetQuestion.querySelector('.essay-note-input');
-      if (!textarea) {
-        window._lastNoteSelection = null;
-        lastEssayNoteInfo = null;
-        return;
-      }
-
-      window._lastNoteSelection = { text: text, textarea: textarea };
-      lastEssayNoteInfo = { text: text, textarea: textarea };
-    }, 100);
-  }, { passive: true });
+function _recordEssaySelectionFromTouch(){
+  const sel = window.getSelection();
+  const text = sel ? sel.toString().trim() : '';
+  if(!text) return;
+  const info = getEssayNoteTargetBySelection();
+  if(info && info.text) lastEssayNoteInfo = info;
 }
+
+document.addEventListener('touchend', function(e){
+  if(e.target && e.target.closest && (
+      e.target.closest('.essay-note-input') ||
+      e.target.closest('.essay-note-clear-btn') ||
+      e.target.closest('.essay-note-clear-btn2') ||
+      e.target.closest('.essay-note-copy-btn')
+  )) return;
+  clearTimeout(_touchRecordTimer);
+  _touchRecordTimer = setTimeout(_recordEssaySelectionFromTouch, 120);
+}, { passive: true });
+
+document.addEventListener('selectionchange', function(){
+  if(!('ontouchstart' in window) && !(navigator.maxTouchPoints > 0)) return;  // 仅触屏
+  clearTimeout(window.__essayTouchSelTimer);
+  window.__essayTouchSelTimer = setTimeout(_recordEssaySelectionFromTouch, 150);
+});
 let essayNotesCache = null;
 
 async function loadNotesAsync(){
@@ -4691,52 +4693,25 @@ function restoreNotes(){
     }
   });
 
-  document.querySelectorAll('.essay-note-clear-btn').forEach(function(button){
-    if(button.dataset.noteClearBound) return;
-    button.addEventListener('click', function(){
-      const box=this.closest('.essay-note-box');
-      const textarea=box ? box.querySelector('.essay-note-input') : null;
+  // 清除按钮
+  document.querySelectorAll('.essay-note-clear-btn2').forEach(function(btn){
+    if(btn.dataset.bound) return;
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', function(){
+      var box = this.closest('.essay-note-box');
+      var textarea = box ? box.querySelector('.essay-note-input') : null;
       if(!textarea) return;
       if(!textarea.value.trim()){
-        box.style.boxShadow='0 0 0 2px rgba(239,68,68,0.5)';
-        setTimeout(function(){ box.style.boxShadow=''; }, 500);
+        if(box){ box.style.boxShadow = '0 0 0 2px rgba(239,68,68,0.5)'; setTimeout(function(){ box.style.boxShadow = ''; }, 500); }
         return;
       }
-      if(!confirm('确定清空当前题目的笔记内容吗？')) return;
-      textarea.value='';
-      textarea.dispatchEvent(new Event('input', { bubbles: true }));
-      box.style.boxShadow='0 0 0 2px rgba(239,68,68,0.5)';
-      setTimeout(function(){ box.style.boxShadow=''; }, 600);
+      showConfirm('确定清空当前题目的笔记内容吗？此操作不可撤销。', function(){
+        textarea.value = '';
+        textarea.dataset.userTyped = '1';
+        saveNote(textarea.dataset.key, '');
+        if(box){ box.style.boxShadow = '0 0 0 2px rgba(239,68,68,0.5)'; setTimeout(function(){ box.style.boxShadow = ''; }, 600); }
+      });
     });
-    button.dataset.noteClearBound='1';
-  });
-
-  document.querySelectorAll('.essay-note-copy-btn').forEach(function(button){
-    if(button.dataset.noteCopyBound) return;
-    button.addEventListener('click', function(){
-      const box=this.closest('.essay-note-box');
-      const textarea=box ? box.querySelector('.essay-note-input') : null;
-      if(!textarea) return;
-      if(!textarea.value.trim()){
-        alert('笔记为空，没有内容可复制');
-        return;
-      }
-      const originalText=this.textContent;
-      navigator.clipboard.writeText(textarea.value).then(function(){
-        this.textContent='✅ 已复制';
-        setTimeout(function(){ this.textContent=originalText; }.bind(this), 1200);
-      }.bind(this)).catch(function(){
-        const area=document.createElement('textarea');
-        area.value=textarea.value;
-        document.body.appendChild(area);
-        area.select();
-        document.execCommand('copy');
-        document.body.removeChild(area);
-        this.textContent='✅ 已复制';
-        setTimeout(function(){ this.textContent=originalText; }.bind(this), 1200);
-      }.bind(this));
-    });
-    button.dataset.noteCopyBound='1';
   });
 
   loadNotesAsync().then(function(allNotes){
