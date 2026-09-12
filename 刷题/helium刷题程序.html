@@ -734,10 +734,15 @@ body.essay-zone .sl-only-btn { display: inline-flex !important; }
 }
 .chat-history-panel.show { transform:translateX(0); }
 .chat-history-header {
-    padding:16px; background:linear-gradient(135deg,#60a5fa,#3b82f6); color:#fff;
+    padding:16px; background:linear-gradient(135deg,var(--main),var(--deep)); color:var(--on-main);
     font-weight:bold; display:flex; justify-content:space-between; align-items:center;
 }
-.chat-history-close { cursor:pointer; font-size:20px; opacity:0.8; }
+.chat-history-header span { color:var(--on-main); }
+.chat-history-close {
+    cursor:pointer; font-size:20px; opacity:0.85; color:var(--on-main);
+    background:transparent; border:none; line-height:1; transition:opacity .15s, transform .15s;
+}
+.chat-history-close:hover { opacity:1; transform:scale(1.1); }
 .chat-history-list { flex:1; overflow-y:auto; padding:12px; }
 .chat-history-item {
     padding:12px; margin-bottom:8px; background:#f8fafc; border:1px solid #e2e8f0;
@@ -748,10 +753,14 @@ body.essay-zone .sl-only-btn { display: inline-flex !important; }
 .chat-history-item-preview { font-size:12px; color:#64748b; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .chat-history-empty { text-align:center; padding:40px; color:#94a3b8; }
 .chat-history-export-btn {
-    padding:6px 12px; background:rgba(255,255,255,0.2); color:#fff;
+    padding:6px 12px; background:rgba(255,255,255,0.2); color:var(--on-main);
     border:1px solid rgba(255,255,255,0.4); border-radius:6px; cursor:pointer; font-size:12px; font-weight:bold;
 }
 .chat-history-export-btn:hover { background:rgba(255,255,255,0.3); }
+body.skin-dark .chat-history-header { background:linear-gradient(135deg,var(--main),var(--deep)) !important; color:var(--on-main) !important; }
+body.skin-dark .chat-history-close { color:var(--on-main) !important; opacity:0.9; }
+body.skin-dark .chat-history-close:hover { opacity:1; }
+body.skin-dark .chat-history-export-btn { color:var(--on-main) !important; border-color:rgba(255,255,255,0.5) !important; }
 .chat-history-btn {
   position:fixed; left:10px; bottom:80px; padding:0 !important;
     background:var(--main) !important; color:var(--on-main) !important; border:none;
