@@ -1694,17 +1694,27 @@ const maxRatioInput = document.getElementById('maxRatioInput');
 function genId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
 
 // 独立保存做题位置，避免改变现有 qz_view 数据结构。
-function loadStudyPosition(){
+// 按分区存储：{ gk:{...}, mk:{...}, sy:{...}, sl:{...}, ms:{...} }
+function loadStudyPosition(zone){
   try{
     const raw=localStorage.getItem(STUDY_POSITION_KEY);
     if(!raw) return;
     const value=JSON.parse(raw);
-    if(value && ['gk','mk','sy','sl'].includes(value.zone)){
-      if(value.filterState && typeof value.filterState==='object' && !Array.isArray(value.filterState)){
-        filterState=Object.assign(filterState, value.filterState);
-      }
-      restoredStudyPosition=value;
+    if(!value || typeof value!=='object') return;
+    const targetZone=zone||activeZone;
+    let record=null;
+    if(value[targetZone] && typeof value[targetZone]==='object'){
+      // 新格式：按分区存储
+      record=value[targetZone];
+    }else if(value.zone===targetZone){
+      // 兼容旧格式：单个对象
+      record=value;
     }
+    if(!record) return;
+    if(record.filterState && typeof record.filterState==='object' && !Array.isArray(record.filterState)){
+      filterState=Object.assign(filterState, record.filterState);
+    }
+    restoredStudyPosition=record;
   }catch(e){}
 }
 function saveStudyPosition(){
@@ -1719,14 +1729,30 @@ function saveStudyPosition(){
     const fallbackQuestion=filteredQuestions[questionIndex];
     const questionKey=(current&&current.id ? current.id.slice(2) : '') || (fallbackQuestion&&fallbackQuestion._key) || null;
     const savedFilterState=JSON.parse(JSON.stringify(filterState));
-    localStorage.setItem(STUDY_POSITION_KEY, JSON.stringify({
+    // 读取已有全部分区记录，只更新当前分区，其余保留
+    let allPositions={};
+    try{
+      const raw=localStorage.getItem(STUDY_POSITION_KEY);
+      const parsed=raw ? JSON.parse(raw) : null;
+      if(parsed && typeof parsed==='object'){
+        if(parsed.zone && !parsed[parsed.zone]){
+          // 兼容旧格式：单个对象 → 迁移到按分区结构
+          allPositions[parsed.zone]=parsed;
+        }else{
+          allPositions=parsed;
+        }
+      }
+    }catch(e){ allPositions={}; }
+    allPositions[activeZone]={
       zone:activeZone,
       page:currentPage,
       questionIndex:questionIndex,
       questionKey:questionKey,
       scrollY:window.scrollY,
-      filterState:savedFilterState
-    }));
+      filterState:savedFilterState,
+      savedAt:Date.now()
+    };
+    localStorage.setItem(STUDY_POSITION_KEY, JSON.stringify(allPositions));
   }catch(e){}
 }
 function showStudyPositionRestored(){
@@ -5039,6 +5065,7 @@ function clearFilters(){
 }
 function switchFile(id){
   // 点击文件标签 → 切换到该文件；切换时重置所有筛选并回到第1页
+  saveStudyPosition();
   activeFile = (id && id!=='__all__' && db[activeZone][id]) ? id : '__all__';
   filterState={module:'all',year:'all',province:'all',source:'all',subType:'all',leafType:'all',search:'',status:'all',sortBy:'default',minRatio:'',maxRatio:''};
   currentPage=1; saveView(); renderAll();
@@ -5046,11 +5073,19 @@ function switchFile(id){
 }
 function switchZone(z){
   stopSpeaking();
+  saveStudyPosition();   // 切换前先保存当前分区的位置
   activeZone=z; activeFile='__all__';
   document.body.classList.toggle('essay-zone', z==='sl');
   document.body.classList.toggle('ms-zone', z==='ms');
   filterState={module:'all',year:'all',province:'all',source:'all',subType:'all',leafType:'all',search:'',status:'all',sortBy:'default',minRatio:'',maxRatio:''};
-  applyZoneTheme(z); currentPage=1; saveView(); renderAll();
+  applyZoneTheme(z); currentPage=1;
+  // 读取目标分区的位置记录
+  restoredStudyPosition=null;
+  loadStudyPosition(z);
+  if(restoredStudyPosition){
+    currentPage=Math.max(1, Number(restoredStudyPosition.page)||1);
+  }
+  saveView(); renderAll();
   setTimeout(function(){ window.updateSubTypeFilter(); }, 100);
   cleanInvalidWrongSilent(activeZone);
   if (typeof updateWrongCount === 'function') {
@@ -5060,6 +5095,25 @@ function switchZone(z){
     if (wrongCountEl) wrongCountEl.textContent = Object.keys(wrongSet[activeZone] || {}).length;
   }
   forceNormalizeZoneTabs();   // 切换分区后强制刷新分区标签样式，确保大小一致
+  // 渲染后滚动到上次的题目或位置
+  if(restoredStudyPosition){
+    var position=restoredStudyPosition;
+    restoredStudyPosition=null;
+    setTimeout(function(){
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){
+          var fallbackQuestion=filteredQuestions[position.questionIndex];
+          var target=document.getElementById('q-'+(position.questionKey||((fallbackQuestion||{})._key||'')));
+          var scrollY=Number(position.scrollY);
+          if(target){
+            target.scrollIntoView({block:'center',behavior:'instant'});
+          }else if(Number.isFinite(scrollY)){
+            window.scrollTo({top:Math.max(0,scrollY),behavior:'instant'});
+          }
+        });
+      });
+    }, 100);
+  }
 }
 // 强制统一分区标签：清除任何残留 inline transform/transition（CSS !important 已覆盖，此为双保险）
 function forceNormalizeZoneTabs(){
@@ -7091,9 +7145,8 @@ async function openChatHistory() {
     }
   }
   try{ await loadView(); }catch(e){}
-  loadStudyPosition();
+  loadStudyPosition(activeZone);
   if(restoredStudyPosition){
-    activeZone=restoredStudyPosition.zone;
     currentPage=Math.max(1, Number(restoredStudyPosition.page)||1);
   }
   try{ await loadWrong(); await loadFav(); await loadDaily(); await loadExam(); }catch(e){}
