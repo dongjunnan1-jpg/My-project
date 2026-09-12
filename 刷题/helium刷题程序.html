@@ -463,6 +463,11 @@ html, body { width:100%; max-width:100%; margin:0; padding:0; box-sizing:border-
 .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; background: #fff; padding: 10px 14px; border-radius: 12px; margin-bottom: 14px; box-shadow: var(--shadow); }
 .filter-bar select, .filter-bar input { padding: 7px 10px; border: 2px solid var(--light); border-radius: 8px; font-size: 13px; outline: none; background: #fff; color: var(--deep); }
 .filter-bar select:focus, .filter-bar input:focus { border-color: var(--main); }
+#statusFilter,
+#sortFilter {
+  text-align: center;
+  text-align-last: center;
+}
 .essay-topic-buttons { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
 .essay-topic-buttons .module-btn { flex:1; min-width:90px; padding:10px 16px; border:none; border-radius:12px; font-weight:bold; font-size:13px; cursor:pointer; background:#fff; color:var(--deep); box-shadow:0 1px 3px rgba(0,0,0,.06); text-align:center; }
 .essay-topic-buttons .module-btn .count { display:block; font-weight:normal; font-size:11px; color:var(--secondary); opacity:.8; }
@@ -637,6 +642,12 @@ body.essay-zone #zoneDone, body.essay-zone #zoneCorrect, body.essay-zone #zoneAc
 body.essay-zone #sourceFilter, body.essay-zone #statusFilter, body.essay-zone #sortFilter,
 body.essay-zone #moduleFilter, body.essay-zone #leafTypeFilter, body.essay-zone .ratio-label { display:none !important; }
 
+/* ====== 分区专属按钮（面试 / 申论） ====== */
+.ms-only-btn { display: none !important; }
+body.ms-zone .ms-only-btn { display: inline-flex !important; }
+.sl-only-btn { display: none !important; }
+body.essay-zone .sl-only-btn { display: inline-flex !important; }
+
 /* ====== 左上角计时统计 ====== */
 #timerStats { position:fixed !important; top:80px !important; left:auto !important; bottom:auto !important; right:20px !important; transform:none !important; background:rgba(255,255,255,0.15) !important; backdrop-filter:blur(20px) !important; -webkit-backdrop-filter:blur(20px) !important; color:#1a202c !important; padding:10px 16px !important; border-radius:14px !important; font-size:13px !important; z-index:999 !important; display:flex !important; flex-direction:column !important; gap:4px !important; align-items:flex-start !important; box-shadow:0 4px 20px rgba(0,0,0,0.08) !important; border:1px solid rgba(255,255,255,0.3) !important; min-width:100px !important; font-weight:500 !important; cursor:move !important; user-select:none !important; -webkit-user-select:none !important; }
 
@@ -654,8 +665,8 @@ body.essay-zone #moduleFilter, body.essay-zone #leafTypeFilter, body.essay-zone 
 #aiSettingsBtn { right:10px; bottom:10px; font-size:20px; }
 #skinToggleBtn:hover, #aiSettingsBtn:hover, .chat-history-btn:hover, #backToTop:hover { transform:translateY(-2px) scale(1.05); box-shadow:0 4px 16px rgba(0,0,0,0.25) !important; }
 
-#sidebar #dbgBtn, #sidebar #scrollDiagBtn { position:relative; display:flex; align-items:center; justify-content:flex-start; gap:6px; width:100%; padding:6px 10px; background:#0f172a; color:#e2e8f0; border:1px solid #334155; border-radius:4px; font-size:11px; cursor:pointer; text-align:left; box-shadow:none; }
-#sidebar #dbgBtn:hover, #sidebar #scrollDiagBtn:hover { border-color:#64748b; background:#111827; }
+#sidebar #scrollDiagBtn { position:relative; display:flex; align-items:center; justify-content:flex-start; gap:6px; width:100%; padding:6px 10px; background:#0f172a; color:#e2e8f0; border:1px solid #334155; border-radius:4px; font-size:11px; cursor:pointer; text-align:left; box-shadow:none; }
+#sidebar #scrollDiagBtn:hover { border-color:#64748b; background:#111827; }
 #sidebar #scrollDiagBtn.has-error::after { content:''; position:absolute; top:6px; right:8px; width:8px; height:8px; border-radius:50%; background:#ef4444; animation:scrollDiagBlink 1s infinite; }
 @keyframes scrollDiagBlink { 50% { opacity:.25; } }
 
@@ -691,7 +702,7 @@ body.essay-zone #moduleFilter, body.essay-zone #leafTypeFilter, body.essay-zone 
 .skin-opt.active { border-color:#60a5fa; background:#1e3a5f; box-shadow:0 0 20px rgba(96,165,250,0.2); }
 
 /* ====== AI 配置面板 ====== */
-#aiPanel { position:fixed; left:20px; bottom:70px; z-index:100002; background:#fff; border-radius:12px; padding:14px; box-shadow:0 8px 32px rgba(0,0,0,0.2); display:none; flex-direction:column; gap:8px; min-width:280px; max-width:320px; }
+#aiPanel { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:100002; background:#fff; border-radius:12px; padding:14px; box-shadow:0 8px 32px rgba(0,0,0,0.2); display:none; flex-direction:column; gap:8px; width:min(320px,90vw); max-height:80vh; overflow-y:auto; }
 #aiPanel.show { display:flex; }
 #aiPanel label { font-size:13px; color:var(--deep); font-weight:bold; }
 #aiPanel select, #aiPanel input { padding:8px 10px; border:2px solid var(--light); border-radius:8px; font-size:13px; outline:none; background:#fff; color:var(--deep); }
@@ -997,9 +1008,10 @@ html, body {
     min-height: 32px !important;
     padding: 0 !important;
     font-size: 20px !important;
-    border: none !important;
-    background: transparent !important;
-    color: #94a3b8 !important;
+    border: 1px solid var(--main) !important;
+    background: rgba(255,255,255,0.08) !important;
+    color: var(--main) !important;
+    border-radius: 8px !important;
     flex-shrink: 0 !important;
     display: flex !important;
     align-items: center !important;
@@ -1537,15 +1549,16 @@ body.skin-dark .new-chat-detail-note-title { color:#fbbf24; }
         <select id="yearFilter"><option value="all">📅 全部年份</option></select><select id="provinceFilter"><option value="all">📍 全部省份</option></select>
         <input id="sourceFilter" list="sourceOptions" type="text" placeholder="📚 全部来源" autocomplete="off"><datalist id="sourceOptions"></datalist>
         <select id="statusFilter">
-            <option value="all">全部状态</option>
+            <option value="all">🗂️ 全部状态</option>
             <option value="unanswered">只显示未做</option>
             <option value="answered">只显示已做</option>
             <option value="wrong">只显示错题</option>
             <option value="correct">只显示做对</option>
             <option value="favorite">⭐ 只显示收藏</option>
+            <option value="note">📝 只显示心得</option>
         </select>
         <select id="sortFilter">
-            <option value="default">默认顺序</option>
+            <option value="default">🔀 默认顺序</option>
             <option value="ratioDesc">正确率从高到低</option>
             <option value="ratioAsc">正确率从低到高</option>
         </select> <select id="moduleFilter"><option value="all">📂 全部模块</option></select> <select id="subTypeFilter"><option value="all">🏷️ 全部话题</option></select> <select id="leafTypeFilter"><option value="all">📋 全部细分题型</option></select> <button class="btn btn-outline" onclick="clearFilters()">✕ 清除筛选</button>
@@ -1565,6 +1578,10 @@ body.skin-dark .new-chat-detail-note-title { color:#fbbf24; }
         <button class="btn btn-outline" onclick="window.print()">🖨️ 打印</button>
         <button class="btn btn-primary" onclick="exportBackup()">💾 导出备份</button>
         <button class="btn btn-outline" onclick="document.getElementById('backupInput').click()">📥 导入备份</button>
+        <button class="btn btn-outline ms-only-btn" id="msNoteFilterBtn" onclick="toggleMsNoteFilter()">📝 只显示心得</button>
+        <button class="btn btn-outline ms-only-btn" id="msFavFilterBtn" onclick="toggleMsFavFilter()">⭐ 只显示收藏</button>
+        <button class="btn btn-outline sl-only-btn" id="slNoteFilterBtn" onclick="toggleSlNoteFilter()">📝 只显示有笔记</button>
+        <button class="btn btn-outline sl-only-btn" id="slFavFilterBtn" onclick="toggleSlFavFilter()">⭐ 只显示收藏</button>
         <input type="file" id="backupInput" accept="application/json,.json" style="display:none;" onchange="importBackup(this)">
     </div>
 
@@ -1636,6 +1653,8 @@ let wrongSet = { gk:{}, mk:{}, sy:{}, sl:{}, ms:{} };
 let favorites = { gk:{}, mk:{}, sy:{}, sl:{}, ms:{} };
 let daily = { date:'', count:0, goal:50 };
 let examDate = '';
+// 申论笔记缓存（IndexedDB 'essay_notes'），提前声明避免 TDZ
+let essayNotesCache = null;
 
 // ============================================================
 // DOM
@@ -1884,30 +1903,76 @@ async function loadFav(){ const r=await idbGet('fav'); if(r) favorites=r; ZONE_I
 function saveFav(){ return idbSet('fav', favorites); }
 function isFavorite(key){ return !!(favorites[activeZone]&&favorites[activeZone][key]); }
 function toggleFavorite(key){ if(!favorites[activeZone]) favorites[activeZone]={}; if(favorites[activeZone][key]) delete favorites[activeZone][key]; else favorites[activeZone][key]=true; saveFav(); renderQuestions(); }
+
+// —— 面试分区：只显示心得 / 只显示收藏（控制栏按钮） ——
+function toggleMsNoteFilter(){
+  const on = filterState.status === 'note';
+  filterState.status = on ? 'all' : 'note';
+  currentPage = 1; saveView(); updateMsFilterBtnState(); renderQuestions();
+}
+function toggleMsFavFilter(){
+  const on = filterState.status === 'favorite';
+  filterState.status = on ? 'all' : 'favorite';
+  currentPage = 1; saveView(); updateMsFilterBtnState(); renderQuestions();
+}
+function updateMsFilterBtnState(){
+  const noteBtn = document.getElementById('msNoteFilterBtn');
+  const favBtn = document.getElementById('msFavFilterBtn');
+  if(noteBtn){
+    const on = filterState.status === 'note';
+    noteBtn.classList.toggle('btn-primary', on);
+    noteBtn.classList.toggle('btn-outline', !on);
+  }
+  if(favBtn){
+    const on = filterState.status === 'favorite';
+    favBtn.classList.toggle('btn-primary', on);
+    favBtn.classList.toggle('btn-outline', !on);
+  }
+}
+// —— 申论分区：只显示有笔记 / 只显示收藏（控制栏按钮） ——
+function toggleSlNoteFilter(){
+  const on = filterState.status === 'note';
+  filterState.status = on ? 'all' : 'note';
+  currentPage = 1; saveView(); updateSlFilterBtnState(); renderQuestions();
+}
+function toggleSlFavFilter(){
+  const on = filterState.status === 'favorite';
+  filterState.status = on ? 'all' : 'favorite';
+  currentPage = 1; saveView(); updateSlFilterBtnState(); renderQuestions();
+}
+function updateSlFilterBtnState(){
+  const noteBtn = document.getElementById('slNoteFilterBtn');
+  const favBtn = document.getElementById('slFavFilterBtn');
+  if(noteBtn){
+    const on = filterState.status === 'note';
+    noteBtn.classList.toggle('btn-primary', on);
+    noteBtn.classList.toggle('btn-outline', !on);
+  }
+  if(favBtn){
+    const on = filterState.status === 'favorite';
+    favBtn.classList.toggle('btn-primary', on);
+    favBtn.classList.toggle('btn-outline', !on);
+  }
+}
+// —— 申论笔记 key（与 renderShenLunPaper 保持一致） ——
+function getEssayNoteKey(q){
+  if(!q) return '';
+  if(q._noteKey) return q._noteKey;
+  return 'sl_note_'+String(q._paperId||q._paperName||q._key||'')+'_'+String(q.id||q._qi||'');
+}
 // —— 错题集操作 ——
 function unmarkWrong(key){ if(wrongSet[activeZone]&&wrongSet[activeZone][key]){ delete wrongSet[activeZone][key]; saveWrong(); renderQuestions(); } }
 function viewWrongSet() {
     var currentZone = activeZone || 'gk';
-    var wrongKeys = Object.keys(wrongSet[currentZone] || {});
-    var wrongCount = wrongKeys.length;
+    var allQuestions = getZoneQuestions(currentZone, '__all__');
+    var wrongQuestions = allQuestions.filter(function(q) {
+        return isAnsweredCorrect(q) === false;
+    });
 
-    console.log('📊 当前分区 [' + currentZone + '] 错题数:', wrongCount);
-
-    if (wrongCount === 0) {
+    if (wrongQuestions.length === 0) {
         alert('当前分区「' + zoneName(currentZone) + '」没有错题记录');
         return;
     }
-
-    var allQuestions = getZoneQuestions(currentZone, '__all__');
-    var wrongKeySet = {};
-    wrongKeys.forEach(function(key) {
-        wrongKeySet[key] = true;
-    });
-
-    filteredQuestions = allQuestions.filter(function(q) {
-        return wrongKeySet[q._key] === true;
-    });
-    window.filteredQuestions = filteredQuestions;
 
     filterState.status = 'wrong';
     currentPage = 1;
@@ -1915,9 +1980,7 @@ function viewWrongSet() {
     renderAll();
 
     var countEl = document.getElementById('wrongCount');
-    if (countEl) countEl.textContent = filteredQuestions.length;
-
-    console.log('✅ 筛选出错题数:', filteredQuestions.length);
+    if (countEl) countEl.textContent = wrongQuestions.length;
 }
 function cleanInvalidWrong() {
     var currentZone = activeZone;
@@ -1964,12 +2027,8 @@ function cleanInvalidWrongSilent(zone){
 }
 function wrongCount(){
   var zone = activeZone || 'gk';
-  var wrongKeys = Object.keys(wrongSet[zone] || {});
-  if (!wrongKeys.length) return 0;
   var allQuestions = getZoneQuestions(zone, '__all__');
-  var allKeys = {};
-  allQuestions.forEach(function(q){ allKeys[q._key] = true; });
-  return wrongKeys.filter(function(key){ return !!allKeys[key]; }).length;
+  return allQuestions.filter(function(q){ return isAnsweredCorrect(q) === false; }).length;
 }
 window.updateWrongCount = function() {
     var count = wrongCount();
@@ -2193,8 +2252,8 @@ function handleFiles(fileListArr){
     reader.onload=function(e){
       try{
         const raw=JSON.parse(e.target.result);
-        // 若拖入/选择的是备份文件（含 _type:helium_quiz_backup）→ 自动走导入备份流程，避免误报“需为题目数组”
-        if(raw && typeof raw==='object' && raw._type==='helium_quiz_backup'){
+        // 若拖入/选择的是备份文件（含 _type:helium_quiz_backup 或 helium_quiz_backup_v2）→ 自动走导入备份流程，避免误报“需为题目数组”
+        if(raw && typeof raw==='object' && (raw._type==='helium_quiz_backup' || raw._type==='helium_quiz_backup_v2')){
           importBackupFromObject(raw);
           return;
         }
@@ -2706,6 +2765,17 @@ function renderEssayFilterBar(){
 }
 
 function updateFilterOptions() {
+  // 统一重置状态下拉选项（含新增的「只显示心得」）
+  if(statusFilter){
+    statusFilter.innerHTML =
+      '<option value="all">🗂️ 全部状态</option>' +
+      '<option value="unanswered">只显示未做</option>' +
+      '<option value="answered">只显示已做</option>' +
+      '<option value="wrong">只显示错题</option>' +
+      '<option value="correct">只显示做对</option>' +
+      '<option value="favorite">⭐ 只显示收藏</option>' +
+      '<option value="note">📝 只显示心得</option>';
+  }
   if(activeZone==='sl' || activeZone==='ms') return;
   yearFilter.style.display='';
   provinceFilter.style.display='';
@@ -3105,6 +3175,14 @@ function getFiltered(){
     if(filterState.province!=='all') qs=qs.filter(function(q){ return (q._paperProvince||'其他')===filterState.province; });
     if(filterState.subType!=='all') qs=qs.filter(function(q){ return (q._paperTopic||'其他')===filterState.subType; });
     if(filterState.leafType!=='all') qs=qs.filter(function(q){ return (q.leafCategory||'其他')===filterState.leafType; });
+    if(filterState.status==='note'){
+      const notes = (typeof essayNotesCache === 'object' && essayNotesCache) ? essayNotesCache : {};
+      qs = qs.filter(function(q){
+        const key = getEssayNoteKey(q);
+        return !!(key && notes[key] && String(notes[key]).trim());
+      });
+    }
+    if(filterState.status==='favorite') qs=qs.filter(function(q){ return isFavorite(q._key); });
     return qs.sort(function(a,b){ return Number(b._paperYear||0)-Number(a._paperYear||0) || String(b._paperName||'').localeCompare(String(a._paperName||'')); });
   }
 
@@ -3112,6 +3190,8 @@ function getFiltered(){
     if(kw) qs=qs.filter(function(q){ return getSpecialSearchText(q).includes(kw); });
     if(filterState.province!=='all') qs=qs.filter(function(q){ return (q.region||'其他')===filterState.province; });
     if(filterState.module!=='all') qs=qs.filter(function(q){ return getSpecialQuestionType(q)===filterState.module; });
+    if(filterState.status==='note') qs=qs.filter(function(q){ return getQuestionNoteCount(q._key) > 0; });
+    if(filterState.status==='favorite') qs=qs.filter(function(q){ return isFavorite(q._key); });
     return qs.sort(function(a,b){ return extractYear(b.paperName||b.source||'')-extractYear(a.paperName||a.source||''); });
   }
 
@@ -3152,6 +3232,7 @@ function getFiltered(){
       if(st==='wrong')      return ic===false;
       if(st==='correct')    return ic===true;
       if(st==='favorite')   return isFavorite(q._key);
+      if(st==='note')       return getQuestionNoteCount(q._key) > 0;
       return true; });
   }
   let min=filterState.minRatio===''?0:parseFloat(filterState.minRatio);
@@ -3545,6 +3626,56 @@ function scanRenderedImages(){
   });
   diagnosticStats.brokenImages=broken;
   renderLog();
+}
+
+// 在故障检测中心里执行图片诊断（原「图片诊断」功能并入）
+function diagnoseImagesInDiag(){
+  const box = document.getElementById('scrollDiagImageBox');
+  const out = document.getElementById('scrollDiagImageOut');
+  if(!box || !out) return;
+  box.style.display = 'block';
+  out.textContent = '';
+  try{
+    const imgs = document.querySelectorAll('.q-content img, .q-solution img');
+    out.textContent += '【图片数量】 ' + imgs.length + '\n';
+    if(!imgs.length) out.textContent += '（当前题目页无图片）\n';
+    imgs.forEach(function(img, i){
+      const cs = getComputedStyle(img);
+      const pe = img.parentElement || img;
+      const ps = getComputedStyle(pe);
+      const nat = (img.naturalWidth||0) + 'x' + (img.naturalHeight||0);
+      const typ = img.src.indexOf('blob:')===0 ? 'BLOB' : (img.src.indexOf('http')===0 ? 'HTTP' : 'OTHER');
+      out.textContent += '— 图片' + i + ' —\n';
+      out.textContent += '  src: ' + (img.src||'').substring(0,80) + '\n';
+      out.textContent += '  origSrc: ' + (img.dataset.origSrc||'(无)').substring(0,80) + '\n';
+      out.textContent += '  代理: ' + (img.dataset.proxied ? ('已'+img.dataset.proxied+(img.dataset.proxyIdx!==undefined?('['+(Number(img.dataset.proxyIdx)+1)+']'):'')) : '未触发') + '\n';
+      out.textContent += '  类型: ' + typ + ' | complete: ' + img.complete + ' | natural: ' + nat + '\n';
+      out.textContent += '  display: ' + cs.display + ' | visibility: ' + cs.visibility + ' | opacity: ' + cs.opacity + '\n';
+      out.textContent += '  css宽高: ' + cs.width + ' x ' + cs.height + '\n';
+      out.textContent += '  父display: ' + ps.display + ' | 父overflow: ' + ps.overflow + ' | 父高: ' + ps.height + '\n';
+      const v = [];
+      if(cs.display==='none') v.push('IMG被display:none');
+      if(cs.visibility==='hidden'||cs.visibility==='collapse') v.push('IMG被visibility隐藏');
+      if(parseFloat(cs.opacity)===0) v.push('IMG透明度0');
+      if(ps.display==='none') v.push('父容器display:none');
+      if(img.complete && (img.naturalWidth||0)===0) v.push('已加载但像素0(破图/解码失败)');
+      if(!img.complete && typ==='HTTP') v.push('HTTP图未加载完(等load/或受JS干扰)');
+      out.textContent += v.length ? ('  ⚠ 判定: ' + v.join('；') + '\n') : '  ✓ 无明显隐藏，若仍空白=绘制/合成层问题\n';
+    });
+  }catch(e){
+    out.textContent += '诊断异常: ' + e.message + '\n';
+  }
+  // 同步进日志
+  addLog('image', '执行图片诊断', '共 ' + document.querySelectorAll('.q-content img, .q-solution img').length + ' 张图片', false);
+}
+
+// 「仅原生img」隔离开关（并入故障检测）
+function toggleNoHackInDiag(on){
+  window.__noImageHack = !!on;
+  const out = document.getElementById('scrollDiagImageOut');
+  if(out) out.textContent = '';
+  renderQuestions();
+  diagnoseImagesInDiag();
 }
 function checkDiagnosticMemory(){
   if(!performance || !performance.memory) return;
@@ -4247,21 +4378,8 @@ warmUpSpeechVoices();
 function renderQuestions(){
   stopSpeaking();
   stopAllMianShiRecordings();
-  if (filterState.status === 'wrong') {
-    var zone = activeZone || 'gk';
-    var keys = Object.keys(wrongSet[zone] || {});
-    var all = getZoneQuestions(zone, '__all__');
-    var keySet = {};
-    keys.forEach(function(k) { keySet[k] = true; });
-
-    filteredQuestions = all.filter(function(q) {
-      return keySet[q._key] === true;
-    });
-    window.filteredQuestions = filteredQuestions;
-  } else {
-    filteredQuestions = getFiltered();
-    window.filteredQuestions = filteredQuestions;
-  }
+  filteredQuestions = getFiltered();
+  window.filteredQuestions = filteredQuestions;
   const renderStarted=performance.now();
   snapScrollPosition('renderQuestions:start');
   const shouldFreeze=!!(window.__pendingScrollKey && window.__pendingScrollY!==undefined);
@@ -4397,7 +4515,6 @@ function renderQuestions(){
   restoreAIHistoryForVisibleQuestions();
   // 图片注入：normalize 协议（file://→https://）+ forceJpegUrl + 代理兜底。
   // MutationObserver 也会处理后续动态插入的 img（见 setupImgObserver）。
-  bindImageDebug();   // 诊断：捕获图片 load/error 事件（生产可整段删除）
   pageMeta.style.display='block';
   pageMeta.textContent=essayPaperMode ? `第 ${currentPage} / ${totalPages} 页 · 共 ${total} 题 · ${displayTotal} 套试卷` : `第 ${currentPage} / ${totalPages} 页 · 共 ${total} 题 · 每页 ${PAGE_SIZE} 题`;
   if(totalPages>1){
@@ -4410,6 +4527,8 @@ function renderQuestions(){
   finishRenderDiagnostics(total,renderStarted,end-start);
   snapScrollPosition('renderQuestions:end');
   renderZoneStats();
+  updateMsFilterBtnState();
+  updateSlFilterBtnState();
 }
 
 function buildMaterialQuestionSequence(paper){
@@ -4499,9 +4618,9 @@ function renderShenLunPaper(question, index, key){
   question._noteKey='sl_note_'+String(question._paperId||question._paperName||key)+'_'+String(question.id||question._qi||index);
   html+='<div class="essay-note-box">'
       + '<div class="essay-note-label">✏️ 我的笔记</div>'
-      + '<textarea class="essay-note-input" data-key="'+escapeHtml(question._noteKey)+'" placeholder="记录你的答题思路..."></textarea>'
+      + '<textarea class="essay-note-input" data-key="'+escapeHtml(getEssayNoteKey(question))+'" placeholder="记录你的答题思路..."></textarea>'
       + '<div class="essay-note-actions">'
-      +   '<button type="button" class="essay-note-clear-btn2" data-key="'+escapeHtml(question._noteKey)+'">🗑️ 清除</button>'
+      +   '<button type="button" class="essay-note-clear-btn2" data-key="'+escapeHtml(getEssayNoteKey(question))+'">🗑️ 清除</button>'
       + '</div>'
       + '</div>';
   return html+'</article>';
@@ -4645,7 +4764,6 @@ document.addEventListener('selectionchange', function(){
   clearTimeout(window.__essayTouchSelTimer);
   window.__essayTouchSelTimer = setTimeout(_recordEssaySelectionFromTouch, 150);
 });
-let essayNotesCache = null;
 
 async function loadNotesAsync(){
   if(essayNotesCache) return essayNotesCache;
@@ -4928,7 +5046,10 @@ function switchFile(id){
 }
 function switchZone(z){
   stopSpeaking();
-  activeZone=z; activeFile='__all__'; document.body.classList.toggle('essay-zone', z==='sl'); filterState={module:'all',year:'all',province:'all',source:'all',subType:'all',leafType:'all',search:'',status:'all',sortBy:'default',minRatio:'',maxRatio:''};
+  activeZone=z; activeFile='__all__';
+  document.body.classList.toggle('essay-zone', z==='sl');
+  document.body.classList.toggle('ms-zone', z==='ms');
+  filterState={module:'all',year:'all',province:'all',source:'all',subType:'all',leafType:'all',search:'',status:'all',sortBy:'default',minRatio:'',maxRatio:''};
   applyZoneTheme(z); currentPage=1; saveView(); renderAll();
   setTimeout(function(){ window.updateSubTypeFilter(); }, 100);
   cleanInvalidWrongSilent(activeZone);
@@ -5426,11 +5547,22 @@ async function exportBackup(){
     return;
   }
   
-  // 读取错题集、收藏、做题次数
+  // 读取错题集（按做题记录生成）、收藏、做题次数
   const wrongSetData = { gk: {}, mk: {}, sy: {}, sl: {}, ms: {} };
   const favoritesData = { gk: {}, mk: {}, sy: {}, sl: {}, ms: {} };
   const attemptsData = {};
   let chatHistory = {};
+
+  // 按做题记录生成错题集：凡是做题记录里做错的，都标记
+  ZONE_IDS.forEach(function(zone){
+    var all = getZoneQuestions(zone, '__all__');
+    all.forEach(function(q){
+      if(isAnsweredCorrect(q) === false){
+        if(!q._qid) q._qid = generateQuestionId(q);
+        wrongSetData[zone][q._qid] = true;
+      }
+    });
+  });
   
   try {
     chatHistory = await loadAllChats();
@@ -5461,16 +5593,6 @@ async function exportBackup(){
         }
       });
     });
-    
-    // 导出该分区的错题集（只导出做过的题中的错题）
-    if (wrongSet[zone]) {
-      Object.keys(qidToKeys).forEach(qid => {
-        const key = qidToKeys[qid];
-        if (wrongSet[zone][key]) {
-          wrongSetData[zone][qid] = true;
-        }
-      });
-    }
     
     // 导出该分区的收藏（只导出做过的题中的收藏）
     if (favorites[zone]) {
@@ -5635,7 +5757,7 @@ async function importBackupFromObject(data){
       });
     });
     
-    // 第三步：恢复错题集标记（用 qid 匹配）
+    // 第三步：恢复错题集标记（用 qid 匹配），写入 IndexedDB 的 wrongSet
     let wrongSetRestored = 0;
     if (data.wrongSet) {
       ZONE_IDS.forEach(zone => {
@@ -5649,6 +5771,7 @@ async function importBackupFromObject(data){
           }
         });
       });
+      saveWrong();   // 确保写入 IndexedDB
     }
     
     // 第四步：恢复收藏标记（用 qid 匹配）
@@ -6975,7 +7098,9 @@ async function openChatHistory() {
   }
   try{ await loadWrong(); await loadFav(); await loadDaily(); await loadExam(); }catch(e){}
   if(!ZONES.some(function(z){ return z.id===activeZone; })) activeZone='gk';
-  applyZoneTheme(activeZone); document.body.classList.toggle('essay-zone', activeZone==='sl');
+  applyZoneTheme(activeZone);
+  document.body.classList.toggle('essay-zone', activeZone==='sl');
+  document.body.classList.toggle('ms-zone', activeZone==='ms');
   initMode();
   applyFs(getFs());
   bindFileTabSwitch();
@@ -7527,63 +7652,6 @@ if (window.renderQuestions) window.renderQuestions();
   });
   if(!(index[activeZone]&&index[activeZone].length)) controls.style.display='none';
 })();
-// ===================== 图片诊断调试工具（调试用，定位完成后可整段删除） =====================
-// 用途：在 iPhone/Edge 上无需开发者工具即可查看图片为何不显示；并提供“仅原生img”开关，用于隔离
-// 代理兜底等 JS 图片处理是否正是“图片在 HTML 中不显示”的元凶。
-function bindImageDebug(){
-  try{
-    const imgs=content.querySelectorAll('img');
-    imgs.forEach(function(im){
-      if(im.__dbgBound) return; im.__dbgBound=true;
-      im.addEventListener('load', function(){ const o=document.getElementById('dbgLog'); if(o) o.textContent+='✓ 加载成功: '+(this.src||'').substring(0,40)+'\n'; });
-      im.addEventListener('error', function(){ const o=document.getElementById('dbgLog'); if(o) o.textContent+='✗ 加载失败: '+(this.src||'').substring(0,40)+'\n'; });
-    });
-  }catch(e){}
-}
-function dbgClear(){ const o=document.getElementById('dbgOut'); if(o) o.textContent=''; const l=document.getElementById('dbgLog'); if(l) l.textContent=''; }
-function dbgPrint(m){ const o=document.getElementById('dbgOut'); if(o) o.textContent+=m+'\n'; }
-function diagnoseImages(){
-  try{
-    const imgs=document.querySelectorAll('.q-content img, .q-solution img');
-    dbgPrint('【图片数量】 '+imgs.length);
-    if(!imgs.length) dbgPrint('（当前题目页无图片）');
-    imgs.forEach(function(img,i){
-      const cs=getComputedStyle(img);
-      const pe=img.parentElement||img;
-      const ps=getComputedStyle(pe);
-      const nat=(img.naturalWidth||0)+'x'+(img.naturalHeight||0);
-      const typ=img.src.indexOf('blob:')===0?'BLOB':(img.src.indexOf('http')===0?'HTTP':'OTHER');
-      dbgPrint('— 图片'+i+' —');
-      dbgPrint('  src: '+(img.src||'').substring(0,80));
-      dbgPrint('  origSrc: '+(img.dataset.origSrc||'(无)').substring(0,80));
-      dbgPrint('  代理: '+(img.dataset.proxied?('已'+img.dataset.proxied+(img.dataset.proxyIdx!==undefined?('['+(Number(img.dataset.proxyIdx)+1)+']'):'')):'未触发'));
-      dbgPrint('  类型: '+typ+' | complete: '+img.complete+' | natural: '+nat);
-      dbgPrint('  display: '+cs.display+' | visibility: '+cs.visibility+' | opacity: '+cs.opacity);
-      dbgPrint('  css宽高: '+cs.width+' x '+cs.height);
-      dbgPrint('  父display: '+ps.display+' | 父overflow: '+ps.overflow+' | 父高: '+ps.height);
-      const v=[];
-      if(cs.display==='none') v.push('IMG被display:none');
-      if(cs.visibility==='hidden'||cs.visibility==='collapse') v.push('IMG被visibility隐藏');
-      if(parseFloat(cs.opacity)===0) v.push('IMG透明度0');
-      if(ps.display==='none') v.push('父容器display:none');
-      if(img.complete&&(img.naturalWidth||0)===0) v.push('已加载但像素0(破图/解码失败)');
-      if(!img.complete&&typ==='HTTP') v.push('HTTP图未加载完(等load/或受JS干扰)');
-      dbgPrint(v.length?('  ⚠ 判定: '+v.join('；')):'  ✓ 无明显隐藏，若仍空白=绘制/合成层问题');
-    });
-  }catch(e){ dbgPrint('诊断异常: '+e.message); }
-}
-function toggleDebug(){
-  const p=document.getElementById('dbgPanel');
-  if(!p) return;
-  p.style.display=(p.style.display==='block')?'none':'block';
-  if(p.style.display==='block'){ const o=document.getElementById('dbgOut'); if(o) o.textContent=''; diagnoseImages(); }
-}
-function toggleNoHack(on){
-  window.__noImageHack=!!on;
-  dbgClear();
-  renderQuestions();
-  diagnoseImages();
-}
 
 // ============================================================
 // 增量功能：对话操作、做题次数、详情查看
@@ -7910,13 +7978,28 @@ function toggleNoHack(on){
   const qzLocalZones=ZONE_IDS;
 
   function qzLocalRead(){
-    try{
-      const value=JSON.parse(localStorage.getItem(qzLocalWrongKey)||'{}');
-      return value&&typeof value==='object'?value:{};
-    }catch(e){ return {}; }
+    // 统一读 IndexedDB 的 wrongSet
+    var out = {};
+    ZONE_IDS.forEach(function(z){
+      out[z] = {};
+      Object.keys(wrongSet[z] || {}).forEach(function(k){
+        if(wrongSet[z][k]) out[z][k] = true;
+      });
+    });
+    return out;
   }
   function qzLocalWrite(value){
-    try{ localStorage.setItem(qzLocalWrongKey,JSON.stringify(value)); }catch(e){}
+    // 统一写 IndexedDB 的 wrongSet
+    if(!value || typeof value !== 'object') return;
+    ZONE_IDS.forEach(function(z){
+      if(value[z] && typeof value[z] === 'object'){
+        wrongSet[z] = {};
+        Object.keys(value[z]).forEach(function(k){
+          if(value[z][k]) wrongSet[z][k] = true;
+        });
+      }
+    });
+    saveWrong();
   }
   function qzLocalValidQuestion(zone,key){
     if(!db[zone]||!key) return false;
@@ -7924,48 +8007,52 @@ function toggleNoHack(on){
     return !!(match&&db[zone][match[1]]&&db[zone][match[1]].questions&&db[zone][match[1]].questions[Number(match[2])]);
   }
   function qzLocalValidList(){
-    const source=qzLocalRead();
     const valid={};
-    qzLocalZones.forEach(function(zone){
+    ZONE_IDS.forEach(function(zone){
       valid[zone]={};
-      const entries=source[zone]&&typeof source[zone]==='object'?source[zone]:{};
-      Object.keys(entries).forEach(function(key){
-        if(entries[key]===true&&qzLocalValidQuestion(zone,key)) valid[zone][key]=true;
+      Object.keys(wrongSet[zone] || {}).forEach(function(key){
+        if(wrongSet[zone][key] && qzLocalValidQuestion(zone,key)) valid[zone][key]=true;
       });
     });
     return valid;
   }
   function qzLocalUpdateCount(){
-    const list=qzLocalValidList();
-    let total=0;
-    qzLocalZones.forEach(function(zone){ total+=Object.keys(list[zone]).length; });
-    const count=document.getElementById('wrongCount');
-    if(count) count.textContent=String(total);
+    var zone = activeZone || 'gk';
+    var all = getZoneQuestions(zone, '__all__');
+    var total = all.filter(function(q){ return isAnsweredCorrect(q) === false; }).length;
+    const count = document.getElementById('wrongCount');
+    if(count) count.textContent = String(total);
   }
   function qzLocalSyncAnswer(zone,key,isWrong){
-    const list=qzLocalRead();
-    if(!list[zone]||typeof list[zone]!=='object') list[zone]={};
-    if(isWrong) list[zone][key]=true;
-    else delete list[zone][key];
-    qzLocalWrite(list);
+    if(!wrongSet[zone] || typeof wrongSet[zone] !== 'object') wrongSet[zone] = {};
+    if(isWrong) wrongSet[zone][key] = true;
+    else delete wrongSet[zone][key];
+    saveWrong();
     qzLocalUpdateCount();
   }
 
-  // 兼容已有用户：首次使用新 key 时复制旧数据，之后两套数据互不覆盖。
+  // 兼容已有用户：首次使用时把 localStorage 旧错题表合并进 IndexedDB 的 wrongSet，然后删除 localStorage。
   let qzLocalBootstrapped=false;
   function qzLocalBootstrap(){
     if(qzLocalBootstrapped) return;
     qzLocalBootstrapped=true;
-    const current=localStorage.getItem(qzLocalWrongKey);
-    if(current===null&&typeof wrongSet!=='undefined'){
-      const legacy=qzLocalRead();
-      qzLocalZones.forEach(function(zone){
-        legacy[zone]={};
-        const entries=wrongSet[zone]&&typeof wrongSet[zone]==='object'?wrongSet[zone]:{};
-        Object.keys(entries).forEach(function(key){ if(entries[key]) legacy[zone][key]=true; });
-      });
-      qzLocalWrite(legacy);
-    }
+    // 一次性迁移：把 localStorage 的旧错题表合并进 IndexedDB 的 wrongSet，然后删除 localStorage
+    try{
+      var legacy = JSON.parse(localStorage.getItem(qzLocalWrongKey) || '{}');
+      if(legacy && typeof legacy === 'object'){
+        var migrated = 0;
+        ZONE_IDS.forEach(function(zone){
+          if(!wrongSet[zone] || typeof wrongSet[zone] !== 'object') wrongSet[zone] = {};
+          var entries = legacy[zone] && typeof legacy[zone] === 'object' ? legacy[zone] : {};
+          Object.keys(entries).forEach(function(key){
+            if(entries[key] && !wrongSet[zone][key]){ wrongSet[zone][key] = true; migrated++; }
+          });
+        });
+        if(migrated > 0){ saveWrong(); }
+        localStorage.removeItem(qzLocalWrongKey);
+        console.log('✅ 错题集已从 localStorage 迁移到 IndexedDB，共', migrated, '条');
+      }
+    }catch(e){}
     qzLocalUpdateCount();
   }
 
@@ -7982,19 +8069,6 @@ function toggleNoHack(on){
     qzLocalSyncAnswer(activeZone,key,!correct);
   },true);
 
-  const qzOriginalGetFiltered=getFiltered;
-  getFiltered=function(){
-    const requestedStatus=filterState.status;
-    if(requestedStatus==='wrong') filterState.status='all';
-    let result=qzOriginalGetFiltered();
-    filterState.status=requestedStatus;
-    if(requestedStatus==='wrong'){
-      const list=qzLocalValidList();
-      result=result.filter(function(question){ return !!(list[activeZone]&&list[activeZone][question._key]); });
-    }
-    return result;
-  };
-
   const qzOriginalRenderAll=renderAll;
   renderAll=function(){
     qzLocalBootstrap();
@@ -8003,36 +8077,26 @@ function toggleNoHack(on){
 
   window.viewWrongSet=function(){
     var currentZone = activeZone || 'gk';
-    var wrongKeys = Object.keys(wrongSet[currentZone] || {});
-    var wrongCount = wrongKeys.length;
+    var allQuestions = getZoneQuestions(currentZone, '__all__');
+    var wrongQuestions = allQuestions.filter(function(q) {
+        return isAnsweredCorrect(q) === false;
+    });
 
-    if (wrongCount === 0) {
-      alert('当前分区「' + zoneName(currentZone) + '」没有错题记录');
-      return;
+    if (wrongQuestions.length === 0) {
+        alert('当前分区「' + zoneName(currentZone) + '」没有错题记录');
+        return;
     }
 
-    var allQuestions = getZoneQuestions(currentZone, '__all__');
-    var wrongKeySet = {};
-    wrongKeys.forEach(function(key) {
-      wrongKeySet[key] = true;
-    });
-
-    filteredQuestions = allQuestions.filter(function(q) {
-      return wrongKeySet[q._key] === true;
-    });
-    window.filteredQuestions = filteredQuestions;
-
-    filterState.status='wrong';
-    currentPage=1;
+    filterState.status = 'wrong';
+    currentPage = 1;
     saveView();
     renderAll();
 
     var countEl = document.getElementById('wrongCount');
-    if (countEl) countEl.textContent = filteredQuestions.length;
-    console.log('✅ 筛选出错题数:', filteredQuestions.length);
+    if (countEl) countEl.textContent = wrongQuestions.length;
   };
   window.addEventListener('storage',function(event){
-    if(event.key===qzLocalWrongKey){ qzLocalUpdateCount(); if(filterState.status==='wrong') renderQuestions(); }
+    // 已统一到 IndexedDB，不再监听 localStorage
   });
   qzLocalUpdateCount();
 })();
@@ -8199,15 +8263,6 @@ function toggleNoHack(on){
   console.log('[WebViewFix] 修复完成，AI 接口在 App WebView 中可继续兜底走 fetch');
 })();
 </script>
-<!-- 图片诊断调试工具（调试用，定位完成后可整段删除） -->
-<div id="dbgPanel" style="display:none;position:fixed;left:0;right:0;bottom:0;max-height:55%;overflow:auto;background:#0b1020;color:#4ade80;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;padding:10px 12px;z-index:99998;border-top:2px solid #2563eb;box-sizing:border-box;">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;color:#fff;font-size:12px;">
-    <strong>图片诊断（iPhone Edge）</strong>
-    <label style="font-size:12px;"><input type="checkbox" id="dbgNoHack" onchange="toggleNoHack(this.checked)"> 仅原生img（关JS处理）</label>
-  </div>
-  <pre id="dbgOut" style="white-space:pre-wrap;margin:0;color:#4ade80;"></pre>
-  <div id="dbgLog" style="margin-top:6px;color:#a7f3d0;border-top:1px dashed #334155;padding-top:6px;"></div>
-</div>
 <!-- AI 设置按钮 + 配置面板 -->
 <button id="aiSettingsBtn" type="button" onclick="toggleAIPanel()" title="AI 配置">⚙️</button>
 <div id="aiPanel">
@@ -8295,7 +8350,7 @@ function toggleNoHack(on){
   <div style="margin-top:6px;padding:6px 10px;background:#0f172a;border-radius:6px;text-align:center;font-size:10px;color:#64748b;">点击主题切换 · 再次点击关闭</div>
 </div>
 <div id="scrollDiagPanel">
-  <header><strong>🔍 故障检测中心</strong><div class="diag-actions"><button type="button" onclick="detectProxy()">🌐 检测代理</button><button type="button" onclick="exportFullDiagnostic()">📊 完整诊断</button><button type="button" onclick="exportFaultReport()">📥 导出</button><button type="button" onclick="copyFaultReport()">📋 复制</button><button type="button" onclick="clearScrollDiagnostics()">🗑️ 清空</button><button type="button" class="scroll-diag-close" onclick="closeScrollDiagnostics()">✕</button></div></header>
+  <header><strong>🔍 故障检测中心</strong><div class="diag-actions"><button type="button" onclick="diagnoseImagesInDiag()">🔧 图片诊断</button><button type="button" onclick="detectProxy()">🌐 检测代理</button><button type="button" onclick="exportFullDiagnostic()">📊 完整诊断</button><button type="button" onclick="exportFaultReport()">📥 导出</button><button type="button" onclick="copyFaultReport()">📋 复制</button><button type="button" onclick="clearScrollDiagnostics()">🗑️ 清空</button><button type="button" class="scroll-diag-close" onclick="closeScrollDiagnostics()">✕</button></div></header>
   <nav id="scrollDiagFilters" aria-label="故障类型过滤">
     <button type="button" data-filter="all" class="active" onclick="setDiagFilter('all')">🔎 全部</button>
     <button type="button" data-filter="error" onclick="setDiagFilter('error')">❌ 运行时</button>
@@ -8309,6 +8364,15 @@ function toggleNoHack(on){
     <button type="button" data-filter="info" onclick="setDiagFilter('info')">📌 信息</button>
   </nav>
   <div id="scrollDiagStats" class="diag-stats">破损图片 0 · 最近渲染 0ms · 内存 不可用 · 滚动偏差 0 次</div>
+  <div id="scrollDiagImageBox" style="display:none;margin:8px 0;padding:8px;background:#0f172a;border:1px solid #334155;border-radius:6px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <strong style="color:#93c5fd;font-size:12px;">🖼️ 图片详情</strong>
+      <label style="font-size:11px;color:#cbd5e1;display:flex;align-items:center;gap:4px;">
+        <input type="checkbox" id="diagNoHack" onchange="toggleNoHackInDiag(this.checked)"> 仅原生img（关JS处理）
+      </label>
+    </div>
+    <pre id="scrollDiagImageOut" style="white-space:pre-wrap;margin:0;color:#4ade80;font:11px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;"></pre>
+  </div>
   <pre id="scrollDiagLog"></pre>
 </div>
 
@@ -8333,7 +8397,7 @@ function toggleNoHack(on){
       <button onclick="fontZoom(2)" title="放大字体" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:4px;color:#e2e8f0;width:28px;height:28px;cursor:pointer;font-size:12px;font-weight:bold;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0;">A+</button>
       <button id="sidebarModeToggle" onclick="toggleMode()" title="切换到手机模式" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:4px;color:#e2e8f0;width:28px;height:28px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0;">💻</button>
     </div>
-    <button id="sidebarClose" style="background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer;padding:4px 8px;">✕</button>
+    <button id="sidebarClose" style="font-size:20px;cursor:pointer;padding:4px 8px;">✕</button>
   </div>
   <div style="flex:1;overflow-y:auto;padding:12px 16px;">
     <div style="margin-bottom:14px;padding:10px 12px;background:rgba(255,255,255,0.05);border-radius:8px;border:1px solid rgba(255,255,255,0.06);">
@@ -8427,7 +8491,6 @@ function toggleNoHack(on){
     <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
       <div class="module-title" style="font-size:11px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">🛠️ 调试工具</div>
       <div style="display:flex;flex-direction:column;gap:4px;">
-        <button id="dbgBtn" type="button" onclick="toggleDebug()" style="display:flex;align-items:center;justify-content:flex-start;gap:6px;padding:6px 10px;background:#0f172a;border:1px solid #334155;border-radius:4px;color:#e2e8f0;font-size:11px;cursor:pointer;text-align:left;">🔧 图片诊断</button>
         <button id="scrollDiagBtn" type="button" onclick="toggleScrollDiagnostics()" title="故障检测中心" style="display:flex;align-items:center;justify-content:flex-start;gap:6px;padding:6px 10px;background:#0f172a;border:1px solid #334155;border-radius:4px;color:#e2e8f0;font-size:11px;cursor:pointer;text-align:left;position:relative;">🔍 故障检测 <span id="scrollDiagCount" style="display:inline-flex;min-width:16px;height:16px;align-items:center;justify-content:center;padding:0 4px;border-radius:10px;background:#ef4444;color:#fff;font-size:10px;line-height:1;">0</span></button>
       </div>
     </div>
