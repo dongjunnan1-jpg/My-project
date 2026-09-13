@@ -647,6 +647,11 @@ body.essay-zone #moduleFilter, body.essay-zone #leafTypeFilter, body.essay-zone 
 body.ms-zone .ms-only-btn { display: inline-flex !important; }
 .sl-only-btn { display: none !important; }
 body.essay-zone .sl-only-btn { display: inline-flex !important; }
+/* 申论、面试分区隐藏「错题集」「导出错题本」 */
+body.essay-zone .wrong-only-btn,
+body.ms-zone .wrong-only-btn {
+  display: none !important;
+}
 
 /* ====== 左上角计时统计 ====== */
 #timerStats { position:fixed !important; top:80px !important; left:auto !important; bottom:auto !important; right:20px !important; transform:none !important; background:rgba(255,255,255,0.15) !important; backdrop-filter:blur(20px) !important; -webkit-backdrop-filter:blur(20px) !important; color:#1a202c !important; padding:10px 16px !important; border-radius:14px !important; font-size:13px !important; z-index:999 !important; display:flex !important; flex-direction:column !important; gap:4px !important; align-items:flex-start !important; box-shadow:0 4px 20px rgba(0,0,0,0.08) !important; border:1px solid rgba(255,255,255,0.3) !important; min-width:100px !important; font-weight:500 !important; cursor:move !important; user-select:none !important; -webkit-user-select:none !important; }
@@ -1581,8 +1586,8 @@ body.skin-dark .new-chat-detail-note-title { color:#fbbf24; }
     <div class="controls" id="controls" style="display:none;">
         <input type="text" class="search-box" id="searchBox" placeholder="🔍 搜索题目...">
         <button class="btn btn-primary" onclick="exportFiltered()">📤 导出筛选结果</button>
-        <button class="btn btn-outline" onclick="viewWrongSet()">📒 错题集(<span id="wrongCount">0</span>)</button>
-        <button class="btn btn-outline" onclick="exportWrong()">📕 导出错题本</button>
+        <button class="btn btn-outline wrong-only-btn" onclick="viewWrongSet()">📒 错题集(<span id="wrongCount">0</span>)</button>
+        <button class="btn btn-outline wrong-only-btn" onclick="exportWrong()">📕 导出错题本</button>
         <button class="btn btn-outline" onclick="resetProgress()">🔄 重置进度</button>
         <button class="btn btn-outline" onclick="window.print()">🖨️ 打印</button>
         <button class="btn btn-primary" onclick="exportBackup()">💾 导出备份</button>
