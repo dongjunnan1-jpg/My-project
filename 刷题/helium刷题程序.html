@@ -6617,6 +6617,8 @@ const AI_ENDPOINTS={
   zhipu:{url:'https://open.bigmodel.cn/api/paas/v4/chat/completions', model:'glm-4-flash'},
   openai:{url:'https://api.openai.com/v1/chat/completions', model:'gpt-4o-mini'}
 };
+// 中转接口地址（部署后替换为真实地址；留空则直接走直连）
+const AI_PROXY_URL = 'https://你的中转接口地址';
 // AI 请求带自动重试：App WebView 网络不稳时，失败后隔 1 秒重试，最多 3 次
 async function axiosWithRetry(config, retries){
   retries = (typeof retries === 'number') ? retries : 3;
@@ -6633,6 +6635,55 @@ async function axiosWithRetry(config, retries){
     }
   }
   throw lastError;
+}
+// 统一 AI 请求：优先走中转（不暴露 Key），失败自动降级直连
+async function requestAI(payload){
+  const provider = payload.provider;
+  const ep = AI_ENDPOINTS[provider];
+  const proxyUrl = (typeof AI_PROXY_URL === 'string') ? AI_PROXY_URL.trim() : '';
+  const proxyUsable = proxyUrl && proxyUrl.indexOf('你的中转接口地址') === -1;
+  // 1) 优先尝试中转
+  if(proxyUsable){
+    try{
+      const res = await axiosWithRetry({
+        method: 'post',
+        url: proxyUrl,
+        headers: {'Content-Type': 'application/json'},
+        data: {
+          provider: provider,
+          model: payload.model,
+          messages: payload.messages,
+          temperature: payload.temperature,
+          max_tokens: payload.max_tokens,
+          enable_search: payload.enable_search,
+          search: payload.search
+        },
+        timeout: 30000,
+        proxy: false
+      });
+      return res;
+    }catch(e){
+      console.log('[AI] 中转失败，已降级直连', e && (e.message || e));
+    }
+  }
+  // 2) 降级直连（需要 apiKey）
+  if(!ep) throw new Error('未知的 AI 服务商，请先配置');
+  if(!aiConfig.apiKey) throw new Error('中转不可用且未配置 API Key，无法直连');
+  return await axiosWithRetry({
+    method: 'post',
+    url: ep.url,
+    headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + aiConfig.apiKey},
+    data: {
+      model: payload.model || ep.model,
+      messages: payload.messages,
+      temperature: payload.temperature,
+      max_tokens: payload.max_tokens,
+      enable_search: payload.enable_search,
+      search: payload.search
+    },
+    timeout: 30000,
+    proxy: false
+  });
 }
 function loadAIConfig(){
   try{ const r=localStorage.getItem(AI_KEY); if(r) aiConfig=JSON.parse(r); }catch(e){}
@@ -6842,20 +6893,14 @@ async function simplifySolution(key, btn){
   result.className='q-ai-result show';
   result.innerHTML='<span class="q-ai-loading">🤖 AI 正在简化解析...</span>';
   try{
-    const response = await axiosWithRetry({
-      method: 'post',
-      url: ep.url,
-      headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+aiConfig.apiKey},
-      data:{
-        model: aiConfig.model || ep.model,
-        messages:[
-          {role:'system', content:'你是公考辅导老师。请把下面的题目解析简化成通俗易懂的大白话，保留关键推理步骤，控制在200字内。'},
-          {role:'user', content:'题目：'+(item.content||'').substring(0,500)+'\n\n原解析：'+(item.solution||'').substring(0,1000)}
-        ],
-        temperature:0.5, max_tokens:400
-      },
-      timeout: 30000,
-      proxy: false
+    const response = await requestAI({
+      provider: aiConfig.provider,
+      model: aiConfig.model || ep.model,
+      messages:[
+        {role:'system', content:'你是公考辅导老师。请把下面的题目解析简化成通俗易懂的大白话，保留关键推理步骤，控制在200字内。'},
+        {role:'user', content:'题目：'+(item.content||'').substring(0,500)+'\n\n原解析：'+(item.solution||'').substring(0,1000)}
+      ],
+      temperature:0.5, max_tokens:400
     });
     const data=response.data;
     const text=data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
@@ -6977,13 +7022,14 @@ async function sendChatMessage(key) {
     if (aiConfig.provider === 'qwen' && enableSearch) {
       requestBody.search = true;
     }
-    const response = await axiosWithRetry({
-      method: 'post',
-      url: ep.url,
-      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + aiConfig.apiKey},
-      data: requestBody,
-      timeout: 30000,
-      proxy: false
+    const response = await requestAI({
+      provider: aiConfig.provider,
+      model: requestBody.model,
+      messages: requestBody.messages,
+      temperature: requestBody.temperature,
+      max_tokens: requestBody.max_tokens,
+      enable_search: requestBody.enable_search,
+      search: requestBody.search
     });
     const data = response.data;
     const text = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
@@ -8359,6 +8405,7 @@ if (window.renderQuestions) window.renderQuestions();
   </select>
   <label>API Key</label>
   <input type="password" id="aiKey" placeholder="sk-...">
+  <div style="font-size:11px;color:#64748b;line-height:1.5;margin-top:-2px;">走中转模式时无需填写，留空即可；中转失败时会自动降级到直连，此时才需要填。</div>
   <label>模型（可选，留空用默认）</label>
   <input type="text" id="aiModel" placeholder="如 deepseek-chat">
   <label style="display:flex;align-items:center;gap:6px;color:#000000;font-size:13px;font-weight:500;padding:4px 0;cursor:pointer;flex-wrap:wrap;">
