@@ -6612,7 +6612,7 @@ const AI_HISTORY_STORE='chats';
 let aiHistoryDb=null;
 let aiConfig={provider:'', apiKey:'', model:'', enableSearch:false};
 const AI_ENDPOINTS={
-  deepseek:{url:'https://api.deepseek.com/chat/completions', model:'deepseek-chat'},
+  deepseek:{url:'https://api.deepseek.com/chat/completions', model:'deepseek-flash'},
   qwen:{url:'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', model:'qwen-turbo'},
   zhipu:{url:'https://open.bigmodel.cn/api/paas/v4/chat/completions', model:'glm-4-flash'},
   openai:{url:'https://api.openai.com/v1/chat/completions', model:'gpt-4o-mini'}
@@ -6689,11 +6689,14 @@ function loadAIConfig(){
   try{ const r=localStorage.getItem(AI_KEY); if(r) aiConfig=JSON.parse(r); }catch(e){}
   if(!aiConfig||typeof aiConfig!=='object') aiConfig={provider:'',apiKey:'',model:'',enableSearch:false};
   aiConfig.enableSearch = !!aiConfig.enableSearch;
+  aiConfig.enableThinking = !!aiConfig.enableThinking;
   const p=document.getElementById('aiProvider'); if(p && aiConfig.provider) p.value=aiConfig.provider;
   const k=document.getElementById('aiKey'); if(k) k.value=aiConfig.apiKey||'';
   const m=document.getElementById('aiModel'); if(m) m.value=aiConfig.model||'';
   const toggle=document.getElementById('aiSearchToggle');
   if(toggle) toggle.checked = aiConfig.enableSearch || false;
+  const thinkingToggle=document.getElementById('aiThinkingToggle');
+  if(thinkingToggle) thinkingToggle.checked = !!aiConfig.enableThinking;
 }
 function saveAIConfig(){ try{ localStorage.setItem(AI_KEY, JSON.stringify(aiConfig)); }catch(e){} }
 function formatAIResponse(text){ return String(text||'').replace(/。/g, '。\n'); }
@@ -6758,6 +6761,7 @@ function saveAISettings(){
   aiConfig.apiKey=(document.getElementById('aiKey').value||'').trim();
   aiConfig.model=(document.getElementById('aiModel').value||'').trim();
   aiConfig.enableSearch = document.getElementById('aiSearchToggle')?.checked || false;
+  aiConfig.enableThinking = document.getElementById('aiThinkingToggle')?.checked || false;
   saveAIConfig();
   toggleAIPanel();
   alert('AI 配置已保存');
@@ -6897,18 +6901,22 @@ async function simplifySolution(key, btn){
       provider: aiConfig.provider,
       model: aiConfig.model || ep.model,
       messages:[
-        {role:'system', content:'你是公考辅导老师。请把下面的题目解析简化成通俗易懂的大白话，保留关键推理步骤，控制在200字内。'},
-        {role:'user', content:'题目：'+(item.content||'').substring(0,500)+'\n\n原解析：'+(item.solution||'').substring(0,1000)}
+        {role:'system', content:'你是公考辅导老师。请用简洁的大白话解释这道题，突出关键推理步骤，控制在200到300字之间，但必须把话说完，结尾要有句号，不能中途断掉。'},
+        {role:'user', content:'题目：'+(item.content||'').substring(0,500)+'\n\n原解析：'+(item.solution||'').substring(0,2000)}
       ],
-      temperature:0.5, max_tokens:400
+      temperature:0.5, max_tokens:2000,
+      ...(aiConfig.enableThinking ? {reasoning_effort:"high"} : {reasoning_effort:"none"})
     });
     const data=response.data;
-    const text=data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+    const msg=data.choices && data.choices[0] && data.choices[0].message;
+    const text=(msg && msg.content) || (msg && msg.reasoning_content) || '';
     if(!text) throw new Error('返回格式异常');
+    const reasoning=msg && msg.reasoning_content ? msg.reasoning_content : '';
     const formattedText=formatAIResponse(text);
     result.innerHTML='<strong>🤖 AI 简化解析</strong><br>'+escapeHtml(formattedText).replace(/\n/g,'<br>');
     saveAIHistoryMessage(key, {
       role:'assistant', type:'simplify', content:text,
+      reasoning_content:reasoning,
       questionContent:item.content||'', questionOptions:getOptions(item), at:Date.now()
     });
   }catch(e){
@@ -6998,9 +7006,13 @@ async function sendChatMessage(key) {
   renderChatBox(key, messages);
   scrollChatToBottom(key);
   const aiMessages = [
-    {role: 'system', content: '你是公考辅导老师。直接、简洁、精准回答，不重复题目，不说废话。回答100字以内。\n题目：' + (item.content || '').substring(0,200) + '\n答案：' + (item.correctAnswer || item.answer || '') + '\n解析：' + (item.solution || '').substring(0,300)}
+    {role: 'system', content: '你是公考辅导老师。直接、简洁、精准回答，不重复题目，不说废话。回答100字以内。\n题目：' + (item.content || '').substring(0,500) + '\n答案：' + (item.correctAnswer || item.answer || '') + '\n解析：' + (item.solution || '').substring(0,2000)}
   ];
-  aiMessages.push(...messages.slice(-4));
+  messages.slice(-4).forEach(function(m){
+    const entry = {role: m.role, content: m.content};
+    if(m.reasoning_content) entry.reasoning_content = m.reasoning_content;
+    aiMessages.push(entry);
+  });
   const sendBtn = document.getElementById('chat-send-' + key);
   if (sendBtn) sendBtn.disabled = true;
   const msgsDiv = document.getElementById('chat-msgs-' + key);
@@ -7014,7 +7026,8 @@ async function sendChatMessage(key) {
       model: aiConfig.model || ep.model,
       messages: aiMessages,
       temperature: 0.2,
-      max_tokens: 200
+      max_tokens: 1500,
+      ...(aiConfig.enableThinking ? {reasoning_effort:"high"} : {reasoning_effort:"none"})
     };
     if (aiConfig.provider === 'deepseek' && enableSearch) {
       requestBody.enable_search = true;
@@ -7032,11 +7045,13 @@ async function sendChatMessage(key) {
       search: requestBody.search
     });
     const data = response.data;
-    const text = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+    const msg = data.choices && data.choices[0] && data.choices[0].message;
+    const text = (msg && msg.content) || (msg && msg.reasoning_content) || '';
     if (!text) throw new Error('返回格式异常');
+    const reasoning = msg && msg.reasoning_content ? msg.reasoning_content : '';
     const loadingEl = document.getElementById('loading-' + key);
     if (loadingEl) loadingEl.remove();
-    messages.push({role: 'assistant', content: text});
+    messages.push({role: 'assistant', content: text, reasoning_content: reasoning});
     await saveChat(key, messages);
     renderChatBox(key, messages);
     scrollChatToBottom(key);
@@ -8408,6 +8423,10 @@ if (window.renderQuestions) window.renderQuestions();
   <div style="font-size:11px;color:#64748b;line-height:1.5;margin-top:-2px;">走中转模式时无需填写，留空即可；中转失败时会自动降级到直连，此时才需要填。</div>
   <label>模型（可选，留空用默认）</label>
   <input type="text" id="aiModel" placeholder="如 deepseek-chat">
+  <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:#2d3748;padding:4px 0;cursor:pointer;">
+    <input type="checkbox" id="aiThinkingToggle" style="width:16px;height:16px;accent-color:#3b82f6;">
+    🧠 开启思考模式（更聪明，但更贵）
+  </label>
   <label style="display:flex;align-items:center;gap:6px;color:#000000;font-size:13px;font-weight:500;padding:4px 0;cursor:pointer;flex-wrap:wrap;">
     <input type="checkbox" id="aiSearchToggle" style="width:16px;height:16px;flex-shrink:0;accent-color:#3b82f6;cursor:pointer;">
     <span style="color:#000000;background:transparent;">🌐 联网搜索（仅AI答疑）</span>
