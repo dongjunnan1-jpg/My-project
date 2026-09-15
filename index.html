@@ -735,7 +735,9 @@ body.ms-zone .wrong-only-btn {
 .q-chat-input button:disabled { opacity:0.6; cursor:wait; }
 
 .chat-history-panel {
-    position:fixed; right:0; top:0; width:350px; max-width:90vw; height:100vh;
+    position:fixed; right:0; top:0; width:350px; max-width:90vw;
+    height:100vh; height:100dvh;
+    max-height:100vh; max-height:100dvh;
     background:#fff; box-shadow:-4px 0 20px rgba(0,0,0,0.15); z-index:9999;
     transform:translateX(100%); transition:transform .3s; display:flex; flex-direction:column;
 }
@@ -5468,17 +5470,49 @@ async function syncNoteToChatHistory(key, note){
     return msg && msg.type === 'note' && msg.noteId === note.id;
   });
   if(exists) return;
-  const item = findQuestionByKey(key) || filteredQuestions.find(function(q){ return q._key === key; });
+  const item = findQuestionByKey(key) || filteredQuestions.find(function(q){ return q._key === key; }) || findQuestionByKeyDeep(key);
+  let questionContent = item ? (item.content || '') : '';
+  let questionOptions = item ? getOptions(item) : [];
+  if(!item){
+    const oldNote = messages.find(function(msg){ return msg && msg.type === 'note' && msg.noteId === note.id; });
+    if(oldNote){
+      questionContent = oldNote.questionContent || '';
+      questionOptions = Array.isArray(oldNote.questionOptions) ? oldNote.questionOptions : [];
+    }
+  }
   messages.push({
     role: 'user',
     type: 'note',
     noteId: note.id,
     content: note.content,
-    questionContent: item ? (item.content || '') : '',
-    questionOptions: item ? getOptions(item) : [],
+    questionContent: questionContent,
+    questionOptions: questionOptions,
     at: note.at || Date.now()
   });
   await saveChat(key, messages);
+}
+
+// 深度兜底：遍历所有分区/文件按 key 查找题目
+function findQuestionByKeyDeep(key){
+  if(!key) return null;
+  for(const zone of ZONE_IDS){
+    const zoneData = db[zone] || {};
+    for(const fileId of Object.keys(zoneData)){
+      const fileData = zoneData[fileId];
+      if(!fileData || !Array.isArray(fileData.questions)) continue;
+      for(let qi = 0; qi < fileData.questions.length; qi++){
+        const q = fileData.questions[qi];
+        if(q && ('f' + fileId + '_q' + qi) === key){
+          if(!q._key) q._key = 'f' + fileId + '_q' + qi;
+          if(q._qi === undefined) q._qi = qi;
+          if(!q._fileId) q._fileId = fileId;
+          if(!q._zone) q._zone = zone;
+          return q;
+        }
+      }
+    }
+  }
+  return null;
 }
 
 // 从对话记录中删除某条心得消息
@@ -6941,7 +6975,12 @@ async function loadAllChats() {
 async function saveChat(key, messages) {
   try {
     const allChats = await loadAllChats();
-    allChats[key] = messages;
+    const seen = new Set();
+    allChats[key] = messages.filter(function(m){
+      const k = (m.type||'') + '|' + (m.role||'') + '|' + (m.content||'');
+      if(seen.has(k)) return false;
+      seen.add(k); return true;
+    });
     await idbSet(CHAT_DB_KEY, allChats);
   } catch(e) { console.error('保存对话失败:', e); }
 }
@@ -7167,7 +7206,15 @@ async function refreshChatHistoryPanel() {
       preview=firstUser?(firstUser.content||'').substring(0,50):'对话记录';
     }
     const item=filteredQuestions.find(function(question){ return question._key===key; });
-    const title=item?(item.content||'').substring(0,30):key;
+    let title;
+    if(item){
+      title=(item.content||'').substring(0,30);
+    } else {
+      const firstWithContent=messages.find(function(m){ return m && m.questionContent; });
+      title=firstWithContent
+        ? String(firstWithContent.questionContent).replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim().substring(0,30)
+        : key;
+    }
     return '<div class="chat-history-item" onclick="location.hash=\'q-'+key+'\'; this.closest(\'.chat-history-panel\').remove();"><div class="chat-history-item-title">'+title+'...</div><div class="chat-history-item-preview">'+preview+'... ('+messages.length+'条消息)</div></div>';
   }).join('');
 }
@@ -7194,7 +7241,15 @@ async function openChatHistory() {
       const preview = firstUserMsg ? firstUserMsg.content.substring(0, 50) : '对话记录';
       const count = messages.length;
       const item = filteredQuestions.find(function(q) { return q._key === key; });
-      const title = item ? (item.content || '').substring(0, 30) : key;
+      let title;
+      if(item){
+        title = (item.content || '').substring(0, 30);
+      } else {
+        const firstWithContent = messages.find(function(m){ return m && m.questionContent; });
+        title = firstWithContent
+          ? String(firstWithContent.questionContent).replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim().substring(0, 30)
+          : key;
+      }
       listHtml += '<div class="chat-history-item" onclick="location.hash=\'q-' + key + '\'; this.closest(\'.chat-history-panel\').remove();">';
       listHtml += '<div class="chat-history-item-title">' + title + '...</div>';
       listHtml += '<div class="chat-history-item-preview">' + preview + '... (' + count + '条消息)</div>';
@@ -7964,7 +8019,12 @@ if (window.renderQuestions) window.renderQuestions();
       if(!messages.length && !noteMessages.length){
         const empty=document.createElement('div'); empty.textContent='暂无对话记录'; panel.appendChild(empty);
       }else{
+        window.__detailDedupSet = new Set();
         messages.forEach(function(message){
+          const dedupKey = (message.type||'') + '|' + (message.role||'') + '|' + (message.content||'');
+          if(window.__detailDedupSet && window.__detailDedupSet.has(dedupKey)) return;
+          if(!window.__detailDedupSet) window.__detailDedupSet = new Set();
+          window.__detailDedupSet.add(dedupKey);
           const row=document.createElement('div'); row.className='new-chat-detail-message';
           if(message.type==='simplify'){
             const questionContent=message.questionContent || (currentQuestion && currentQuestion.content) || '';
@@ -8016,6 +8076,8 @@ if (window.renderQuestions) window.renderQuestions();
     if(panel.dataset.newHistoryEnhanced==='1') return;
     panel.dataset.newHistoryEnhanced='1';
     panel.querySelectorAll('.chat-history-item').forEach(function(item){
+      if(item.dataset.detailEnhanced==='1') return;
+      item.dataset.detailEnhanced='1';
       const match=(item.getAttribute('onclick')||'').match(/q-([^'\\]+)/);
       if(!match) return;
       const key=match[1]; item.setAttribute('data-new-chat-key',key);
@@ -8112,7 +8174,7 @@ if (window.renderQuestions) window.renderQuestions();
     if(item && item._answered===undefined) incrementAttempt(key);
   },true);
   const style=document.createElement('style');
-  style.textContent='.'+newClasses.copy+'{background:#2563eb;color:#fff;border:0;border-radius:6px;padding:7px 12px;cursor:pointer;}.'+newClasses.clear+'{display:block;background:#dc2626;color:#fff;border:0;border-radius:6px;padding:7px 12px;margin:10px 0 0;cursor:pointer;} .new-chat-actions-top{margin-bottom:8px;} .'+newClasses.count+'{margin-left:6px;color:var(--secondary);font-size:.9em;white-space:nowrap;} .'+newClasses.detail+'{position:fixed;inset:10% 5%;z-index:10001;overflow:auto;background:#fff;padding:18px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.3);} .'+newClasses.detailClose+'{float:right;min-width:44px;min-height:44px;border:0;background:transparent;font-size:24px;cursor:pointer;} .new-chat-detail-title{font-weight:bold;font-size:16px;margin-bottom:14px;} .new-chat-detail-message{padding:10px;margin:8px 0;background:#f1f5f9;border-radius:6px;white-space:pre-wrap;} .'+newClasses.detailButton+'{margin-top:6px;background:#2563eb;color:#fff;border:0;border-radius:5px;padding:5px 9px;cursor:pointer;} .new-chat-history-close-hit{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;} .chat-history-panel{height:100vh !important;max-height:100vh !important;bottom:0 !important;overflow:hidden !important;} .chat-history-header{flex-shrink:0 !important;min-height:60px !important;} .chat-history-list{flex:1 1 auto !important;min-height:0 !important;overflow-y:auto !important;} .chat-history-footer{flex:0 0 auto !important;display:flex !important;gap:10px !important;align-items:center !important;justify-content:center !important;padding:8px 16px 12px !important;border-top:1px solid #e2e8f0 !important;background:#fff !important;min-height:56px !important;box-sizing:border-box !important;} .chat-history-footer .footer-btn{flex:1 1 0 !important;min-width:0 !important;max-width:200px !important;min-height:44px !important;padding:10px 12px !important;border:0 !important;border-radius:8px !important;color:#fff !important;font-size:14px !important;font-weight:600 !important;cursor:pointer !important;text-align:center !important;touch-action:manipulation !important;} .chat-history-footer .btn-copy-all{background:#2563eb !important;} .chat-history-footer .btn-clear-all{background:#dc2626 !important;} @media(max-width:480px){.chat-history-panel{width:100vw !important;max-width:100vw !important;}.chat-history-footer{padding:6px 12px 10px !important;gap:8px !important;min-height:50px !important;}.chat-history-footer .footer-btn{min-height:48px !important;font-size:13px !important;padding:8px 6px !important;}} @media(max-width:768px){.'+newClasses.detail+'{inset:4% 3%;}.'+newClasses.copy+','+'.'+newClasses.clear+'{min-height:44px;}}';
+  style.textContent='.'+newClasses.copy+'{background:#2563eb;color:#fff;border:0;border-radius:6px;padding:7px 12px;cursor:pointer;}.'+newClasses.clear+'{display:block;background:#dc2626;color:#fff;border:0;border-radius:6px;padding:7px 12px;margin:10px 0 0;cursor:pointer;} .new-chat-actions-top{margin-bottom:8px;} .'+newClasses.count+'{margin-left:6px;color:var(--secondary);font-size:.9em;white-space:nowrap;} .'+newClasses.detail+'{position:fixed;inset:10% 5%;z-index:10001;overflow:auto;background:#fff;padding:18px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.3);} .'+newClasses.detailClose+'{float:right;min-width:44px;min-height:44px;border:0;background:transparent;font-size:24px;cursor:pointer;} .new-chat-detail-title{font-weight:bold;font-size:16px;margin-bottom:14px;} .new-chat-detail-message{padding:10px;margin:8px 0;background:#f1f5f9;border-radius:6px;white-space:pre-wrap;} .'+newClasses.detailButton+'{margin-top:6px;background:#2563eb;color:#fff;border:0;border-radius:5px;padding:5px 9px;cursor:pointer;} .new-chat-history-close-hit{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;} .chat-history-panel{height:100vh !important;height:100dvh !important;max-height:100vh !important;max-height:100dvh !important;bottom:0 !important;overflow:hidden !important;} .chat-history-header{flex-shrink:0 !important;min-height:60px !important;} .chat-history-list{flex:1 1 auto !important;min-height:0 !important;overflow-y:auto !important;} .chat-history-footer{flex:0 0 auto !important;display:flex !important;gap:10px !important;align-items:center !important;justify-content:center !important;padding:8px 16px calc(12px + env(safe-area-inset-bottom)) !important;border-top:1px solid #e2e8f0 !important;background:#fff !important;min-height:56px !important;box-sizing:border-box !important;} .chat-history-footer .footer-btn{flex:1 1 0 !important;min-width:0 !important;max-width:200px !important;min-height:44px !important;padding:10px 12px !important;border:0 !important;border-radius:8px !important;color:#fff !important;font-size:14px !important;font-weight:600 !important;cursor:pointer !important;text-align:center !important;touch-action:manipulation !important;} .chat-history-footer .btn-copy-all{background:#2563eb !important;} .chat-history-footer .btn-clear-all{background:#dc2626 !important;} @media(max-width:480px){.chat-history-panel{width:100vw !important;max-width:100vw !important;}.chat-history-footer{padding:6px 12px 10px !important;gap:8px !important;min-height:50px !important;}.chat-history-footer .footer-btn{min-height:48px !important;font-size:13px !important;padding:8px 6px !important;}} @media(max-width:768px){.'+newClasses.detail+'{inset:4% 3%;}.'+newClasses.copy+','+'.'+newClasses.clear+'{min-height:44px;}}';
   document.head.appendChild(style);
   enhanceVisibleContent();
 })();
