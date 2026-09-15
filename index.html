@@ -220,6 +220,8 @@
 .q-ai-result {
     white-space: pre-line !important;
     line-height: 1.8 !important;
+    max-height: 400px;
+    overflow-y: auto;
 }
 /* 电脑端上传区横向分布 */
 .upload-zone {
@@ -6929,37 +6931,122 @@ async function simplifySolution(key, btn){
   if(!aiConfig.apiKey){ result.className='q-ai-result show'; result.innerHTML='<span class="q-ai-error">请先点左下角 ⚙️ 配置 API Key</span>'; return; }
   const ep=AI_ENDPOINTS[aiConfig.provider];
   if(!ep){ result.className='q-ai-result show'; result.innerHTML='<span class="q-ai-error">未知的 AI 服务商，请先配置</span>'; return; }
+
+  if(window.__simplifyingKeys && window.__simplifyingKeys[key]) return;
+  window.__simplifyingKeys = window.__simplifyingKeys || {};
+  window.__simplifyingKeys[key] = true;
+
   btn.disabled=true;
   result.className='q-ai-result show';
-  result.innerHTML='<span class="q-ai-loading">🤖 AI 正在简化解析...</span>';
-  try{
-    const response = await requestAI({
-      provider: aiConfig.provider,
-      model: aiConfig.model || ep.model,
-      messages:[
-        {role:'system', content:'你是公考辅导老师。请用简洁的大白话解释这道题，突出关键推理步骤，控制在200到300字之间，但必须把话说完，结尾要有句号，不能中途断掉。'},
-        {role:'user', content:'题目：'+(item.content||'').substring(0,500)+'\n\n原解析：'+(item.solution||'').substring(0,2000)}
-      ],
-      temperature:0.5, max_tokens:2000,
-      ...(aiConfig.enableThinking ? {reasoning_effort:"high"} : {reasoning_effort:"none"})
-    });
-    const data=response.data;
-    const msg=data.choices && data.choices[0] && data.choices[0].message;
-    const text=(msg && msg.content) || (msg && msg.reasoning_content) || '';
-    if(!text) throw new Error('返回格式异常');
-    const reasoning=msg && msg.reasoning_content ? msg.reasoning_content : '';
-    const formattedText=formatAIResponse(text);
-    result.innerHTML='<strong>🤖 AI 简化解析</strong><br>'+escapeHtml(formattedText).replace(/\n/g,'<br>');
-    saveAIHistoryMessage(key, {
-      role:'assistant', type:'simplify', content:text,
-      reasoning_content:reasoning,
-      questionContent:item.content||'', questionOptions:getOptions(item), at:Date.now()
-    });
-  }catch(e){
-    result.innerHTML='<span class="q-ai-error">❌ AI 调用失败：'+e.message+'（可能是 CORS/网络/API Key 无效）</span>';
-  }finally{
-    btn.disabled=false;
+  result.innerHTML='<strong>🤖 AI 简化解析</strong><br><span class="q-ai-stream"></span><span class="q-ai-loading">▌</span>';
+  const streamTarget=result.querySelector('.q-ai-stream');
+
+  const useThinking = !!aiConfig.enableThinking;
+  const maxTok = useThinking ? 4000 : 2000;
+
+  const body={
+    model: aiConfig.model || ep.model,
+    messages:[
+      {role:'system', content:'你是公考辅导老师。请用简洁的大白话解释这道题，突出关键推理步骤，控制在200到300字之间，但必须把话说完，结尾要有句号，不能中途断掉。'},
+      {role:'user', content:'题目：'+(item.content||'').substring(0,500)+'\n\n原解析：'+(item.solution||'').substring(0,2000)}
+    ],
+    temperature:0.5, max_tokens:maxTok,
+    stream:true,
+    ...(useThinking ? {reasoning_effort:"high"} : {reasoning_effort:"none"})
+  };
+
+  const MAX_RETRY=3;
+  let lastError=null;
+
+  for(let attempt=0; attempt<=MAX_RETRY; attempt++){
+    let fullText='';
+    let reasoningText='';
+    if(streamTarget) streamTarget.textContent='';
+
+    try{
+      const controller = new AbortController();
+      const timeoutId = setTimeout(function(){ controller.abort(); }, 90000);
+
+      const resp=await fetch(ep.url,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+aiConfig.apiKey},
+        body:JSON.stringify(body),
+        signal: controller.signal
+      });
+
+      if(!resp.ok){
+        clearTimeout(timeoutId);
+        const errText=await resp.text().catch(function(){ return ''; });
+        throw new Error('HTTP '+resp.status+' '+errText.substring(0,200));
+      }
+
+      const reader=resp.body.getReader();
+      const decoder=new TextDecoder('utf-8');
+      let buffer='';
+
+      while(true){
+        const {done, value}=await reader.read();
+        if(done) break;
+        buffer+=decoder.decode(value, {stream:true});
+        const lines=buffer.split('\n');
+        buffer=lines.pop();
+        for(const line of lines){
+          const trimmed=line.trim();
+          if(!trimmed || !trimmed.startsWith('data:')) continue;
+          const payload=trimmed.slice(5).trim();
+          if(payload==='[DONE]') continue;
+          try{
+            const json=JSON.parse(payload);
+            const delta=json.choices && json.choices[0] && json.choices[0].delta;
+            if(delta){
+              if(delta.reasoning_content){
+                reasoningText+=delta.reasoning_content;
+              }
+              if(delta.content){
+                fullText+=delta.content;
+                if(streamTarget) streamTarget.textContent=fullText;
+                result.scrollTop=result.scrollHeight;
+              }
+            }
+          }catch(e){}
+        }
+      }
+      clearTimeout(timeoutId);
+
+      if(!fullText && reasoningText) fullText=reasoningText;
+      if(!fullText) throw new Error('返回内容为空');
+
+      const loadingEl=result.querySelector('.q-ai-loading');
+      if(loadingEl) loadingEl.remove();
+
+      const formattedText=formatAIResponse(fullText);
+      result.innerHTML='<strong>🤖 AI 简化解析</strong><br>'+escapeHtml(formattedText).replace(/\n/g,'<br>');
+
+      try{
+        await saveAIHistoryMessage(key, {
+          role:'assistant', type:'simplify', content:fullText,
+          reasoning_content:reasoningText,
+          questionContent:item.content||'', questionOptions:getOptions(item), at:Date.now()
+        });
+      }catch(e){ console.warn('保存简化解析历史失败:', e); }
+
+      delete window.__simplifyingKeys[key];
+      btn.disabled=false;
+      return;
+    }catch(e){
+      lastError=e;
+      if(attempt>=MAX_RETRY) break;
+      const wait=1000*(attempt+1);
+      if(streamTarget) streamTarget.textContent='';
+      await new Promise(function(r){ setTimeout(r, wait); });
+    }
   }
+
+  const loadingEl=result.querySelector('.q-ai-loading');
+  if(loadingEl) loadingEl.remove();
+  result.innerHTML='<span class="q-ai-error">❌ AI 调用失败：'+(lastError?lastError.message:'未知错误')+'</span>';
+  delete window.__simplifyingKeys[key];
+  btn.disabled=false;
 }
 
 // AI 答疑对话
