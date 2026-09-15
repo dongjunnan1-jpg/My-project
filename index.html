@@ -6780,6 +6780,9 @@ function getAIHistory(key){
 }
 function saveAIHistoryMessage(key, message){
   return getAIHistory(key).then(function(messages){
+    if(message && message.type === 'simplify'){
+      messages = messages.filter(function(m){ return m.type !== 'simplify'; });
+    }
     messages.push(message);
     return openAIHistoryDb().then(function(d){
       return new Promise(function(resolve){
@@ -6788,7 +6791,10 @@ function saveAIHistoryMessage(key, message){
         tx.oncomplete=function(){
           // 同步到旧对话面板的数据源，保留已有答疑记录展示入口。
           loadAllChats().then(function(allChats){
-            const oldMessages=allChats[key]||[];
+            let oldMessages=allChats[key]||[];
+            if(message && message.type === 'simplify'){
+              oldMessages = oldMessages.filter(function(m){ return m.type !== 'simplify'; });
+            }
             oldMessages.push(message);
             saveChat(key, oldMessages);
           });
@@ -7299,7 +7305,7 @@ async function refreshChatHistoryPanel() {
   if(header) header.textContent='💬 对话记录 ('+keys.length+')';
   const list=panel.querySelector('.chat-history-list');
   if(!list) return;
-  if(!keys.length){ list.innerHTML='<div class="chat-history-empty">暂无对话记录</div>'; return; }
+  if(!keys.length){ list.innerHTML='<div class="chat-history-empty">暂无对话记录</div>'; delete panel.dataset.newHistoryEnhanced; return; }
   list.innerHTML=keys.map(function(key){
     const messages=Array.isArray(allChats[key])?allChats[key]:[];
     const noteMessages=messages.filter(function(message){ return message && message.type==='note'; });
@@ -7323,6 +7329,7 @@ async function refreshChatHistoryPanel() {
     }
     return '<div class="chat-history-item" onclick="location.hash=\'q-'+key+'\'; this.closest(\'.chat-history-panel\').remove();"><div class="chat-history-item-title">'+title+'...</div><div class="chat-history-item-preview">'+preview+'... ('+messages.length+'条消息)</div></div>';
   }).join('');
+  delete panel.dataset.newHistoryEnhanced;
 }
 
 async function openChatHistory() {
