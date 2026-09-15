@@ -1948,7 +1948,26 @@ function saveWrong(){ return idbSet('wrong', wrongSet); }
 async function loadFav(){ const r=await idbGet('fav'); if(r) favorites=r; ZONE_IDS.forEach(function(z){ if(!favorites[z]||typeof favorites[z]!=='object') favorites[z]={}; }); }
 function saveFav(){ return idbSet('fav', favorites); }
 function isFavorite(key){ return !!(favorites[activeZone]&&favorites[activeZone][key]); }
-function toggleFavorite(key){ if(!favorites[activeZone]) favorites[activeZone]={}; if(favorites[activeZone][key]) delete favorites[activeZone][key]; else favorites[activeZone][key]=true; saveFav(); renderQuestions(); }
+var __favLock = {};
+function toggleFavorite(key){
+  var now = Date.now();
+  if(__favLock[key] && now - __favLock[key] < 800) return;
+  __favLock[key] = now;
+
+  if(!favorites[activeZone]) favorites[activeZone]={};
+  if(favorites[activeZone][key]) delete favorites[activeZone][key];
+  else favorites[activeZone][key]=true;
+  saveFav();
+
+  if(filterState.status === 'favorite'){
+    var scrollY = window.scrollY;
+    renderQuestions();
+    requestAnimationFrame(function(){ window.scrollTo(0, scrollY); });
+  } else {
+    var star=document.querySelector('.q-fav[data-key="'+key+'"]');
+    if(star) star.textContent = isFavorite(key) ? '⭐' : '☆';
+  }
+}
 
 // —— 面试分区：只显示心得 / 只显示收藏（控制栏按钮） ——
 function toggleMsNoteFilter(){
@@ -4513,7 +4532,7 @@ function renderQuestions(){
     const solutionHtml = fixProtocols(solution);
     let materialHtml = '';
     if(item.material && item.material.content){ materialHtml = '<div class="q-material">'+fixProtocols(item.material.content)+'</div>'; }
-    html+=`<div class="question visible" id="q-${key}"><div class="q-title">第 ${i+1} 题 <button type="button" class="q-speak-btn" data-key="${key}" onclick="speakQuestion('${key}', this);event.stopPropagation();" title="朗读题目" aria-label="朗读题目">🔊</button> 📊 ${ratio.toFixed(2)}% ${badge} <span class="q-source">${source}</span> <span class="q-fav" onclick="event.stopPropagation();toggleFavorite('${key}')" title="收藏/取消收藏">${favStar}</span></div>`;
+    html+=`<div class="question visible" id="q-${key}"><div class="q-title">第 ${i+1} 题 <button type="button" class="q-speak-btn" data-key="${key}" onclick="speakQuestion('${key}', this);event.stopPropagation();" title="朗读题目" aria-label="朗读题目">🔊</button> 📊 ${ratio.toFixed(2)}% ${badge} <span class="q-source">${source}</span> <span class="q-fav" data-key="${key}" onclick="event.stopPropagation();toggleFavorite('${key}')" title="收藏/取消收藏">${favStar}</span></div>`;
     if(materialHtml) html+=materialHtml;
     html+=`<div class="q-content">${contentHtml}</div>`;
     if(options&&options.length){
