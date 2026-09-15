@@ -509,7 +509,7 @@ html, body { width:100%; max-width:100%; margin:0; padding:0; box-sizing:border-
 .q-speak-btn.speaking { animation:q-speak-pulse 1.1s ease-in-out infinite; background:var(--main); color:#fff; }
 @keyframes q-speak-pulse { 0%,100% { box-shadow:0 0 0 0 rgba(74,144,217,.45); } 50% { box-shadow:0 0 0 8px rgba(74,144,217,0); } }
 .q-content { font-size: 15px; line-height: 1.8; margin-bottom: 12px; }
-.q-options .option { padding: 8px 14px; margin: 5px 0; background: var(--bg); border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: .15s; }
+.q-options .option { padding: 8px 14px; margin: 5px 0; background: var(--bg); border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: .15s; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .q-options .option:hover { background: var(--light); border-color: var(--main); transform: translateX(3px); }
 .q-options .option.correct { background: rgba(72,187,120,0.12); border-color: var(--correct); }
 .q-options .option.wrong { background: rgba(252,129,129,0.14); border-color: var(--wrong); }
