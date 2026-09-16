@@ -378,7 +378,44 @@ html, body { width:100%; max-width:100%; margin:0; padding:0; box-sizing:border-
 .container { width:100%; max-width:1180px; margin:0 auto; box-sizing:border-box; }
 #content { width:100%; box-sizing:border-box; }
 .header { position: relative; text-align: center; padding: 26px 64px 22px; background: var(--deep); color: #fff; border-radius: 14px; margin-bottom: 16px; box-shadow: var(--shadow); }
-.header h1 { margin: 0; font-size: 30px; font-weight: 800; font-family: Georgia, "Times New Roman", "Songti SC", serif; background: linear-gradient(135deg, #ffe8b8 0%, #ffd9b3 25%, #ffffff 50%, #c9e4ff 75%, #b9d9ff 100%); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: titleShine 4s linear infinite; letter-spacing: 1.5px; }
+.header h1 {
+  margin: 0;
+  font-size: 56px;
+  font-weight: 400;
+  font-family: "Snell Roundhand", "Apple Chancery", "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive;
+  letter-spacing: 0;
+  text-align: center;
+  padding-right: 6px;
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  -webkit-text-fill-color: #fff;
+  color: #fff;
+  animation: none;
+}
+.header h1 .h1-letter {
+  display: inline-block;
+  color: #fff;
+  -webkit-text-fill-color: #fff;
+  filter: none !important;
+  box-shadow: none !important;
+  background: none !important;
+  animation: tSoftGlow 2.6s ease-in-out infinite;
+}
+.header h1 .h1-letter:nth-child(1) { animation-delay: 0s; }
+.header h1 .h1-letter:nth-child(2) { animation-delay: 0.08s; }
+.header h1 .h1-letter:nth-child(3) { animation-delay: 0.16s; }
+.header h1 .h1-letter:nth-child(4) { animation-delay: 0.24s; }
+.header h1 .h1-letter:nth-child(5) { animation-delay: 0.32s; }
+.header h1 .h1-letter:nth-child(6) { animation-delay: 0.4s; }
+@keyframes tSoftGlow {
+  0%, 100% {
+    text-shadow: 0 0 1px rgba(255,255,255,0.6), 0 0 3px rgba(255,255,255,0.4);
+  }
+  50% {
+    text-shadow: 0 0 2px #fff, 0 0 6px rgba(255,255,255,0.75), 0 0 12px rgba(255,255,255,0.4);
+  }
+}
 .header p { display: none; }
 .header-controls { position: absolute; top: 14px; right: 14px; display: flex; gap: 6px; align-items: center; z-index: 10; }
 .mode-toggle { background:rgba(255,255,255,0.16) !important; color:#fff !important; border:1px solid rgba(255,255,255,0.35) !important; border-radius:8px !important; cursor:pointer !important; transition:.15s !important; width:36px !important; height:36px !important; padding:0 !important; display:flex !important; align-items:center !important; justify-content:center !important; font-size:18px !important; line-height:1 !important; }
@@ -1500,7 +1537,7 @@ body.skin-dark .new-chat-detail-note-title { color:#fbbf24; }
     <div class="header">
         <div class="header-controls">
         </div>
-        <h1>Helium</h1>
+        <h1><span class="h1-letter">H</span><span class="h1-letter">e</span><span class="h1-letter">l</span><span class="h1-letter">i</span><span class="h1-letter">u</span><span class="h1-letter">m</span></h1>
         <!-- 进度面板：今日刷题 + 考试倒计时（小卡片并排） -->
         <div class="header-pp" id="progressPanel">
             <div class="pp-card">
