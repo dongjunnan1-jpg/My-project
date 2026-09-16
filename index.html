@@ -694,9 +694,6 @@ body.ms-zone .wrong-only-btn {
   display: none !important;
 }
 
-/* ====== 左上角计时统计 ====== */
-#timerStats { position:fixed !important; top:80px !important; left:auto !important; bottom:auto !important; right:20px !important; transform:none !important; background:rgba(255,255,255,0.15) !important; backdrop-filter:blur(20px) !important; -webkit-backdrop-filter:blur(20px) !important; color:#1a202c !important; padding:10px 16px !important; border-radius:14px !important; font-size:13px !important; z-index:999 !important; display:flex !important; flex-direction:column !important; gap:4px !important; align-items:flex-start !important; box-shadow:0 4px 20px rgba(0,0,0,0.08) !important; border:1px solid rgba(255,255,255,0.3) !important; min-width:100px !important; font-weight:500 !important; cursor:move !important; user-select:none !important; -webkit-user-select:none !important; }
-
 /* ====== 长按排除选项 ====== */
 .q-options .option.excluded { opacity:0.35 !important; background:#e2e8f0 !important; border-color:#cbd5e0 !important; transition:all 0.2s ease !important; text-decoration:line-through; }
 
@@ -5118,9 +5115,9 @@ function clearAllFiles(){
 function resetProgress(){
   showConfirm('重置本分区所有做题进度？已作答记录将清空。', ()=>{
     Object.values(db[activeZone]).forEach(f=>{ f.answered={}; saveFile(activeZone, f.id); });
-    timerData={answered:0,totalSec:0,startedAt:0,questionStart:0,pos:(timerData&&timerData.pos)||null};
+    timerData={answered:0,totalSec:0,startedAt:0,questionStart:0};
     saveTimerData();
-    renderTimerStats();
+    if (typeof updateSidebarTimer === 'function') updateSidebarTimer();
     renderAll();
   });
 }
@@ -6443,102 +6440,7 @@ function recordAnswerTiming(){
   timerData.questionStart=now;                              // 下一题起点
   timerData.answered++;
   saveTimerData();
-  renderTimerStats();
-}
-function renderTimerStats(){
-  // ====== 关键修复：替换容器清除所有事件 ======
-  var oldTs = document.getElementById('timerStats');
-  if (!oldTs) return;
-  
-  var newTs = document.createElement('div');
-  newTs.id = 'timerStats';
-  newTs.style.cssText = oldTs.style.cssText;
-  oldTs.parentNode.replaceChild(newTs, oldTs);
-  var ts = document.getElementById('timerStats');
-  // ==============================================
-  
-  var isComputer = !('ontouchstart' in window) && window.innerWidth > 768;
-  if (isComputer) {
-    ts.onclick = null;
-    ts.style.pointerEvents = 'auto';
-    ts.style.cursor = 'default';
-  }
-  
-  var total = timerData.totalSec || 0;
-  var avg = timerData.answered ? Math.round(total / timerData.answered) : 0;
-  
-  function fmtTime(sec) {
-    sec = Math.max(0, Math.floor(sec));
-    if (sec < 60) return sec + '秒';
-    var m = Math.floor(sec / 60);
-    var s = sec % 60;
-    return m + '分' + (s > 0 ? s + '秒' : '');
-  }
-  
-  ts.innerHTML = '📝 已答 ' + (timerData.answered || 0) + 
-                 '<br>⏰ 总 ' + fmtTime(total) + 
-                 '<br>📊 均 ' + fmtTime(avg);
-  
-  var sp = document.getElementById('totalTimeSpan');
-  if (sp) sp.textContent = fmtTime(total);
-  
-  ts.style.left = 'auto';
-  ts.style.right = '20px';
-  ts.style.top = '80px';
-  ts.style.bottom = 'auto';
-  
-  var resetBtn = document.createElement('button');
-  resetBtn.type = 'button';
-  resetBtn.className = 'timer-reset-btn';
-  resetBtn.textContent = 'RESET';
-  
-  resetBtn.onclick = function(e) {
-    e.stopPropagation();
-    e.preventDefault();
-    showConfirm('确定要重置计时统计吗？', function() {
-      timerData = {
-        answered: 0,
-        totalSec: 0,
-        startedAt: Date.now(),
-        questionStart: 0,
-        pos: (timerData && timerData.pos) || null
-      };
-      saveTimerData();
-      renderTimerStats();
-      if (typeof updateSidebarTimer === 'function') updateSidebarTimer();
-      console.log('✅ 计时器已重置');
-    });
-  };
-  
-  ts.appendChild(resetBtn);
-}
-// 计时面板拖动：pointer 事件 + 边界约束 + 位置持久化（存 timerData.pos）
-function setupTimerDrag(){
-  const el=document.getElementById('timerStats'); if(!el || el.__dragBound) return;
-  el.__dragBound=true;
-  let dragging=false, sX=0, sY=0, oX=0, oY=0;
-  el.addEventListener('pointerdown', function(e){
-    dragging=true; sX=e.clientX; sY=e.clientY;
-    const r=el.getBoundingClientRect(); oX=r.left; oY=r.top;
-    try{ el.setPointerCapture(e.pointerId); }catch(err){}
-    e.preventDefault();
-  });
-  el.addEventListener('pointermove', function(e){
-    if(!dragging) return;
-    let nx=oX+(e.clientX-sX), ny=oY+(e.clientY-sY);
-    const w=el.offsetWidth, h=el.offsetHeight;
-    nx=Math.max(0, Math.min(nx, window.innerWidth-w));     // 不超出屏幕边界
-    ny=Math.max(0, Math.min(ny, window.innerHeight-h));
-    el.style.left=nx+'px'; el.style.top=ny+'px'; el.style.right='auto'; el.style.bottom='auto';
-  });
-  function endDrag(){
-    if(!dragging) return; dragging=false;
-    const r=el.getBoundingClientRect();
-    timerData.pos={x:r.left, y:r.top};
-    saveTimerData();                                        // 拖动结束持久化位置
-  }
-  el.addEventListener('pointerup', endDrag);
-  el.addEventListener('pointercancel', endDrag);
+  if (typeof updateSidebarTimer === 'function') updateSidebarTimer();
 }
 
 // ============================================================
@@ -7495,7 +7397,6 @@ async function openChatHistory() {
   setupLongPressExclude();             // 长按排除选项
   setupBackToTop();                    // 返回顶部按钮
   setupStudyPositionTracking();       // 滚动时保存做题位置
-  setupTimerDrag();                    // 计时面板拖动
   loadSkin();                          // 皮肤（含墨水屏）
 loadTimerData();                     // 计时统计
 loadAIConfig();                      // AI 配置
@@ -8022,7 +7923,6 @@ if (window.renderQuestions) window.renderQuestions();
     }, 300);
   }
   renderProgressPanel();
-  renderTimerStats();                  // 左上角计时 + 顶部总用时
   setInterval(renderProgressPanel, 60000);   // 每分钟刷新倒计时与每日状态
   dismissConfirmOverlay();
   window.addEventListener('load', dismissConfirmOverlay, {once:true});
@@ -10109,7 +10009,6 @@ document.getElementById('sidebarResetTimer').onclick = function() {
       pos: (timerData && timerData.pos) || null
     };
     saveTimerData();
-    if (typeof renderTimerStats === 'function') renderTimerStats();
     if (typeof updateSidebarTimer === 'function') updateSidebarTimer();
   });
 };
