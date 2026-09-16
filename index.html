@@ -6436,7 +6436,9 @@ function recordAnswerTiming(){
   const now=Date.now();
   if(!timerData.startedAt) timerData.startedAt=now;        // 第一次答题启动总计时
   if(timerData.questionStart){                              // 累加本题用时
-    timerData.totalSec += Math.max(0, Math.round((now-timerData.questionStart)/1000));
+    var deltaSec = Math.max(0, Math.round((now - timerData.questionStart) / 1000));
+    if(deltaSec > 3600) deltaSec = 0;                       // 超过1小时视为异常间隔（时钟跳变/重置残留），不计入
+    timerData.totalSec += deltaSec;
   }
   timerData.questionStart=now;                              // 下一题起点
   timerData.answered++;
@@ -6503,6 +6505,7 @@ function renderTimerStats(){
       };
       saveTimerData();
       renderTimerStats();
+      if (typeof updateSidebarTimer === 'function') updateSidebarTimer();
       console.log('✅ 计时器已重置');
     });
   };
@@ -10095,12 +10098,20 @@ function bindMianShiRecorders(){
 }
 
 document.getElementById('sidebarResetTimer').onclick = function() {
-  if (confirm('确定重置计时统计吗？')) {
-    var empty = { answered: 0, totalSec: 0, startedAt: Date.now(), questionStart: 0 };
-    try { localStorage.setItem('qz_timer_data', JSON.stringify(empty)); } catch(e) {}
-    updateSidebarTimer();
+  showConfirm('确定重置计时统计吗？', function() {
+    // 同时清内存 + 清存储：必须整体换掉 timerData，且 questionStart 归 0，
+    // 否则下一题会把"上次答题到现在的巨大间隔"重新加进 totalSec，重置被覆盖。
+    timerData = {
+      answered: 0,
+      totalSec: 0,
+      startedAt: Date.now(),
+      questionStart: 0,
+      pos: (timerData && timerData.pos) || null
+    };
+    saveTimerData();
     if (typeof renderTimerStats === 'function') renderTimerStats();
-  }
+    if (typeof updateSidebarTimer === 'function') updateSidebarTimer();
+  });
 };
 
 restoreSoundState();
@@ -10545,6 +10556,5 @@ document.addEventListener('touchend', function(){
   setTimeout(clearSelectionIfCrossOptions, 150);
 }, true);
 </script>
-</style>
 </body>
 </html>
