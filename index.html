@@ -6516,9 +6516,7 @@ function setupLongPressExclude(){
     // 仅鼠标：记录按下瞬间是否处于“已排除”状态。
     // 用于修复“取消排除后，松手补发的 click 误触发 selectOption”的问题。
     // 触摸端长按本身不会补发 click，故不记录，保持原行为不变。
-    if(e.pointerType==='mouse'){
-      opt.dataset._hadExcluded = opt.classList.contains('excluded') ? '1' : '0';
-    }
+    opt.dataset._hadExcluded = opt.classList.contains('excluded') ? '1' : '0';
     clearTimeout(_pressTimer);
     _pressTimer=setTimeout(function(){
       if(_pressTarget===opt){
@@ -6538,12 +6536,20 @@ function setupLongPressExclude(){
   content.addEventListener('click', function(e){
     const opt=e.target.closest && e.target.closest('.q-options .option');
     if(!opt) return;
-    // 情况一：仍被排除 → 拦截
-    if(opt.dataset.excluded==='1'){ e.preventDefault(); e.stopPropagation(); return; }
-    // 情况二（仅鼠标）：按下时是排除态、松手后已取消排除，说明刚执行了“取消排除”，
-    // 拦截松手后浏览器补发的 click，避免误触发 selectOption。消费后立即清除标记。
-    if(opt.dataset._hadExcluded==='1'){
+    if(opt.dataset.excluded==='1'){
       e.preventDefault(); e.stopPropagation();
+      return;
+    }
+    if(opt.dataset._hadExcluded==='1'){
+      const savedOnclick = opt.getAttribute('onclick');
+      if(savedOnclick){
+        opt.removeAttribute('onclick');
+        setTimeout(function(){
+          if(savedOnclick && opt.isConnected) opt.setAttribute('onclick', savedOnclick);
+        }, 50);
+      }
+      e.preventDefault(); e.stopPropagation();
+      e.stopImmediatePropagation();
       delete opt.dataset._hadExcluded;
     }
   }, true);
@@ -10481,6 +10487,26 @@ document.addEventListener('click', activateAudio);
   window.examSubmitPaper=function(auto){if(!auto){var unanswered=examState.questions.length-Object.keys(examState.answers).length;if(unanswered&&!confirm('还有 '+unanswered+' 题未作答，确定交卷吗？'))return;}if(examState.timerId)clearInterval(examState.timerId);examState.result=calculateScore(examState.mode,examState.answers,examState.questions);examSaveHistory(examState.mode,examState.questions.map(function(q){return q._key;}));try{localStorage.removeItem('exam_progress_'+examState.mode);}catch(e){}examState.phase='result';examRenderResult();};
   window.examExportPDF=function(){window.print();};
 })();
+// 拖动选中文字后自动清除高亮，避免残留选区吃掉后续选项点击
+function clearSelectionIfCrossOptions(){
+  var sel = window.getSelection();
+  if(!sel || sel.isCollapsed) return;
+  var range;
+  try { range = sel.getRangeAt(0); } catch(e) { return; }
+  function inOptions(node){
+    var el = node && (node.nodeType === 1 ? node : node.parentElement);
+    return el && el.closest && el.closest('.q-options');
+  }
+  if(inOptions(range.startContainer) || inOptions(range.endContainer)){
+    sel.removeAllRanges();
+  }
+}
+document.addEventListener('mouseup', function(){
+  setTimeout(clearSelectionIfCrossOptions, 120);
+}, true);
+document.addEventListener('touchend', function(){
+  setTimeout(clearSelectionIfCrossOptions, 150);
+}, true);
 </script>
 </style>
 </body>
