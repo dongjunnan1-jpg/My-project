@@ -9842,6 +9842,8 @@ function forceFixSidebar() {
   });
 
   cards.forEach(function(card) {
+    if (card.classList && card.classList.contains('pomodoro-controls')) return;
+    if (card.id === 'pomodoroCard') return;
     card.style.cssText = card.style.cssText + ';' + [
       'padding: 12px 14px !important',
       'margin: 0 0 10px 0 !important',
@@ -9935,6 +9937,25 @@ function forceFixSidebar() {
       'touch-action: manipulation !important'
     ].join(';') + ';';
   });
+
+  try {
+    var _pomoWrap = document.getElementById('pomodoroStart') &&
+                    document.getElementById('pomodoroStart').parentElement;
+    if (_pomoWrap) {
+      _pomoWrap.style.removeProperty('display');
+      _pomoWrap.style.removeProperty('grid-template-columns');
+      _pomoWrap.style.removeProperty('align-items');
+      _pomoWrap.style.removeProperty('gap');
+      Array.from(_pomoWrap.children).forEach(function (el) {
+        el.style.removeProperty('display');
+        el.style.removeProperty('align-items');
+        el.style.removeProperty('justify-content');
+        el.style.removeProperty('width');
+        el.style.removeProperty('min-width');
+        el.style.removeProperty('flex');
+      });
+    }
+  } catch (e) { /* 非致命，忽略 */ }
 }
 var sidebarToggle = document.getElementById('sidebarToggle');
 var sidebarClose = document.getElementById('sidebarClose');
