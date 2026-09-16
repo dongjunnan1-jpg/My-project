@@ -5138,6 +5138,7 @@ function selectOption(key, letter, event){
   recordAnswerTiming();
   incDaily();
   item._answered=letter;
+  if(typeof window.recordQuestionAttempt==='function') window.recordQuestionAttempt(key);
   const questionEl=document.getElementById('q-'+key);
   if(questionEl){
     const correctLetter=getCorrectLetter(item), isCorrect=correctLetter===letter;
@@ -5165,7 +5166,7 @@ function selectOption(key, letter, event){
 }
 function submitMultipleChoice(key){
   const item=filteredQuestions.find(q=>q._key===key);
-  if(!item) return;
+  if(!item || item._answered!==undefined) return;
   const selected = getSelectedLetters(item);
   if(!selected.length){ alert('请至少选择一个选项'); return; }
   const correct = normalizeAnswerLetters(getCorrectLetter(item));
@@ -5173,6 +5174,7 @@ function submitMultipleChoice(key){
   const selectedSet = selected.slice().sort();
   const isCorrect = correctSet.length === selectedSet.length && correctSet.every(function(letter, index){ return letter === selectedSet[index]; });
   item._answered = selectedSet.slice();
+  if(typeof window.recordQuestionAttempt==='function') window.recordQuestionAttempt(key);
   item._draftSelection = null;
   delete multiChoiceSelections[key];
   const f=db[activeZone][item._fileId];
@@ -8114,6 +8116,10 @@ if (window.renderQuestions) window.renderQuestions();
     attempts[key]=(Number(attempts[key])||0)+1;
     try{ localStorage.setItem(ATTEMPT_KEY, JSON.stringify(attempts)); }catch(e){}
   }
+  window.recordQuestionAttempt = function(key){
+    incrementAttempt(key);
+    renderAttemptCounts();
+  };
   function renderAttemptCounts(){
     const attempts=readAttempts();
     document.querySelectorAll('#content .question').forEach(function(question){
@@ -8411,13 +8417,6 @@ if (window.renderQuestions) window.renderQuestions();
       if(key) setTimeout(function(){ openChatDetail(key); },0);
     }
   });
-  document.addEventListener('click',function(e){
-    const option=e.target.closest && e.target.closest('#content .q-options .option');
-    if(!option) return;
-    const key=option.getAttribute('data-key');
-    const item=filteredQuestions.find(function(question){ return question._key===key; });
-    if(item && item._answered===undefined) incrementAttempt(key);
-  },true);
   const style=document.createElement('style');
   style.textContent='.'+newClasses.copy+'{background:#2563eb;color:#fff;border:0;border-radius:6px;padding:7px 12px;cursor:pointer;}.'+newClasses.clear+'{display:block;background:#dc2626;color:#fff;border:0;border-radius:6px;padding:7px 12px;margin:10px 0 0;cursor:pointer;} .new-chat-actions-top{margin-bottom:8px;} .'+newClasses.count+'{margin-left:6px;color:var(--secondary);font-size:.9em;white-space:nowrap;} .'+newClasses.detail+'{position:fixed;inset:10% 5%;z-index:10001;overflow:auto;background:#fff;padding:18px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.3);} .'+newClasses.detailClose+'{float:right;min-width:44px;min-height:44px;border:0;background:transparent;font-size:24px;cursor:pointer;} .new-chat-detail-title{font-weight:bold;font-size:16px;margin-bottom:14px;} .new-chat-detail-message{padding:10px;margin:8px 0;background:#f1f5f9;border-radius:6px;white-space:pre-wrap;} .'+newClasses.detailButton+'{margin-top:6px;background:#2563eb;color:#fff;border:0;border-radius:5px;padding:5px 9px;cursor:pointer;} .new-chat-history-close-hit{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;} .chat-history-panel{height:100vh !important;height:100dvh !important;max-height:100vh !important;max-height:100dvh !important;bottom:0 !important;overflow:hidden !important;} .chat-history-header{flex-shrink:0 !important;min-height:60px !important;} .chat-history-list{flex:1 1 auto !important;min-height:0 !important;overflow-y:auto !important;} .chat-history-footer{flex:0 0 auto !important;display:flex !important;gap:10px !important;align-items:center !important;justify-content:center !important;padding:8px 16px calc(12px + env(safe-area-inset-bottom)) !important;border-top:1px solid #e2e8f0 !important;background:#fff !important;min-height:56px !important;box-sizing:border-box !important;} .chat-history-footer .footer-btn{flex:1 1 0 !important;min-width:0 !important;max-width:200px !important;min-height:44px !important;padding:10px 12px !important;border:0 !important;border-radius:8px !important;color:#fff !important;font-size:14px !important;font-weight:600 !important;cursor:pointer !important;text-align:center !important;touch-action:manipulation !important;} .chat-history-footer .btn-copy-all{background:#2563eb !important;} .chat-history-footer .btn-clear-all{background:#dc2626 !important;} @media(max-width:480px){.chat-history-panel{width:100vw !important;max-width:100vw !important;}.chat-history-footer{padding:6px 12px 10px !important;gap:8px !important;min-height:50px !important;}.chat-history-footer .footer-btn{min-height:48px !important;font-size:13px !important;padding:8px 6px !important;}} @media(max-width:768px){.'+newClasses.detail+'{inset:4% 3%;}.'+newClasses.copy+','+'.'+newClasses.clear+'{min-height:44px;}}';
   document.head.appendChild(style);
