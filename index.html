@@ -10588,7 +10588,35 @@ document.addEventListener('click', activateAudio);
   function chengyuRenderTest(){if(!chengyuState.test||!chengyuState.test.questions||chengyuState.test.questions.length!==10){chengyuState.test={questions:chengyuMakeTest(),index:0,right:0,done:false};}var t=chengyuState.test;if(t.done)return '<div class="tool-panel" style="text-align:center"><h2>🎉 测试完成</h2><p>答对 '+t.right+' / 10 题，正确率 '+(t.right*10)+'%</p><button class="btn btn-primary" onclick="chengyuRestartTest()">🔄 再测一次</button></div>';var q=t.questions[t.index],html='<div class="tool-row" style="justify-content:space-between"><strong>第 '+(t.index+1)+' / 10 题</strong><span class="tool-muted">正确 '+t.right+' 题</span></div><div class="tool-progress"><div style="width:'+Math.round(t.index/10*100)+'%"></div></div><div class="tool-panel"><div class="cy-test-word">'+esc(q.item.word)+'</div><div class="cy-test-options">';q.options.forEach(function(option,index){var cls='cy-test-option';if(q.selected){if(option===q.answer)cls+=' correct';else if(option===q.selected&&q.selected!==q.answer)cls+=' wrong';}html+='<button class="'+cls+'" '+(q.selected?'disabled':'onclick="chengyuAnswerTest('+index+')"')+'>'+String.fromCharCode(65+index)+'. '+esc(option)+'</button>';});html+='</div>'+(q.selected?'<p style="text-align:center;color:'+(q.selected===q.answer?'#16a34a':'#dc2626')+'">'+(q.selected===q.answer?'✅ 回答正确':'❌ 正确答案：'+esc(q.answer))+'</p>':'')+'</div>';return html;}
   window.chengyuSetMode=function(mode){chengyuState.mode=mode;chengyuState.page=1;chengyuState.reciteIndex=-1;chengyuState.reciteAnswer=false;if(mode==='test')chengyuState.test=null;renderChengyu();};
   window.chengyuSetCategory=function(category){chengyuState.category=category;chengyuState.page=1;chengyuState.reciteIndex=-1;chengyuState.test=null;renderChengyu();};
-  window.chengyuSearch=function(value){chengyuState.search=value;chengyuState.page=1;renderChengyu();var input=document.querySelector('#chengyuApp .cy-search');if(input){input.focus();input.selectionStart=input.selectionEnd=value.length;}};
+  window.chengyuSearch=function(value){
+    chengyuState.search=value;
+    chengyuState.page=1;
+    // 修复：不重建整个 #chengyuApp（原逻辑会导致搜索框 DOM 每次输入都被替换，焦点丢失打不了字）。
+    // 只重渲染列表区的 .cy-cards + .cy-count + .cy-pager，保留搜索框 DOM 和焦点。
+    var app=document.getElementById('chengyuApp');
+    if(!app) return;
+    var cards=app.querySelector('.cy-cards');
+    var count=app.querySelector('.cy-count');
+    var pager=app.querySelector('.cy-pager');
+    if(!cards) return;
+    var query=String(value||'').trim().toLowerCase();
+    var list=chengyuState.data.filter(function(item){
+      return (chengyuState.category==='all'||item.major===chengyuState.category)
+        &&(!query||(item.word+' '+item.meaning+' '+(item.minor||'')).toLowerCase().indexOf(query)>=0);
+    });
+    var pages=Math.max(1,Math.ceil(list.length/chengyuState.pageSize));
+    if(chengyuState.page>pages) chengyuState.page=pages;
+    var start=(chengyuState.page-1)*chengyuState.pageSize;
+    var items=list.slice(start,start+chengyuState.pageSize);
+    var html='';
+    items.forEach(function(item){
+      html+='<article class="cy-card"><div class="cy-word">'+esc(item.word)+'</div><div class="cy-meaning">'+esc(item.meaning)+'</div>'+(item.minor?'<span class="cy-tag">'+esc(item.minor)+'</span>':'')+'</article>';
+    });
+    if(!items.length) html='<div class="tool-panel">没有匹配的成语。</div>';
+    cards.innerHTML=html;
+    if(count) count.textContent='共 '+list.length+' 条';
+    if(pager) pager.innerHTML='<button class="btn btn-outline" onclick="chengyuPage(-1)" '+(chengyuState.page<=1?'disabled':'')+'>上一页</button><span class="tool-muted">第 '+chengyuState.page+' / '+pages+' 页</span><button class="btn btn-outline" onclick="chengyuPage(1)" '+(chengyuState.page>=pages?'disabled':'')+'>下一页</button>';
+  };
   window.chengyuPage=function(delta){chengyuState.page+=delta;renderChengyu();};
   window.chengyuShowAnswer=function(){chengyuState.reciteAnswer=true;renderChengyu();};
   window.chengyuMark=function(known){var item=chengyuReciteItem();if(!item)return;if(known){chengyuState.mastered[item.id]=true;delete chengyuState.wrong[item.id];}else{chengyuState.wrong[item.id]=true;}chengyuSave();chengyuState.reciteIndex=-1;chengyuState.reciteAnswer=false;renderChengyu();};
