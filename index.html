@@ -1106,8 +1106,8 @@ html, body {
   min-height: 32px !important;
   font-size: 14px !important;
   border-radius: 8px !important;
-  margin-left: 4px !important;
-  margin-right: 4px !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
 }
 
 /* ====== 暗夜模式：面试解析修复 ====== */
@@ -1627,6 +1627,36 @@ body.skin-dark .q-note-item-content { color:#e5e7eb; }
 body.skin-dark .q-note-empty { color:#fbbf24; }
 body.skin-dark .new-chat-detail-note { background:#3a2f14; color:#e5e7eb; }
 body.skin-dark .new-chat-detail-note-title { color:#fbbf24; }
+
+/* 成语小助手"回到顶部"按钮 —— 只在 #toolFullscreen 打开时显示 */
+#cyBackToTop {
+  position: fixed;
+  right: 20px;
+  bottom: 24px;
+  z-index: 100050;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(59,130,246,0.92);
+  color: #fff;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease, transform .2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+#cyBackToTop.show { opacity: 1; pointer-events: auto; }
+#cyBackToTop:active { transform: scale(0.92); }
+@media (max-width: 768px) {
+  #cyBackToTop { right: 14px; bottom: 20px; width: 48px; height: 48px; font-size: 22px; }
+}
 
 </style>
 </head>
@@ -8715,6 +8745,7 @@ if (window.renderQuestions) window.renderQuestions();
 </div>
 <!-- 返回顶部 / 皮肤按钮 -->
 <button id="backToTop" type="button" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="返回顶部">↑</button>
+<button id="cyBackToTop" type="button" title="回到顶部" aria-label="回到顶部">↑</button>
 <button id="skinToggleBtn" type="button" onclick="toggleSkinPanel()" title="皮肤切换">🎨</button>
 <!-- 皮肤主题面板 - 居中弹出 -->
 <div id="skinPanel" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:100002;background:#1e293b;border-radius:16px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,0.5);display:none;flex-direction:column;gap:10px;min-width:300px;max-width:90vw;border:1px solid rgba(255,255,255,0.08);">
@@ -10654,6 +10685,74 @@ document.addEventListener('touchend', function(){
   var mo = new MutationObserver(function(){ setTimeout(beautify, 0); });
   mo.observe(box, { childList:true, subtree:true });
   beautify();
+})();
+
+(function setupChengyuBackToTop(){
+  if (window.__cyBackToTopSetup) return;
+  window.__cyBackToTopSetup = true;
+
+  var btn = document.getElementById('cyBackToTop');
+  var box = document.getElementById('toolFullscreen');
+  if (!btn || !box) return;
+
+  function isChengyuOpen(){
+    // 判定：全屏工具打开 + 成语小助手内容存在
+    return box.style.display === 'block' && !!document.getElementById('chengyuApp');
+  }
+  function updateVisibility(){
+    if (!isChengyuOpen()) { btn.classList.remove('show'); return; }
+    btn.classList.toggle('show', box.scrollTop > 150);
+  }
+
+  box.addEventListener('scroll', updateVisibility, { passive: true });
+  window.addEventListener('scroll', updateVisibility, { passive: true });
+
+  btn.addEventListener('click', function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isChengyuOpen()) return;
+    try { box.scrollTo({ top: 0, behavior: 'smooth' }); }
+    catch (err) { box.scrollTop = 0; }
+    setTimeout(updateVisibility, 400);
+  });
+
+  // 应对某些 iOS 不触发 scroll 的场景，每 500ms 刷新一次可见性
+  if (window.__cyBackToTopTimer) clearInterval(window.__cyBackToTopTimer);
+  window.__cyBackToTopTimer = setInterval(updateVisibility, 500);
+
+  // 打开/关闭全屏工具时刷新一次
+  var origOpen = window.openToolFullscreen;
+  if (typeof origOpen === 'function' && !origOpen.__cyBtbWrapped) {
+    var wOpen = function(){
+      var r = origOpen.apply(this, arguments);
+      setTimeout(updateVisibility, 100);
+      return r;
+    };
+    wOpen.__cyBtbWrapped = true;
+    window.openToolFullscreen = wOpen;
+  }
+  var origClose = window.closeToolFullscreen;
+  if (typeof origClose === 'function' && !origClose.__cyBtbWrapped) {
+    var wClose = function(){
+      var r = origClose.apply(this, arguments);
+      setTimeout(updateVisibility, 100);
+      return r;
+    };
+    wClose.__cyBtbWrapped = true;
+    window.closeToolFullscreen = wClose;
+  }
+  var origSetView = window.chengyuSetView;
+  if (typeof origSetView === 'function' && !origSetView.__cyBtbWrapped) {
+    var wSetView = function(){
+      var r = origSetView.apply(this, arguments);
+      setTimeout(updateVisibility, 100);
+      return r;
+    };
+    wSetView.__cyBtbWrapped = true;
+    window.chengyuSetView = wSetView;
+  }
+
+  updateVisibility();
 })();
 </script>
 </body>
