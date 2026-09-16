@@ -1146,6 +1146,43 @@ body.skin-dark .ms-record-time { color:#94a3b8 !important; }
 .pomodoro-progress { height:3px; margin:7px 0 9px; background:rgba(255,255,255,0.1); border-radius:99px; overflow:hidden; }
 #pomodoroProgressFill { width:0; height:100%; background:linear-gradient(90deg,#f59e0b,#f97316); border-radius:99px; transition:width .4s ease; }
 .pomodoro-controls { display:grid; grid-template-columns:1fr 1fr 1fr; align-items:stretch; gap:8px; }
+/* 番茄钟手机端三等分一行 —— 修复：display 被其它 !important 规则覆盖成 block，
+   必须用带 ID 前缀 + !important 夺回控制权；min-width:0 防止 select 默认最小宽度撑破格子换行。 */
+#pomodoroCard .pomodoro-controls,
+.pomodoro-controls {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 1fr !important;
+  align-items: stretch !important;
+  gap: 8px !important;
+}
+#pomodoroCard .pomodoro-controls > button,
+#pomodoroCard .pomodoro-controls > select,
+.pomodoro-controls > button,
+.pomodoro-controls > select {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  min-height: 36px !important;
+  height: 36px !important;
+  padding: 0 4px !important;
+  font-size: 12px !important;
+  box-sizing: border-box !important;
+  white-space: nowrap !important;
+  flex: none !important;
+}
+#pomodoroCard #pomodoroDuration {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  text-align: center !important;
+  text-align-last: center !important;
+}
 .pomodoro-controls button {
   flex:none;
   width:100%;
@@ -1217,7 +1254,7 @@ body.skin-dark .ms-record-time { color:#94a3b8 !important; }
     opacity: 1;
     visibility: visible;
 }
-#sidebar > div:nth-child(2) > div,
+#sidebar > div:nth-child(2) > div:not(.pomodoro-controls),
 #sidebar > div:nth-child(2) > #pomodoroCard {
     padding: 12px 14px !important;
     margin: 0 0 10px 0 !important;
