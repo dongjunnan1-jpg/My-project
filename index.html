@@ -1427,6 +1427,16 @@ body.skin-shenburen #toolFullscreen .tool-muted { color:#8a7a4a; }
 #chengyuApp .cy-toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
 #chengyuApp .cy-count { color:var(--secondary); font-size:13px; }
 #chengyuApp .cy-cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.cy-group-toggle{margin:0 0 12px;display:flex;gap:8px}
+.cy-group-toggle button{padding:6px 14px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;color:#334155;cursor:pointer;font-size:13px;font-weight:600}
+.cy-group-toggle button.active{background:#3b82f6;color:#fff;border-color:#3b82f6}
+.cy-group-wrap{display:flex;flex-direction:column;gap:14px}
+.cy-group-box{border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;background:#fff}
+.cy-group-box-title{font-weight:700;color:#1e40af;font-size:15px;margin-bottom:8px;border-bottom:1px solid #e2e8f0;padding-bottom:6px}
+.cy-group-box-item{padding:6px 0;border-bottom:1px dashed #f1f5f9;line-height:1.6;font-size:14px}
+.cy-group-box-item:last-child{border-bottom:0}
+.cy-group-box-item .cy-gw{font-weight:700;color:#0f172a;margin-right:8px}
+.cy-group-box-item .cy-gm{color:#475569}
 #chengyuApp .cy-card { padding:16px; border:1px solid var(--border); border-radius:10px; background:var(--surface); min-height:120px; }
 #chengyuApp .cy-word { color:var(--deep); font-size:24px; font-weight:700; margin-bottom:8px; }
 #chengyuApp .cy-meaning { color:var(--text); line-height:1.7; font-size:14px; }
@@ -10399,7 +10409,7 @@ document.addEventListener('click', activateAudio);
 
   var CHENGYU_STATE_KEY='chengyu_state';
   var chengyuDataLoaded=false;
-  var chengyuState={data:[],category:'all',mode:'browse',search:'',page:1,pageSize:20,mastered:{},wrong:{},reciteIndex:-1,reciteAnswer:false,test:null};
+  var chengyuState={data:[],category:'all',mode:'browse',search:'',page:1,pageSize:20,mastered:{},wrong:{},reciteIndex:-1,reciteAnswer:false,test:null,view:'grouped'};
   function chengyuLoadState(){
     try{var saved=JSON.parse(localStorage.getItem(CHENGYU_STATE_KEY)||localStorage.getItem('training_chengyu_state')||'null');if(saved){chengyuState.mastered=saved.mastered||{};chengyuState.wrong=saved.wrong||{};}}catch(e){}
   }
@@ -10444,9 +10454,35 @@ document.addEventListener('click', activateAudio);
       chengyuLoadState();
       if(!chengyuState.data.length){root().innerHTML='<div id="chengyuApp">'+chengyuUploadPanel()+'</div>';return;}
       var content=chengyuStats()+chengyuModeNav()+chengyuCategoryNav();
-      if(chengyuState.mode==='browse')content+=chengyuRenderBrowse();else if(chengyuState.mode==='recite')content+=chengyuRenderRecite();else content+=chengyuRenderTest();
+      if(chengyuState.mode==='browse'){
+        content+='<div class="cy-group-toggle"><button type="button" class="'+(chengyuState.view==='grouped'?'active':'')+'" onclick="chengyuSetView(\'grouped\')">📇 分组视图</button><button type="button" class="'+(chengyuState.view==='flat'?'active':'')+'" onclick="chengyuSetView(\'flat\')">📄 平铺视图</button></div>';
+        if(chengyuState.view==='grouped')content+=chengyuRenderGrouped();else content+=chengyuRenderBrowse();
+      }else if(chengyuState.mode==='recite')content+=chengyuRenderRecite();else content+=chengyuRenderTest();
       root().innerHTML='<div id="chengyuApp">'+content+'</div>';
     });
+  }
+  function chengyuSetView(v){
+    chengyuState.view = (v==='flat') ? 'flat' : 'grouped';
+    renderChengyu();
+  }
+  window.chengyuSetView = chengyuSetView;
+  function chengyuRenderGrouped(){
+    var list = chengyuFiltered();
+    var groups = {};
+    list.forEach(function(item){
+      var m = item.major || '未分类';
+      if(!groups[m]) groups[m] = [];
+      groups[m].push(item);
+    });
+    var names = Object.keys(groups).sort();
+    if(!names.length) return '<div class="tool-panel">没有匹配的成语。</div>';
+    return '<div class="cy-group-wrap">' + names.map(function(m){
+      var arr = groups[m];
+      var itemsHtml = arr.map(function(item){
+        return '<div class="cy-group-box-item"><span class="cy-gw">'+esc(item.word)+'</span><span class="cy-gm">'+esc(item.meaning)+'</span></div>';
+      }).join('');
+      return '<div class="cy-group-box"><div class="cy-group-box-title">'+esc(m)+' ('+arr.length+')</div>'+itemsHtml+'</div>';
+    }).join('') + '</div>';
   }
   function chengyuRenderBrowse(){var list=chengyuFiltered(),pages=Math.max(1,Math.ceil(list.length/chengyuState.pageSize));chengyuState.page=Math.min(chengyuState.page,pages);var start=(chengyuState.page-1)*chengyuState.pageSize,items=list.slice(start,start+chengyuState.pageSize);var html='<div class="cy-toolbar"><input class="cy-search" value="'+esc(chengyuState.search)+'" placeholder="搜索成语、释义或小类" oninput="chengyuSearch(this.value)"><span class="cy-count">共 '+list.length+' 条</span></div><div class="cy-cards">';items.forEach(function(item){html+='<article class="cy-card"><div class="cy-word">'+esc(item.word)+'</div><div class="cy-meaning">'+esc(item.meaning)+'</div>'+(item.minor?'<span class="cy-tag">'+esc(item.minor)+'</span>':'')+'</article>';});if(!items.length)html+='<div class="tool-panel">没有匹配的成语。</div>';html+='</div><div class="cy-pager"><button class="btn btn-outline" onclick="chengyuPage(-1)" '+(chengyuState.page<=1?'disabled':'')+'>上一页</button><span class="tool-muted">第 '+chengyuState.page+' / '+pages+' 页</span><button class="btn btn-outline" onclick="chengyuPage(1)" '+(chengyuState.page>=pages?'disabled':'')+'>下一页</button></div>';return html;}
   function chengyuReciteItem(){var list=chengyuFiltered();if(!list.length)return null;if(chengyuState.reciteIndex<0||chengyuState.reciteIndex>=list.length)chengyuState.reciteIndex=Math.floor(Math.random()*list.length);return list[chengyuState.reciteIndex];}
