@@ -1074,6 +1074,42 @@ html, body {
   }
 }
 
+/* ===== 侧边栏头部 Helium 花体 + 呼吸发光 ===== */
+@keyframes heliumTitleBreath {
+  0%, 100% {
+    text-shadow: 0 0 1px rgba(255,255,255,0.6), 0 0 3px rgba(255,255,255,0.4);
+  }
+  50% {
+    text-shadow: 0 0 2px #fff, 0 0 8px rgba(255,255,255,0.85), 0 0 16px rgba(160,200,255,0.55);
+  }
+}
+#sidebar > div:first-child > div:first-child > span:first-child {
+  font-family: "Snell Roundhand", "Apple Chancery", "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive !important;
+  font-size: 22px !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.5px !important;
+  color: #fff !important;
+  line-height: 32px !important;
+  height: 32px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding-right: 10px !important;
+  animation: heliumTitleBreath 2.6s ease-in-out infinite !important;
+}
+#sidebar > div:first-child > div:first-child {
+  gap: 18px !important;
+}
+#sidebar > div:first-child > div:first-child > button {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  font-size: 14px !important;
+  border-radius: 8px !important;
+  margin-left: 4px !important;
+  margin-right: 4px !important;
+}
+
 /* ====== 暗夜模式：面试解析修复 ====== */
 body.skin-dark .mian-shi-answer { border-color:#4a5568 !important; background:transparent !important; }
 body.skin-dark .mian-shi-answer summary { color:#a78bfa !important; background:#1e293b !important; border:1px solid #334155 !important; border-radius:8px !important; padding:10px 14px !important; }
@@ -1109,10 +1145,45 @@ body.skin-dark .ms-record-time { color:#94a3b8 !important; }
 #pomodoroCard.complete #pomodoroTime { color:#fbbf24; }
 .pomodoro-progress { height:3px; margin:7px 0 9px; background:rgba(255,255,255,0.1); border-radius:99px; overflow:hidden; }
 #pomodoroProgressFill { width:0; height:100%; background:linear-gradient(90deg,#f59e0b,#f97316); border-radius:99px; transition:width .4s ease; }
-.pomodoro-controls { display:flex; align-items:center; gap:5px; }
-.pomodoro-controls button { flex:1; padding:4px 8px; border:1px solid rgba(255,255,255,0.12); border-radius:4px; background:transparent; color:rgba(255,255,255,0.8); cursor:pointer; font-size:11px; transition:background .2s ease; }
+.pomodoro-controls { display:grid; grid-template-columns:1fr 1fr 1fr; align-items:stretch; gap:8px; }
+.pomodoro-controls button {
+  flex:none;
+  width:100%;
+  min-height:36px;
+  height:36px;
+  padding:0 6px;
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:6px;
+  background:transparent;
+  color:rgba(255,255,255,0.8);
+  cursor:pointer;
+  font-size:12px;
+  transition:background .2s ease;
+  box-sizing:border-box;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  white-space:nowrap;
+}
 .pomodoro-controls button:hover { background:rgba(255,255,255,0.08); }
-#pomodoroDuration { max-width:74px; background:transparent; color:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:2px 6px; font-size:10px; cursor:pointer; outline:none; }
+#pomodoroDuration {
+  max-width:none;
+  width:100%;
+  min-height:36px;
+  height:36px;
+  padding:0 6px;
+  background:transparent;
+  color:rgba(255,255,255,0.7);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:6px;
+  font-size:12px;
+  cursor:pointer;
+  outline:none;
+  box-sizing:border-box;
+  text-align:center;
+  text-align-last:center;
+}
 #pomodoroDuration option { background:#142038; color:#e2e8f0; }
 #pomodoroStatus { margin-top:7px; color:rgba(255,255,255,0.4); font-size:10px; }
 #sidebar { transition:width 0.35s cubic-bezier(0.22,1,0.36,1) !important; will-change:width; }
@@ -8698,11 +8769,11 @@ if (window.renderQuestions) window.renderQuestions();
 <button id="sidebarToggle" style="position:fixed;right:12px;top:12px;z-index:100000;width:40px;height:40px;background:rgba(20,30,50,0.85);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#e2e8f0;font-size:20px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;">☰</button>
 <div id="sidebar" style="position:fixed;right:0;top:0;bottom:0;z-index:99999;width:0;overflow:hidden;background:rgba(20,30,50,0.95);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#e2e8f0;box-shadow:-2px 0 20px rgba(0,0,0,0.3);border-left:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;font-family:-apple-system,"Microsoft YaHei",sans-serif;">
   <div style="padding:16px 18px;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;display:flex;justify-content:space-between;align-items:center;">
-    <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap;overflow:hidden;">
+    <div style="display:flex;align-items:center;gap:18px;flex-wrap:nowrap;overflow:hidden;">
       <span style="font-weight:bold;font-size:16px;color:#fff;white-space:nowrap;">☰ Helium</span>
-      <button onclick="fontZoom(-2)" title="缩小字体" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:4px;color:#e2e8f0;width:28px;height:28px;cursor:pointer;font-size:12px;font-weight:bold;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0;">A−</button>
-      <button onclick="fontZoom(2)" title="放大字体" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:4px;color:#e2e8f0;width:28px;height:28px;cursor:pointer;font-size:12px;font-weight:bold;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0;">A+</button>
-      <button id="sidebarModeToggle" onclick="toggleMode()" title="切换到手机模式" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:4px;color:#e2e8f0;width:28px;height:28px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0;">💻</button>
+      <button onclick="fontZoom(-2)" title="缩小字体" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:4px;color:#e2e8f0;width:32px;height:32px;cursor:pointer;font-size:12px;font-weight:bold;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0;">A−</button>
+      <button onclick="fontZoom(2)" title="放大字体" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:4px;color:#e2e8f0;width:32px;height:32px;cursor:pointer;font-size:12px;font-weight:bold;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0;">A+</button>
+      <button id="sidebarModeToggle" onclick="toggleMode()" title="切换到手机模式" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:4px;color:#e2e8f0;width:32px;height:32px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0;">💻</button>
     </div>
     <button id="sidebarClose" style="font-size:20px;cursor:pointer;padding:4px 8px;">✕</button>
   </div>
@@ -8723,7 +8794,7 @@ if (window.renderQuestions) window.renderQuestions();
       <div class="pomodoro-progress"><div id="pomodoroProgressFill"></div></div>
       <div class="pomodoro-controls">
         <button id="pomodoroStart" type="button">▶ 开始</button>
-        <button id="pomodoroReset" type="button">⟳ 重置</button>
+        <button id="pomodoroReset" type="button">↺ 重置</button>
         <select id="pomodoroDuration" aria-label="番茄钟时长">
           <option value="5">5分钟</option>
           <option value="10">10分钟</option>
@@ -9616,7 +9687,7 @@ function forceFixSidebar() {
     header.style.setProperty('min-height', '44px', 'important');
     header.style.setProperty('padding', '8px 12px', 'important');
     header.style.setProperty('box-sizing', 'border-box', 'important');
-    header.style.setProperty('gap', '4px', 'important');
+    header.style.setProperty('gap', '18px', 'important');
     header.style.setProperty('overflow', 'visible', 'important');
     header.style.setProperty('background', 'transparent', 'important');
     header.style.setProperty('border-bottom', '1px solid rgba(255,255,255,0.06)', 'important');
@@ -9634,7 +9705,7 @@ function forceFixSidebar() {
       headerContent.style.setProperty('min-width', '0', 'important');
       headerContent.style.setProperty('overflow', 'visible', 'important');
       headerContent.style.setProperty('white-space', 'nowrap', 'important');
-      headerContent.style.setProperty('gap', '4px', 'important');
+      headerContent.style.setProperty('gap', '18px', 'important');
 
       headerContent.querySelectorAll('span, button').forEach(function(el) {
         el.style.setProperty('display', 'inline-flex', 'important');
@@ -9642,15 +9713,15 @@ function forceFixSidebar() {
         el.style.setProperty('justify-content', 'center', 'important');
         el.style.setProperty('flex-shrink', '0', 'important');
         el.style.setProperty('white-space', 'nowrap', 'important');
-        el.style.setProperty('width', '26px', 'important');
-        el.style.setProperty('min-width', '26px', 'important');
-        el.style.setProperty('max-width', '26px', 'important');
-        el.style.setProperty('height', '26px', 'important');
-        el.style.setProperty('min-height', '26px', 'important');
-        el.style.setProperty('max-height', '26px', 'important');
+        el.style.setProperty('width', '32px', 'important');
+        el.style.setProperty('min-width', '32px', 'important');
+        el.style.setProperty('max-width', '32px', 'important');
+        el.style.setProperty('height', '32px', 'important');
+        el.style.setProperty('min-height', '32px', 'important');
+        el.style.setProperty('max-height', '32px', 'important');
         el.style.setProperty('padding', '0', 'important');
         el.style.setProperty('box-sizing', 'border-box', 'important');
-        el.style.setProperty('flex', '0 0 26px', 'important');
+        el.style.setProperty('flex', '0 0 32px', 'important');
       });
 
       var titleSpan = headerContent.querySelector('span');
@@ -9659,12 +9730,13 @@ function forceFixSidebar() {
         titleSpan.style.setProperty('min-width', 'auto', 'important');
         titleSpan.style.setProperty('max-width', 'none', 'important');
         titleSpan.style.setProperty('flex', '0 1 auto', 'important');
-        titleSpan.style.setProperty('font-size', '14px', 'important');
-        titleSpan.style.setProperty('font-weight', '600', 'important');
+        titleSpan.style.setProperty('font-family', '"Snell Roundhand", "Apple Chancery", "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive', 'important');
+        titleSpan.style.setProperty('font-size', '22px', 'important');
+        titleSpan.style.setProperty('font-weight', '400', 'important');
         titleSpan.style.setProperty('color', '#fff', 'important');
-        titleSpan.style.setProperty('padding-right', '6px', 'important');
-        titleSpan.style.setProperty('height', '26px', 'important');
-        titleSpan.style.setProperty('line-height', '26px', 'important');
+        titleSpan.style.setProperty('padding-right', '10px', 'important');
+        titleSpan.style.setProperty('height', '32px', 'important');
+        titleSpan.style.setProperty('line-height', '32px', 'important');
       }
     }
 
