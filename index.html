@@ -574,6 +574,68 @@ html, body { width:100%; max-width:100%; margin:0; padding:0; box-sizing:border-
 .search-box { flex: 1; padding: 8px 14px; font-size: 14px; border: 2px solid var(--light); border-radius: 8px; outline:none; min-width:140px; color:var(--deep); }
 .search-box:focus { border-color: var(--main); }
 
+/* 搜索框 + 匹配导航（计数 / 上一个 / 下一个） */
+.search-row { display:flex; align-items:center; gap:8px; flex:1; min-width:220px; }
+.search-row .search-box { flex:1; }
+.search-nav { display:inline-flex; align-items:center; gap:6px; flex-shrink:0; }
+.search-nav-counter { font-size:13px; color:var(--secondary); font-variant-numeric:tabular-nums; white-space:nowrap; min-width:52px; text-align:center; }
+.search-nav-btn {
+  min-width:36px; min-height:36px; padding:0 8px;
+  display:inline-flex; align-items:center; justify-content:center;
+  font-size:16px; line-height:1; cursor:pointer;
+  border:2px solid var(--light); border-radius:8px;
+  background:var(--card); color:var(--deep);
+  transition: background .15s, border-color .15s, transform .1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.search-nav-btn:hover:not(:disabled) { background:var(--light); border-color:var(--main); }
+.search-nav-btn:active:not(:disabled) { transform:scale(0.94); }
+.search-nav-btn:disabled { opacity:0.4; cursor:default; }
+body.skin-dark .search-nav-btn { background:#2d3748; color:#e2e8f0; border-color:#4a5568; }
+body.skin-dark .search-nav-btn:hover:not(:disabled) { background:#3a4658; border-color:var(--main); }
+body.skin-dark .search-nav-counter { color:#a0aec0; }
+
+/* 搜索匹配浮动导航：固定在视口右侧中部，定位到题目后无需回顶部即可切换匹配项 */
+/* 位置避开：右上角 #sidebarToggle、右下角 #backToTop、右侧皮肤按钮 */
+.search-float-nav {
+  position: fixed;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 998;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 6px;
+  background: var(--card);
+  border: 2px solid var(--light);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  -webkit-tap-highlight-color: transparent;
+}
+.search-float-btn {
+  width: 40px; height: 40px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 18px; line-height: 1; cursor: pointer;
+  border: 2px solid var(--light); border-radius: 8px;
+  background: var(--card); color: var(--deep);
+  transition: background .15s, border-color .15s, transform .1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.search-float-btn:hover:not(:disabled) { background: var(--light); border-color: var(--main); }
+.search-float-btn:active:not(:disabled) { transform: scale(0.94); }
+.search-float-btn:disabled { opacity: 0.4; cursor: default; }
+.search-float-counter {
+  font-size: 12px; color: var(--secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap; text-align: center;
+}
+body.skin-dark .search-float-nav { background:#2d3748; border-color:#4a5568; }
+body.skin-dark .search-float-btn { background:#2d3748; color:#e2e8f0; border-color:#4a5568; }
+body.skin-dark .search-float-btn:hover:not(:disabled) { background:#3a4658; border-color:var(--main); }
+body.skin-dark .search-float-counter { color:#a0aec0; }
+
 /* 题目卡片 */
 .question { background: #fff; padding: 22px; margin-bottom: 18px; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: none; border-left: 5px solid var(--mid); transition: box-shadow .2s; }
 .question.visible { display: block; }
@@ -998,6 +1060,29 @@ body.skin-eye .question, body.skin-eye .file-list, body.skin-eye .filter-bar, bo
 /* ====== 进度面板字体加深 ====== */
 .header-pp .pp-label { color:#fff !important; opacity:1 !important; font-weight:bold !important; text-shadow:0 1px 2px rgba(0,0,0,0.3); }
 .header-pp .pp-value { text-shadow:0 1px 2px rgba(0,0,0,0.3); }
+
+/* ====== 搜索关键词高亮 ====== */
+/* 普通匹配：淡黄底，继承原文字颜色，不破坏原有排版 */
+mark.search-highlight {
+  background: #ffe58f;
+  color: inherit;
+  border-radius: 3px;
+  padding: 0 2px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+/* 当前自动定位的第一个匹配：更醒目（橙色底 + 描边） */
+mark.search-highlight.search-highlight-current {
+  background: #ff9f43;
+  color: #1a1a1a;
+  box-shadow: 0 0 0 2px rgba(255,159,67,0.45);
+  font-weight: 600;
+}
+/* 暗夜皮肤下的高亮配色（保证对比度） */
+body.skin-dark mark.search-highlight { background:#b8860b; color:#fff; }
+body.skin-dark mark.search-highlight.search-highlight-current { background:#ff9f43; color:#1a1a1a; }
+/* 护眼皮肤下保持柔和 */
+body.skin-eye mark.search-highlight { background:#ffe58f; color:inherit; }
 
 /* 标题流光动画 */
 @keyframes titleShine { to { background-position:200% center; } }
@@ -1779,6 +1864,35 @@ body.skin-dark .new-chat-detail-note-title { color:#fbbf24; }
         font-size: 15px;
         box-sizing: border-box;
     }
+    /* 手机端：搜索框占满一行，匹配导航换行居中显示，不遮挡题目 */
+    .search-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        width: 100%;
+    }
+    .search-nav {
+        justify-content: center;
+        gap: 10px;
+    }
+    .search-nav-btn {
+        min-width: 40px;
+        min-height: 40px;
+        font-size: 18px;
+    }
+    .search-nav-counter { font-size: 14px; min-width: 60px; }
+    /* 手机端浮动导航：右侧中部，按钮加大到 44px 便于点击，避开右下角置顶按钮 */
+    .search-float-nav {
+        right: 8px;
+        gap: 8px;
+        padding: 8px 6px;
+    }
+    .search-float-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 20px;
+    }
+    .search-float-counter { font-size: 13px; }
     .controls-grid {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1943,7 +2057,14 @@ body.skin-dark .new-chat-detail-note-title { color:#fbbf24; }
 
     <!-- 控制栏 -->
     <div class="controls" id="controls" style="display:none;">
-        <input type="text" class="search-box" id="searchBox" placeholder="🔍 搜索题目...">
+        <div class="search-row">
+            <input type="text" class="search-box" id="searchBox" placeholder="🔍 搜索题目...">
+            <span class="search-nav" id="searchNav" style="display:none;">
+                <span class="search-nav-counter" id="searchNavCounter">0 / 0</span>
+                <button type="button" class="search-nav-btn" id="searchNavPrev" onclick="prevSearchMatch()" title="上一个匹配项" aria-label="上一个匹配项">↑</button>
+                <button type="button" class="search-nav-btn" id="searchNavNext" onclick="nextSearchMatch()" title="下一个匹配项" aria-label="下一个匹配项">↓</button>
+            </span>
+        </div>
         <div class="controls-grid">
             <button class="btn btn-outline" onclick="exportFiltered()">📤 导出筛选</button>
             <button class="btn btn-outline" onclick="exportBackup()">💾 导出备份</button>
@@ -2881,7 +3002,84 @@ function normalizeSearchText(value){
     .trim();
 }
 
+// ============================================================
+// 搜索范围限制（国考/省考/事业单位/模考）
+// ------------------------------------------------------------
+// 需求：gk / mk / sy 三类「行测类」题库，搜索只允许命中：
+//   题干 + 选项 + 年份 + 地区
+// 明确禁止命中：解析 / 答案 / AI简化解析 / 解题思路 / 知识点 等。
+// 申论(sl) / 面试(ms) 保持原有全文搜索能力（材料/题目/答案/解析）。
+//
+// 实现方式：不改动 getQuestionSearchText() 的既有行为（申论/面试仍走它），
+//   而是新增一个「按分区裁剪」的搜索文本构建器，供 getFiltered() 使用。
+// ============================================================
+
+// 行测类分区（搜索范围受限）
+var RESTRICTED_SEARCH_ZONES = { gk:1, mk:1, sy:1 };
+
+// 行测类「允许搜索」的顶层字段（题干 / 选项 / 年份 / 地区 / 来源）
+var RESTRICTED_SEARCH_FIELD_WHITELIST = {
+  content:1, question:1, title:1, stem:1, subtitle:1, description:1,
+  options:1, option:1, choices:1, answers:1, alternatives:1, answeroptions:1,
+  selectoptions:1, answerlist:1, optionlist:1, questionoptions:1, items:1,
+  accessories:1,
+  source:1, shortsource:1, year:1, province:1, region:1, paperyear:1, paperprovince:1,
+  papername:1, papertopic:1, name:1, category:1, bigcategory:1, subcategory:1,
+  module:1, type:1, questiontype:1, leafcategory:1, topic:1
+};
+
+// 行测类「禁止搜索」的字段（解析 / 答案 / 知识点 等）
+// 注意：accessories 是「容器」（内含 options 选项 + answer/analysis 等），
+//   不能整体拉黑，否则会连选项一起丢掉；改为只拉黑其中的答案/解析子字段。
+var RESTRICTED_SEARCH_FIELD_BLACKLIST = {
+  solution:1, solutionaccessories:1, analysis:1, answer:1, correctanswer:1,
+  explanation:1, keypoints:1, comment:1, remark:1, note:1,
+  correctletter:1, answerindex:1, correctindex:1, material:1, materials:1,
+  materialindexes:1, _materiallabels:1, score:1, difficulty:1, ratio:1,
+  correctratio:1, _answered:1, _useranswer:1, useranswer:1, myanswer:1
+};
+
+// 递归收集「行测类允许搜索」的文本（仅白名单字段，跳过黑名单字段）
+function collectRestrictedSearchText(value, output, keyName){
+  if(value===null || value===undefined) return;
+  var t=typeof value;
+  if(t==='string'){ if(value) output.push(value); return; }
+  if(t==='number' || t==='boolean'){ output.push(String(value)); return; }
+  if(Array.isArray(value)){
+    for(var i=0;i<value.length;i++) collectRestrictedSearchText(value[i], output, keyName);
+    return;
+  }
+  if(t==='object'){
+    var keys=Object.keys(value);
+    for(var j=0;j<keys.length;j++){
+      var k=keys[j], lk=String(k).toLowerCase();
+      // 行测白名单优先：命中白名单的字段（如 options）即使在全量黑名单里也要收集
+      var inWhitelist = !!RESTRICTED_SEARCH_FIELD_WHITELIST[lk];
+      if(!inWhitelist){
+        if(RESTRICTED_SEARCH_FIELD_BLACKLIST[lk]) continue;
+        if(SEARCH_TEXT_FIELD_BLACKLIST[lk]) continue;
+      }
+      // 顶层字段必须命中「行测白名单」；嵌套对象内部放宽（只受黑名单约束）
+      if(keyName===undefined && !inWhitelist) continue;
+      collectRestrictedSearchText(value[k], output, k);
+    }
+  }
+}
+
+// 构建「行测类」可搜索文本：题干 + 选项 + 年份 + 地区（不含解析/答案）
+function buildRestrictedSearchText(q){
+  if(!q || typeof q!=='object') return '';
+  var parts=[];
+  collectRestrictedSearchText(q, parts, undefined);
+  // 年份 / 地区 / 来源（部分题库这些信息只在 source 字符串里）
+  if(q.source) parts.push(String(q.source));
+  if(q._examYear) parts.push(String(q._examYear));
+  if(q._examProvince) parts.push(String(q._examProvince));
+  return normalizeSearchText(parts.join(' '));
+}
+
 // 构建一道题的「可搜索全文」（带缓存）
+// 说明：这是「完整全文」搜索文本（含解析/答案/材料），供申论/面试使用。
 function buildSearchText(q){
   if(!q || typeof q!=='object') return '';
   var parts=[];
@@ -2924,6 +3122,20 @@ function getQuestionSearchText(q){
   return text;
 }
 
+// 按当前分区获取搜索文本：
+//   gk / mk / sy → 仅题干+选项+年份+地区（不含解析）
+//   sl / ms      → 保持原有全文搜索（材料/题目/答案/解析）
+function getZoneSearchText(q){
+  if(!q || typeof q!=='object') return '';
+  if(RESTRICTED_SEARCH_ZONES[activeZone]){
+    if(typeof q._restrictedSearchText==='string') return q._restrictedSearchText;
+    var text=buildRestrictedSearchText(q);
+    try{ q._restrictedSearchText=text; }catch(e){}
+    return text;
+  }
+  return getQuestionSearchText(q);
+}
+
 // 兼容旧调用：申论/面试/普通题库统一走 getQuestionSearchText
 function getSpecialSearchText(question){
   return getQuestionSearchText(question);
@@ -2933,7 +3145,7 @@ function getSpecialSearchText(question){
 window.testQuestionSearch=function(keyword){
   var kw=normalizeSearchText(keyword);
   var all=getZoneQuestions(activeZone, '__all__');
-  var result=all.filter(function(q){ return getQuestionSearchText(q).indexOf(kw)>=0; });
+  var result=all.filter(function(q){ return getZoneSearchText(q).indexOf(kw)>=0; });
   console.table(result.map(function(q){
     return {
       id:q._qid||q.id||'',
@@ -4038,7 +4250,8 @@ function getFiltered(){
   const kw=normalizeSearchText(filterState.search);
 
   if(activeZone==='sl'){
-    if(kw) qs=qs.filter(function(q){ return getQuestionSearchText(q).indexOf(kw)>=0; });
+    // 申论：保持全文搜索（材料 / 题目 / 答案 / 解析）
+    if(kw) qs=qs.filter(function(q){ return getZoneSearchText(q).indexOf(kw)>=0; });
     if(filterState.year!=='all') qs=qs.filter(function(q){ return q._paperYear===filterState.year; });
     if(filterState.province!=='all') qs=qs.filter(function(q){ return (q._paperProvince||'其他')===filterState.province; });
     if(filterState.subType!=='all') qs=qs.filter(function(q){ return (q._paperTopic||'其他')===filterState.subType; });
@@ -4055,7 +4268,8 @@ function getFiltered(){
   }
 
   if(activeZone==='ms'){
-    if(kw) qs=qs.filter(function(q){ return getQuestionSearchText(q).indexOf(kw)>=0; });
+    // 面试：保持全文搜索（题目 / 参考答案 / 解析）
+    if(kw) qs=qs.filter(function(q){ return getZoneSearchText(q).indexOf(kw)>=0; });
     if(filterState.province!=='all') qs=qs.filter(function(q){ return (q.region||'其他')===filterState.province; });
     if(filterState.module!=='all') qs=qs.filter(function(q){ return getSpecialQuestionType(q)===filterState.module; });
     if(filterState.status==='note') qs=qs.filter(function(q){ return getQuestionNoteCount(q._key) > 0; });
@@ -4071,9 +4285,9 @@ function getFiltered(){
   if(filterState.leafType!=='all')
     qs=qs.filter(q=>q.leafCategory===filterState.leafType);
 
-  // 关键词（统一全文搜索：题干 / 来源 / 材料 / 参考答案 / 解析…）
+  // 关键词：国考/省考/事业单位/模考 仅搜索「题干 + 选项 + 年份 + 地区」，不搜索解析
   if(kw)
-    qs=qs.filter(q=>getQuestionSearchText(q).indexOf(kw)>=0);
+    qs=qs.filter(q=>getZoneSearchText(q).indexOf(kw)>=0);
 
   // 年份
   if(filterState.year!=='all'){
@@ -5590,6 +5804,9 @@ function renderQuestions(){
     html+='</div>';
   }
   content.innerHTML=html;
+  // DOM 已重建：旧的匹配引用全部失效，重置搜索导航缓存
+  // （搜索流程会在 renderQuestions() 之后调用 scheduleSearchResultFocus() 重新建立）
+  resetSearchNav();
   if(activeZone==='ms') bindMianShiRecorders();
   if(activeZone==='sl') restoreNotes();
   try{ content.querySelectorAll('img').forEach(fixImg); }catch(e){}
@@ -5613,6 +5830,10 @@ function renderQuestions(){
   renderZoneStats();
   updateMsFilterBtnState();
   updateSlFilterBtnState();
+  // 若当前有搜索关键词：DOM 重建后自动重新高亮 + 定位（筛选/翻页/切换分区后同样生效）
+  if(normalizeSearchText(filterState.search || '')){
+    scheduleSearchResultFocus();
+  }
 }
 
 function buildMaterialQuestionSequence(paper){
@@ -7239,13 +7460,484 @@ async function importBackupFromObject(data){
 }
 
 // ============================================================
+// 搜索结果高亮 + 自动定位
+// 说明：本模块只负责「搜索结果已渲染后，在 DOM 中找关键词、高亮、定位」。
+//       不参与「哪些题目属于搜索结果」的判断（那仍由 getFiltered() 负责）。
+// ============================================================
+
+// 当前高亮使用的关键词（已归一化），用于判断是否需要重新高亮
+var _searchHighlightKeyword = '';
+
+// 匹配项缓存（供 ↑ / ↓ 快速切换，避免每次点击都重新扫描 DOM）
+var searchMatches = [];      // [{ element: mark, question: container }]
+var searchMatchIndex = -1;   // 当前匹配项下标（-1 表示无）
+
+// 1) 清除所有旧高亮：把 <mark class="search-highlight"> 还原成普通文本节点
+function clearSearchHighlights(){
+  var marks = content.querySelectorAll('mark.search-highlight');
+  if(!marks.length){
+    searchMatches = [];
+    searchMatchIndex = -1;
+    return;
+  }
+  marks.forEach(function(mark){
+    var parent = mark.parentNode;
+    if(!parent) return;
+    // 用 mark 内部的子节点替换 mark 本身，保持原有嵌套结构（如 <strong><mark>…</mark></strong>）
+    while(mark.firstChild){ parent.insertBefore(mark.firstChild, mark); }
+    parent.removeChild(mark);
+    // 合并相邻文本节点，避免产生大量碎片节点
+    parent.normalize();
+  });
+  _searchHighlightKeyword = '';
+  searchMatches = [];
+  searchMatchIndex = -1;
+}
+
+// 1.5) 获取「允许高亮/定位」的 DOM 容器列表（按分区裁剪）
+//   国考/省考/事业单位/模考：只允许 题干 + 选项 + 年份/地区（来源），不含解析/答案
+//   申论/面试：整题容器（材料 / 题目 / 答案 / 解析 全部允许）
+function getSearchHighlightRoots(questionEl){
+  if(!questionEl) return [];
+  // 申论 / 面试：整题容器全部允许
+  if(activeZone==='sl' || activeZone==='ms') return [questionEl];
+  // 行测类：只取题干、选项、来源（年份/地区）等允许区域
+  var roots = [];
+  var title = questionEl.querySelector('.q-title');
+  if(title) roots.push(title);                       // 第N题 + 来源（年份/地区）
+  var material = questionEl.querySelector('.q-material');
+  if(material) roots.push(material);                 // 资料分析材料（属于题干）
+  var contentEl = questionEl.querySelector('.q-content');
+  if(contentEl) roots.push(contentEl);               // 题干正文
+  var options = questionEl.querySelector('.q-options');
+  if(options) roots.push(options);                   // 选项 A/B/C/D
+  return roots;
+}
+
+// 2) 建立「可见文本 → TextNode/offset」映射
+//    遍历 root 下的文本节点，跳过脚本/样式/输入框/已高亮区域等。
+//    返回 { text: 拼接后的可见文本, nodes: [{node, start, end}] }
+function buildSearchTextMap(root){
+  var nodes = [];
+  var text = '';
+  if(!root) return { text: text, nodes: nodes };
+  var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode: function(node){
+      var p = node.parentNode;
+      if(!p) return NodeFilter.FILTER_REJECT;
+      var tag = p.nodeName;
+      // 跳过不可见/非正文区域
+      if(tag==='SCRIPT'||tag==='STYLE'||tag==='NOSCRIPT'||tag==='TEXTAREA'||tag==='INPUT'||tag==='SELECT'||tag==='OPTION') return NodeFilter.FILTER_REJECT;
+      if(p.closest && p.closest('mark.search-highlight')) return NodeFilter.FILTER_REJECT;
+      if(p.closest && p.closest('.q-note-box, .q-chat-box, .q-ai-result, .ms-recorder, .q-speak-btn')) return NodeFilter.FILTER_REJECT;
+      // 防御性排除：筛选栏/分页/工具栏等 UI（正常情况下不在 #content 内）
+      if(p.closest && p.closest('.filter-bar, .pagination, .controls, .module-bar, .file-tabs, .header')) return NodeFilter.FILTER_REJECT;
+      var v = node.nodeValue;
+      if(!v) return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  var n;
+  while((n = walker.nextNode())){
+    var start = text.length;
+    text += n.nodeValue;
+    nodes.push({ node: n, start: start, end: text.length });
+  }
+  return { text: text, nodes: nodes };
+}
+
+// 3) 在「归一化文本」中查找关键词范围
+//    与现有 normalizeSearchText() 保持一致：去标签、去空白、转小写。
+//    返回 [{start, end}]（基于归一化文本的下标）
+function findSearchTextRanges(normalizedText, normalizedKeyword){
+  var ranges = [];
+  if(!normalizedKeyword) return ranges;
+  var from = 0, idx;
+  while((idx = normalizedText.indexOf(normalizedKeyword, from)) !== -1){
+    ranges.push({ start: idx, end: idx + normalizedKeyword.length });
+    from = idx + normalizedKeyword.length;
+    if(ranges.length >= 500) break; // 安全上限，避免超长材料卡顿
+  }
+  return ranges;
+}
+
+// 4) 把「归一化文本下标」映射回「原始 TextNode + offset」
+//    因为归一化会删除空白/标签，所以需要逐字符对齐。
+//    返回 [{node, startOffset, endOffset}]（同一节点内的连续片段）
+function mapNormalizedRangeToNodes(map, range){
+  var result = [];
+  var nodes = map.nodes;
+  // 逐节点累计「归一化后」的长度，找到 range 覆盖的节点
+  var normPos = 0;
+  for(var i=0;i<nodes.length;i++){
+    var raw = nodes[i].node.nodeValue;
+    // 计算该节点归一化后的文本（与 normalizeSearchText 的字符级规则一致）
+    var norm = normalizeSearchText(raw);
+    var nodeNormStart = normPos;
+    var nodeNormEnd = normPos + norm.length;
+    normPos = nodeNormEnd;
+    if(nodeNormEnd <= range.start) continue;      // 该节点在范围之前
+    if(nodeNormStart >= range.end) break;         // 已越过范围
+    // 该节点与范围有交集：在原始文本中定位对应的起止 offset
+    var localStart = Math.max(0, range.start - nodeNormStart);
+    var localEnd = Math.min(norm.length, range.end - nodeNormStart);
+    var offsets = locateRawOffsets(raw, localStart, localEnd);
+    if(offsets && offsets.end > offsets.start){
+      result.push({ node: nodes[i].node, startOffset: offsets.start, endOffset: offsets.end });
+    }
+  }
+  return result;
+}
+
+// 辅助：在原始字符串 raw 中，找到「归一化后第 from..to 个字符」对应的原始下标区间
+// 归一化规则：去 HTML 标签、去 &nbsp;、去所有空白、转小写（此处只关心「哪些原始字符被保留」）
+function locateRawOffsets(raw, from, to){
+  var kept = []; // 记录每个「被保留字符」在 raw 中的下标
+  var i = 0, len = raw.length;
+  while(i < len){
+    var ch = raw[i];
+    // 跳过 HTML 标签 <...>
+    if(ch === '<'){
+      var close = raw.indexOf('>', i);
+      if(close === -1){ i++; continue; }
+      i = close + 1;
+      continue;
+    }
+    // 跳过实体 &nbsp; 等（归一化会替换/删除）
+    if(ch === '&'){
+      var semi = raw.indexOf(';', i);
+      if(semi !== -1 && semi - i <= 8){
+        var ent = raw.slice(i, semi + 1).toLowerCase();
+        if(ent === '&nbsp;'){ i = semi + 1; continue; } // 变成空格 → 被删除
+        // 其他实体（&amp; 等）归一化后保留 1 个字符
+        kept.push(i);
+        i = semi + 1;
+        continue;
+      }
+    }
+    // 空白字符：归一化时被删除
+    if(/\s/.test(ch)){ i++; continue; }
+    kept.push(i);
+    i++;
+  }
+  if(from >= kept.length) return null;
+  var startIdx = kept[from];
+  var endIdx = kept[Math.min(to, kept.length) - 1];
+  return { start: startIdx, end: endIdx + 1 };
+}
+
+// 5) 高亮：基于 TextNode 插入 <mark>，不破坏原有 HTML 结构
+//    参数 root 可以是单个元素，也可以是元素数组（按分区裁剪后的多个允许区域）。
+//    返回所有高亮元素数组（按文档顺序），供 ↑ / ↓ 切换使用。
+function highlightSearchMatches(root, keyword){
+  var marks = [];
+  if(!root || !keyword) return marks;
+  var roots = Array.isArray(root) ? root : [root];
+  var normKw = normalizeSearchText(keyword);
+  if(!normKw) return marks;
+
+  roots.forEach(function(scope){
+    if(!scope) return;
+    var map = buildSearchTextMap(scope);
+    if(!map.text) return;
+    var normText = normalizeSearchText(map.text);
+    var ranges = findSearchTextRanges(normText, normKw);
+    if(!ranges.length) return;
+
+    // 收集所有需要插入的片段（按节点分组，避免同一节点多次 splitText 出错）
+    var insertions = []; // {node, startOffset, endOffset}
+    ranges.forEach(function(range){
+      mapNormalizedRangeToNodes(map, range).forEach(function(seg){ insertions.push(seg); });
+    });
+    if(!insertions.length) return;
+
+    // 按节点分组，同一节点内按 offset 倒序处理（从后往前 splitText，避免下标错乱）
+    var byNode = new Map();
+    insertions.forEach(function(seg){
+      if(!byNode.has(seg.node)) byNode.set(seg.node, []);
+      byNode.get(seg.node).push(seg);
+    });
+    byNode.forEach(function(segs){
+      // 从后往前处理：先切后面的片段，前面片段的 offset 不受影响。
+      // 注意：所有 seg 的 offset 都相对「原始节点」，从右往左切分时，
+      // 左侧文本始终保持为原节点（seg.node）的前缀，因此 offset 依然有效。
+      segs.sort(function(a,b){ return b.startOffset - a.startOffset; });
+      segs.forEach(function(seg){
+        try{
+          var node = seg.node;
+          var startOffset = seg.startOffset;
+          var len = seg.endOffset - seg.startOffset;
+          if(len <= 0) return;
+          // 该节点可能已被更靠右的片段切分，若已不是文本节点则跳过
+          if(node.nodeType !== 3) return;
+          // 若 startOffset 超出当前节点长度，说明已被切走，跳过
+          if(startOffset > node.nodeValue.length) return;
+          var target = startOffset > 0 ? node.splitText(startOffset) : node;
+          var rest = target.splitText(len);
+          var mark = document.createElement('mark');
+          mark.className = 'search-highlight';
+          target.parentNode.insertBefore(mark, target);
+          mark.appendChild(target);
+          marks.push(mark);
+        }catch(e){ /* 忽略个别节点异常，不影响整体 */ }
+      });
+    });
+  });
+
+  // 按文档顺序排序（多个 root 时保证 ↑/↓ 顺序与页面一致）
+  if(marks.length > 1){
+    marks.sort(function(a,b){
+      if(a === b) return 0;
+      var pos = a.compareDocumentPosition(b);
+      if(pos & Node.DOCUMENT_POSITION_FOLLOWING) return -1;
+      if(pos & Node.DOCUMENT_POSITION_PRECEDING) return 1;
+      return 0;
+    });
+  }
+  return marks;
+}
+
+// 6) 自动定位到指定匹配项（考虑固定顶部遮挡，手机端居中偏上）
+function scrollToSearchMatch(mark){
+  if(!mark) return;
+  // 计算固定顶部高度（导航/筛选栏等），避免关键词被遮挡
+  var topOffset = 0;
+  try{
+    var header = document.querySelector('.header');
+    if(header){
+      var rect = header.getBoundingClientRect();
+      // 仅当 header 处于固定/吸顶状态时才计入
+      var pos = getComputedStyle(header).position;
+      if(pos === 'fixed' || pos === 'sticky') topOffset = rect.height;
+    }
+  }catch(e){}
+  var extra = 24; // 舒适阅读留白
+  var targetY = mark.getBoundingClientRect().top + window.pageYOffset - topOffset - extra;
+  // 手机端：让关键词落在屏幕中间偏上（约 35% 处）
+  var isMobile = window.innerWidth <= 768;
+  if(isMobile){
+    targetY = mark.getBoundingClientRect().top + window.pageYOffset - window.innerHeight * 0.35;
+  }
+  if(targetY < 0) targetY = 0;
+  try{
+    window.scrollTo({ top: targetY, behavior: 'smooth' });
+  }catch(e){
+    window.scrollTo(0, targetY);
+  }
+}
+// 兼容旧调用名
+function scrollToFirstSearchMatch(mark){ scrollToSearchMatch(mark); }
+
+// 7) 标记「当前定位项」样式（先清除旧的 current，再加到新的）
+function markCurrentSearchMatch(mark){
+  if(!mark) return;
+  var prev = content.querySelector('mark.search-highlight-current');
+  if(prev && prev !== mark) prev.classList.remove('search-highlight-current');
+  mark.classList.add('search-highlight-current');
+}
+
+// 7.5) 更新搜索导航 UI（计数 + 按钮状态）
+function updateSearchNavUI(){
+  var nav = document.getElementById('searchNav');
+  var floatNav = document.getElementById('searchFloatNav');
+  var total = searchMatches.length;
+  var hasKeyword = !!normalizeSearchText(filterState.search || '');
+  // 无关键词：隐藏导航（顶部 + 浮动）
+  if(!hasKeyword){
+    if(nav) nav.style.display = 'none';
+    if(floatNav) floatNav.style.display = 'none';
+    return;
+  }
+  if(nav) nav.style.display = 'inline-flex';
+  // 浮动导航：有关键词且有结果时才显示（无结果时不显示，避免遮挡）
+  if(floatNav) floatNav.style.display = total > 0 ? 'flex' : 'none';
+  var counter = document.getElementById('searchNavCounter');
+  var prevBtn = document.getElementById('searchNavPrev');
+  var nextBtn = document.getElementById('searchNavNext');
+  var floatCounter = document.getElementById('searchFloatCounter');
+  var floatPrev = document.getElementById('searchFloatPrev');
+  var floatNext = document.getElementById('searchFloatNext');
+  if(total <= 0){
+    // 无结果：显示 0 / 0，按钮禁用
+    if(counter) counter.textContent = '0 / 0';
+    if(prevBtn) prevBtn.disabled = true;
+    if(nextBtn) nextBtn.disabled = true;
+    if(floatCounter) floatCounter.textContent = '0 / 0';
+    if(floatPrev) floatPrev.disabled = true;
+    if(floatNext) floatNext.disabled = true;
+    return;
+  }
+  var label = (searchMatchIndex + 1) + ' / ' + total;
+  if(counter) counter.textContent = label;
+  if(prevBtn) prevBtn.disabled = false;
+  if(nextBtn) nextBtn.disabled = false;
+  // 浮动导航与顶部导航共用同一状态，计数完全同步
+  if(floatCounter) floatCounter.textContent = label;
+  if(floatPrev) floatPrev.disabled = false;
+  if(floatNext) floatNext.disabled = false;
+}
+
+// 7.6) 切换到指定匹配项（不重新渲染页面，只操作已有 mark）
+function goToSearchMatch(index){
+  var total = searchMatches.length;
+  if(total <= 0) return;
+  // 循环：越界时回绕
+  searchMatchIndex = ((index % total) + total) % total;
+  var mark = searchMatches[searchMatchIndex];
+  if(!mark || !mark.isConnected){
+    // 匹配项已失效（DOM 被重建）：重新扫描一次
+    scheduleSearchResultFocus();
+    return;
+  }
+  markCurrentSearchMatch(mark);
+  scrollToSearchMatch(mark);
+  updateSearchNavUI();
+}
+
+// 7.7) 下一个 / 上一个匹配项（循环）
+function nextSearchMatch(){ goToSearchMatch(searchMatchIndex + 1); }
+function prevSearchMatch(){ goToSearchMatch(searchMatchIndex - 1); }
+
+// 8) 调度：DOM 渲染完成后执行高亮 + 定位 + 建立匹配缓存
+//    只扫描当前可见题目区域（#content），不扫描筛选器/导航/搜索框。
+function scheduleSearchResultFocus(){
+  var keyword = filterState.search || '';
+  requestAnimationFrame(function(){
+    // 先清除旧高亮（保证重复搜索不残留、不嵌套），同时重置匹配缓存
+    clearSearchHighlights();
+    var normKw = normalizeSearchText(keyword);
+    if(!normKw){
+      // 清空搜索：不滚动、不留残留、隐藏导航
+      updateSearchNavUI();
+      return;
+    }
+    // 只扫描当前渲染出来的题目；按分区裁剪允许高亮的区域
+    var questionEls = content.querySelectorAll('.question.visible');
+    var roots = [];
+    questionEls.forEach(function(el){
+      getSearchHighlightRoots(el).forEach(function(r){ roots.push(r); });
+    });
+    var marks = highlightSearchMatches(roots, keyword);
+    if(!marks.length){
+      // 搜索不到结果：不滚动、不报错，显示 0 / 0
+      searchMatches = [];
+      searchMatchIndex = -1;
+      _searchHighlightKeyword = normKw;
+      updateSearchNavUI();
+      return;
+    }
+    // 建立匹配缓存（供 ↑ / ↓ 快速切换，避免每次点击重新扫描）
+    searchMatches = marks.map(function(mark){
+      return mark;
+    });
+    searchMatchIndex = 0;
+    _searchHighlightKeyword = normKw;
+    markCurrentSearchMatch(searchMatches[0]);
+    scrollToSearchMatch(searchMatches[0]);
+    updateSearchNavUI();
+  });
+}
+
+// 8.5) 重置搜索导航（筛选 / 翻页 / 切换分区导致重新渲染时调用）
+function resetSearchNav(){
+  searchMatches = [];
+  searchMatchIndex = -1;
+  updateSearchNavUI();
+}
+
+// ============================================================
 // 事件绑定
 // ============================================================
 function refreshFilterCounters(){
   renderModuleBar();
   if(window.updateSubTypeFilter) window.updateSubTypeFilter();
 }
-searchBox.addEventListener('input', ()=>{ filterState.search=searchBox.value; currentPage=1; saveView(); refreshFilterCounters(); renderQuestions(); });
+// 搜索输入：debounce 合并连续输入，避免每敲一个字符就完整渲染
+var _searchDebounceTimer = null;
+// 中文输入法（IME）组合状态：拼音候选阶段不触发搜索，避免「输入还没完成就开始搜索」
+var _searchComposing = false;
+function runSearchNow(){
+  if(_searchDebounceTimer){ clearTimeout(_searchDebounceTimer); _searchDebounceTimer = null; }
+  filterState.search = searchBox.value;
+  currentPage = 1;
+  saveView();
+  refreshFilterCounters();
+  // 重新执行搜索：匹配位置重置为第 1 个（renderQuestions 内部会自动重新高亮+定位）
+  resetSearchNav();
+  renderQuestions();
+}
+searchBox.addEventListener('input', function(){
+  var value = searchBox.value;
+  // 中文输入法组合中（拼音候选阶段）：不触发搜索，等 compositionend 再处理
+  if(_searchComposing) return;
+  // 清空搜索：立即渲染 + 立即清除高亮，不滚动、隐藏导航
+  if(!value){
+    if(_searchDebounceTimer){ clearTimeout(_searchDebounceTimer); _searchDebounceTimer = null; }
+    filterState.search = '';
+    currentPage = 1;
+    saveView();
+    refreshFilterCounters();
+    renderQuestions();
+    clearSearchHighlights();
+    updateSearchNavUI();
+    return;
+  }
+  // 普通输入：debounce 300ms，用户短暂停止输入后再执行最终搜索
+  if(_searchDebounceTimer) clearTimeout(_searchDebounceTimer);
+  _searchDebounceTimer = setTimeout(function(){
+    _searchDebounceTimer = null;
+    filterState.search = searchBox.value;
+    currentPage = 1;
+    saveView();
+    refreshFilterCounters();
+    // 新关键词：匹配位置重置为第 1 个（renderQuestions 内部会自动重新高亮+定位）
+    resetSearchNav();
+    renderQuestions();
+  }, 300);
+});
+// 中文输入法组合开始：暂停搜索
+searchBox.addEventListener('compositionstart', function(){
+  _searchComposing = true;
+  if(_searchDebounceTimer){ clearTimeout(_searchDebounceTimer); _searchDebounceTimer = null; }
+});
+// 中文输入法组合结束：此时才是「输入完成」，执行一次搜索
+searchBox.addEventListener('compositionend', function(){
+  _searchComposing = false;
+  var value = searchBox.value;
+  if(!value){
+    filterState.search = '';
+    currentPage = 1;
+    saveView();
+    refreshFilterCounters();
+    renderQuestions();
+    clearSearchHighlights();
+    updateSearchNavUI();
+    return;
+  }
+  if(_searchDebounceTimer) clearTimeout(_searchDebounceTimer);
+  _searchDebounceTimer = setTimeout(function(){
+    _searchDebounceTimer = null;
+    filterState.search = searchBox.value;
+    currentPage = 1;
+    saveView();
+    refreshFilterCounters();
+    resetSearchNav();
+    renderQuestions();
+  }, 300);
+});
+// 键盘快捷键（仅在搜索框聚焦时生效，不劫持其他输入框）：
+//   Enter        → 下一个匹配项（无匹配时执行搜索）
+//   Shift+Enter  → 上一个匹配项
+searchBox.addEventListener('keydown', function(e){
+  if(e.key !== 'Enter') return;
+  e.preventDefault();
+  if(searchMatches.length > 0){
+    if(e.shiftKey) prevSearchMatch();
+    else nextSearchMatch();
+  } else {
+    runSearchNow();
+  }
+});
 yearFilter.addEventListener('change', ()=>{ filterState.year=yearFilter.value; currentPage=1; saveView(); refreshFilterCounters(); renderQuestions(); });
 sourceFilter.addEventListener('focus', ()=>{ renderSourceSuggestions(''); });
 sourceFilter.addEventListener('pointerdown', ()=>{
@@ -9615,6 +10307,13 @@ if (window.renderQuestions) window.renderQuestions();
 </div>
 <!-- 返回顶部 / 皮肤按钮 -->
 <button id="backToTop" type="button" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="返回顶部">↑</button>
+<!-- 搜索匹配浮动导航：定位到题目后，可在当前视口直接切换上一个/下一个匹配项 -->
+<!-- 复用顶部导航完全相同的搜索状态（searchMatches / searchMatchIndex / prevSearchMatch / nextSearchMatch） -->
+<div id="searchFloatNav" class="search-float-nav" style="display:none;" role="group" aria-label="搜索匹配导航">
+  <button type="button" class="search-float-btn" id="searchFloatPrev" onclick="prevSearchMatch()" title="上一个匹配项" aria-label="上一个匹配项">↑</button>
+  <span class="search-float-counter" id="searchFloatCounter">0 / 0</span>
+  <button type="button" class="search-float-btn" id="searchFloatNext" onclick="nextSearchMatch()" title="下一个匹配项" aria-label="下一个匹配项">↓</button>
+</div>
 <button id="cyBackToTop" type="button" title="回到顶部" aria-label="回到顶部">↑</button>
 <button id="skinToggleBtn" type="button" onclick="toggleSkinPanel()" title="皮肤切换">🎨</button>
 <!-- 皮肤主题面板 - 居中弹出 -->
