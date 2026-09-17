@@ -7,6 +7,7 @@
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Helium题库 · 三分区刷题</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@callmebill/lxgw-wenkai-web@latest/style.css">
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
 /* 主题预初始化：在页面首次绘制前确定最终主题，避免"默认色 → 保存色"闪烁与混合。
@@ -1748,6 +1749,82 @@ body.skin-dark .new-chat-detail-note-title { color:#fbbf24; }
   #cyBackToTop { right: 14px; bottom: 20px; width: 48px; height: 48px; font-size: 22px; }
 }
 
+/* ===== 控制栏按钮：平时描边，按下/激活时主题实心（全设备生效） ===== */
+#controls .controls-grid .btn {
+    transition: background .15s, color .15s, border-color .15s, transform .05s;
+}
+#controls .controls-grid .btn:active {
+    background: var(--main) !important;
+    color: var(--on-main) !important;
+    border-color: var(--main) !important;
+    transform: scale(0.96);
+}
+#controls .controls-grid .btn.is-active {
+    background: var(--main) !important;
+    color: var(--on-main) !important;
+    border-color: var(--main) !important;
+}
+
+/* ===== 控制栏手机端布局（仅 ≤768px 生效，电脑端保持原样） ===== */
+@media (max-width: 768px) {
+    .controls {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .controls .search-box {
+        width: 100%;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 15px;
+        box-sizing: border-box;
+    }
+    .controls-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+        width: 100%;
+    }
+    .controls-grid .btn {
+        width: 100%;
+        min-height: 46px;
+        padding: 4px 2px;
+        font-size: 12px;
+        font-weight: 600;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+        overflow: hidden;
+        gap: 1px;
+    }
+    .controls-grid .btn > span {
+        white-space: nowrap;
+        line-height: 1.2;
+    }
+}
+
+/* ===== 顶部进度面板：霞鹜文楷 ===== */
+#progressPanel .pp-label,
+#progressPanel #dailyCount,
+#progressPanel #dailyGoal,
+#progressPanel #examCountdown,
+#progressPanel #dailyStatus {
+    font-family: "LXGW WenKai", "霞鹜文楷", "LXGW WenKai Screen", serif !important;
+    letter-spacing: 0.5px;
+}
+#progressPanel #dailyCount,
+#progressPanel #examCountdown {
+    font-size: 26px !important;
+    font-weight: 400 !important;
+}
+#progressPanel .pp-label,
+#progressPanel #dailyStatus {
+    font-size: 16px !important;
+    font-weight: 400 !important;
+}
+
 </style>
 </head>
 <body class="pc-mode">
@@ -1867,19 +1944,21 @@ body.skin-dark .new-chat-detail-note-title { color:#fbbf24; }
     <!-- 控制栏 -->
     <div class="controls" id="controls" style="display:none;">
         <input type="text" class="search-box" id="searchBox" placeholder="🔍 搜索题目...">
-        <button class="btn btn-primary" onclick="exportFiltered()">📤 导出筛选结果</button>
-        <button class="btn btn-outline wrong-only-btn" onclick="viewWrongSet()">📒 错题集(<span id="wrongCount">0</span>)</button>
-        <button class="btn btn-outline wrong-only-btn" onclick="exportWrong()">📕 导出错题本</button>
-        <button class="btn btn-primary review-only-btn" id="reviewEntryBtn" onclick="startReview()">🔄 今日复盘(<span id="reviewDueCount">0</span>)</button>
-        <button class="btn btn-outline review-only-btn" id="reviewExitBtn" onclick="exitReview()" style="display:none;">✕ 退出复盘</button>
-        <button class="btn btn-outline" onclick="resetProgress()">🔄 重置进度</button>
-        <button class="btn btn-outline" onclick="window.print()">🖨️ 打印</button>
-        <button class="btn btn-primary" onclick="exportBackup()">💾 导出备份</button>
-        <button class="btn btn-outline" onclick="document.getElementById('backupInput').click()">📥 导入备份</button>
-        <button class="btn btn-outline ms-only-btn" id="msNoteFilterBtn" onclick="toggleMsNoteFilter()">📝 只显示心得</button>
-        <button class="btn btn-outline ms-only-btn" id="msFavFilterBtn" onclick="toggleMsFavFilter()">⭐ 只显示收藏</button>
-        <button class="btn btn-outline sl-only-btn" id="slNoteFilterBtn" onclick="toggleSlNoteFilter()">📝 只显示有笔记</button>
-        <button class="btn btn-outline sl-only-btn" id="slFavFilterBtn" onclick="toggleSlFavFilter()">⭐ 只显示收藏</button>
+        <div class="controls-grid">
+            <button class="btn btn-outline" onclick="exportFiltered()">📤 导出筛选</button>
+            <button class="btn btn-outline" onclick="exportBackup()">💾 导出备份</button>
+            <button class="btn btn-outline" onclick="document.getElementById('backupInput').click()">📥 导入备份</button>
+            <button class="btn btn-outline" onclick="window.print()">🖨️ 打印</button>
+            <button class="btn btn-outline" onclick="resetProgress()">🔄 重置进度</button>
+            <button class="btn btn-outline wrong-only-btn" onclick="viewWrongSet()">📒 错题集<span id="wrongCount">0</span></button>
+            <button class="btn btn-outline wrong-only-btn" onclick="exportWrong()">📕 导出错题本</button>
+            <button class="btn btn-outline review-only-btn" id="reviewEntryBtn" onclick="startReview()">🔄 今日复盘<span id="reviewDueCount">0</span></button>
+            <button class="btn btn-outline review-only-btn" id="reviewExitBtn" onclick="exitReview()" style="display:none;">✕ 退出复盘</button>
+            <button class="btn btn-outline ms-only-btn" id="msNoteFilterBtn" onclick="toggleMsNoteFilter()">📝 只显示心得</button>
+            <button class="btn btn-outline ms-only-btn" id="msFavFilterBtn" onclick="toggleMsFavFilter()">⭐ 只显示收藏</button>
+            <button class="btn btn-outline sl-only-btn" id="slNoteFilterBtn" onclick="toggleSlNoteFilter()">📝 只显示有笔记</button>
+            <button class="btn btn-outline sl-only-btn" id="slFavFilterBtn" onclick="toggleSlFavFilter()">⭐ 只显示收藏</button>
+        </div>
         <input type="file" id="backupInput" accept="application/json,.json" style="display:none;" onchange="importBackup(this)">
     </div>
 
@@ -4938,9 +5017,18 @@ function startReview(){
   document.body.classList.add('review-mode');
   const exitBtn=document.getElementById('reviewExitBtn'); if(exitBtn) exitBtn.style.display='';
   const entryBtn=document.getElementById('reviewEntryBtn'); if(entryBtn) entryBtn.style.display='none';
+  var rb = document.getElementById('reviewEntryBtn');
+  if(rb) rb.classList.add('is-active');
   currentPage=1;
   renderReviewQuestions();
-  window.scrollTo(0,0);
+  setTimeout(function(){
+    var c = document.getElementById('content');
+    if(c && c.querySelector('.question')){
+      var top = c.getBoundingClientRect().top + window.scrollY - 8;
+      try { window.scrollTo({ top: top, behavior: 'smooth' }); }
+      catch(e){ window.scrollTo(0, top); }
+    }
+  }, 60);
 }
 function exitReview(){
   reviewMode=false;
@@ -4948,6 +5036,8 @@ function exitReview(){
   document.body.classList.remove('review-mode');
   const exitBtn=document.getElementById('reviewExitBtn'); if(exitBtn) exitBtn.style.display='none';
   const entryBtn=document.getElementById('reviewEntryBtn'); if(entryBtn) entryBtn.style.display='';
+  var rb = document.getElementById('reviewEntryBtn');
+  if(rb) rb.classList.remove('is-active');
   renderAll();
 }
 // 复盘渲染：只渲染复盘池中的题，全部为未作答状态
