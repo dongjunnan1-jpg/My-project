@@ -3187,6 +3187,53 @@ function extractEssayMaterialIds(question){
   return ids;
 }
 
+// 解析题目引用的材料「下标列表」（0 基，按材料顺序升序、去重）。
+// 支持三种引用写法（以数据中实际出现的为准）：
+//   1) 单材料：      [materialid]A[/materialid]
+//   2) 离散多材料：  [materialid]A[/materialid]、[materialid]B[/materialid]
+//   3) 连续范围：    [materialid]A[/materialid]-[materialid]B[/materialid]
+//                    [materialid]A[/materialid]~[materialid]B[/materialid]
+//                    [materialid]A[/materialid]到[materialid]B[/materialid]
+// 范围连接符：- ~ 到 至（中间可夹 HTML 标签/引号/「材料」等文字）。
+// 未引用任何材料时返回 []（调用方决定是否回退为「全部材料」）。
+function getEssayQuestionMaterialIndices(question, materials){
+  var list=Array.isArray(materials)?materials:[];
+  if(!list.length) return [];
+  var text=String(question&&question.content||'')+' '+String(question&&question.question||'');
+  // 依次抓取 materialid 标记，并记录「两个标记之间的连接文本」，用于判断是否为范围
+  var re=/\[materialid\]\s*(\d+)\s*\[\/materialid\]/gi;
+  var tokens=[], m;
+  while((m=re.exec(text))!==null){
+    tokens.push({ id:m[1], start:m.index, end:re.lastIndex });
+  }
+  if(!tokens.length) return [];
+  var idToIndex={};
+  list.forEach(function(material,index){
+    if(material && material.id!==undefined && material.id!==null) idToIndex[String(material.id)]=index;
+  });
+  var picked={};
+  function pick(id){
+    var idx=idToIndex[String(id)];
+    if(idx!==undefined) picked[idx]=true;
+  }
+  for(var i=0;i<tokens.length;i++){
+    var cur=tokens[i];
+    pick(cur.id);
+    // 判断当前标记与下一个标记之间是否为「范围连接符」
+    if(i+1<tokens.length){
+      var between=text.slice(cur.end, tokens[i+1].start).replace(/<[^>]*>/g,'');
+      if(/[-~～到至]/.test(between)){
+        var a=idToIndex[String(cur.id)], b=idToIndex[String(tokens[i+1].id)];
+        if(a!==undefined && b!==undefined){
+          var lo=Math.min(a,b), hi=Math.max(a,b);
+          for(var k=lo;k<=hi;k++) picked[k]=true;
+        }
+      }
+    }
+  }
+  return Object.keys(picked).map(Number).sort(function(x,y){ return x-y; });
+}
+
 // 题目引用的最小材料下标（0 基）；无引用返回 -1
 function minEssayMaterialIndex(question, materials){
   var list=Array.isArray(materials)?materials:[];
@@ -5908,12 +5955,20 @@ function renderShenLunPaper(question, index, key){
   const materials=Array.isArray(question._materials)?question._materials:[];
   // 题号必须使用推断出的真实试卷题号，不能用筛选结果数组下标（否则筛选单题时会显示成第1题）
   const paperQuestionNo=question._paperQuestionNo||(index+1);
+  // 只渲染「这道题实际引用的材料」：按 [materialid] 关联解析出材料下标（支持范围/离散引用）。
+  // 若题目未引用任何材料（如大作文/综合题），回退为整套试卷的全部材料，保持原语义。
+  let materialIndices=getEssayQuestionMaterialIndices(question, materials);
+  if(!materialIndices.length){
+    materialIndices=materials.map(function(_,i){ return i; });
+  }
   let html='<article class="question visible essay-paper" id="q-'+escapeHtml(key)+'">';
   html+='<div class="q-title"><span style="font-weight:bold;">'+escapeHtml(paperName)+'</span>';
   html+=' <span style="color:var(--secondary);font-size:13px;">'+escapeHtml(year)+' · '+escapeHtml(topic)+'</span>';
   if(leafType) html+=' <span style="background:var(--mid);color:#fff;padding:2px 10px;border-radius:12px;font-size:12px;margin-left:6px;">'+escapeHtml(leafType)+'</span>';
   html+=' <span style="color:var(--secondary);font-size:12px;">第 '+paperQuestionNo+' 题</span> <button type="button" class="q-speak-btn" data-key="'+escapeHtml(key)+'" onclick="speakQuestion(this.dataset.key, this);event.stopPropagation();" title="朗读题目" aria-label="朗读题目">🔊</button></div>';
-  materials.forEach(function(material,materialIndex){
+  // 材料：只显示本题需要的材料（材料编号沿用其在整套试卷中的原始序号，不重新编号）
+  materialIndices.forEach(function(materialIndex){
+    const material=materials[materialIndex];
     if(!material || !material.content) return;
     html+='<section class="q-material essay-material"><strong>材料'+(materialIndex+1)+'</strong><div>'+fixProtocols(replaceMaterialMarkers(material.content,materials))+'</div></section>';
   });
