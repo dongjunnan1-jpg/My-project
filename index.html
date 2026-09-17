@@ -2809,6 +2809,255 @@ function replaceMaterialMarkers(value, materials){
     return index>=0 ? '材料'+(index+1) : match;
   });
 }
+
+// ============================================================
+// 统一「全文关键词搜索」文本构建
+// ------------------------------------------------------------
+// 目标：用户搜索题目中实际存在的关键词（题干 / 来源 / 材料正文 / 参考答案 / 解析…）
+//   都应能找到对应题目。所有搜索入口共用同一套文本，避免逻辑不一致。
+//
+// 设计要点：
+//   1) 只收集「有意义的文本字段」，不把 URL / 内部 ID / Blob / 时间戳塞进来；
+//   2) 支持嵌套对象与数组（materials / solutionAccessories / keypoints / accessories…）；
+//   3) 统一标准化：去 HTML 标签、去 &nbsp;、去所有空白、转小写，
+//      这样「鲁师傅 广合」也能匹配「鲁师傅广合烧饼」；
+//   4) 结果缓存在 q._searchText，避免每次输入都重新遍历材料/答案/解析。
+// ============================================================
+
+// 允许进入搜索文本的字段名（白名单，避免把无关字段塞进来）
+var SEARCH_TEXT_FIELD_WHITELIST={
+  content:1, question:1, title:1, source:1, shortsource:1, material:1, materials:1,
+  solution:1, solutionaccessories:1, answer:1, correctanswer:1, analysis:1,
+  keypoints:1, accessories:1, topic:1, leafcategory:1, name:1, text:1, label:1,
+  papername:1, papertopic:1, paperyear:1, paperprovince:1, province:1, year:1,
+  region:1, category:1, bigcategory:1, subcategory:1, module:1, type:1, questiontype:1,
+  subtitle:1, description:1, remark:1, note:1, explanation:1, comment:1, stem:1
+};
+// 明确排除的字段名（即使出现在白名单对象里也不收集）
+var SEARCH_TEXT_FIELD_BLACKLIST={
+  id:1, _id:1, _qid:1, _key:1, _fileid:1, _paperindex:1, _qi:1, _zone:1, _answered:1,
+  _searchtext:1, _notekey:1, _paperquestionno:1, _materiallabels:1, _ismembercontrol:1,
+  url:1, src:1, href:1, image:1, img:1, video:1, blob:1, createdtime:1, uploadtime:1,
+  difficulty:1, hasvideo:1, flags:1, tags:1, blanktype:1, specialfillingblank:1,
+  wordcount:1, score:1, materialindexes:1, globalid:1, tikuprefix:1, ismembercontrol:1,
+  wrongcount:1, totalcount:1, mostwronganswer:1, correctratio:1, questionmeta:1,
+  correctletter:1, options:1, option:1, answerindex:1, correctindex:1
+};
+
+// 递归收集文本（仅收集白名单字段，跳过黑名单字段）
+function collectSearchText(value, output, keyName){
+  if(value===null || value===undefined) return;
+  var t=typeof value;
+  if(t==='string'){ if(value) output.push(value); return; }
+  if(t==='number' || t==='boolean'){ output.push(String(value)); return; }
+  if(Array.isArray(value)){
+    for(var i=0;i<value.length;i++) collectSearchText(value[i], output, keyName);
+    return;
+  }
+  if(t==='object'){
+    var keys=Object.keys(value);
+    for(var j=0;j<keys.length;j++){
+      var k=keys[j], lk=String(k).toLowerCase();
+      if(SEARCH_TEXT_FIELD_BLACKLIST[lk]) continue;
+      // 顶层字段必须命中白名单；嵌套对象内部放宽（只受黑名单约束）
+      if(keyName===undefined && !SEARCH_TEXT_FIELD_WHITELIST[lk]) continue;
+      collectSearchText(value[k], output, k);
+    }
+  }
+}
+
+// 统一标准化：去标签、去 &nbsp;、去所有空白、转小写
+function normalizeSearchText(value){
+  return String(value===null||value===undefined?'':value)
+    .replace(/<[^>]*>/g,' ')
+    .replace(/&nbsp;/gi,' ')
+    .replace(/&amp;/gi,'&')
+    .replace(/&lt;/gi,'<')
+    .replace(/&gt;/gi,'>')
+    .replace(/&quot;/gi,'"')
+    .replace(/&#39;/gi,"'")
+    .replace(/\s+/g,'')
+    .toLowerCase()
+    .trim();
+}
+
+// 构建一道题的「可搜索全文」（带缓存）
+function buildSearchText(q){
+  if(!q || typeof q!=='object') return '';
+  var parts=[];
+  // 1) 白名单顶层字段（含嵌套的 materials / solutionAccessories / keypoints / accessories）
+  collectSearchText(q, parts, undefined);
+  // 2) 申论：补充材料正文
+  //    只纳入「该题实际引用的材料」（通过 [materialid] 关联）；
+  //    若题目未引用任何材料（如大作文/综合题），则纳入整套试卷的全部材料。
+  if(Array.isArray(q._materials) && q._materials.length){
+    var refIds=extractEssayMaterialIds(q);
+    var refSet={};
+    refIds.forEach(function(id){ refSet[String(id)]=true; });
+    var useAll=refIds.length===0;
+    q._materials.forEach(function(material){
+      if(!material) return;
+      if(!useAll && !refSet[String(material.id)]) return;
+      if(typeof material==='string'){ parts.push(material); return; }
+      if(material.content) parts.push(String(material.content));
+      if(material.title) parts.push(String(material.title));
+    });
+  }
+  if(q._paperName) parts.push(String(q._paperName));
+  if(q._paperTopic) parts.push(String(q._paperTopic));
+  if(q._paperYear) parts.push(String(q._paperYear));
+  if(q._paperProvince) parts.push(String(q._paperProvince));
+  // 3) 申论：参考答案 / 解析（solutionAccessories 已由白名单收集，这里兜底 getAnswer/getAnalysis）
+  try{
+    var ans=getAnswer(q); if(ans) parts.push(String(ans));
+    var ana=getAnalysis(q); if(ana) parts.push(String(ana));
+  }catch(e){}
+  return normalizeSearchText(parts.join(' '));
+}
+
+// 获取一道题的搜索文本（优先使用缓存 q._searchText）
+function getQuestionSearchText(q){
+  if(!q || typeof q!=='object') return '';
+  if(typeof q._searchText==='string') return q._searchText;
+  var text=buildSearchText(q);
+  try{ q._searchText=text; }catch(e){}
+  return text;
+}
+
+// 兼容旧调用：申论/面试/普通题库统一走 getQuestionSearchText
+function getSpecialSearchText(question){
+  return getQuestionSearchText(question);
+}
+
+// 控制台测试函数：window.testQuestionSearch('鲁师傅')
+window.testQuestionSearch=function(keyword){
+  var kw=normalizeSearchText(keyword);
+  var all=getZoneQuestions(activeZone, '__all__');
+  var result=all.filter(function(q){ return getQuestionSearchText(q).indexOf(kw)>=0; });
+  console.table(result.map(function(q){
+    return {
+      id:q._qid||q.id||'',
+      paper:q._paperName||q.paperName||'',
+      content:String(q.content||q.question||'').replace(/<[^>]*>/g,'').slice(0,100)
+    };
+  }));
+  console.log('搜索关键词:', keyword, '| 标准化:', kw);
+  console.log('结果数量:', result.length);
+  return result;
+};
+
+// ============================================================
+// 申论「真实试卷题号」识别
+// ------------------------------------------------------------
+// 背景：申论 JSON 的 fullData / questionIds 顺序并不等于试卷题号
+//   （例：2026 国考行政执法卷 fullData 顺序为 5→1→2→3→4）。
+// 因此不能把数组下标当题号，必须依据「题目 ↔ 材料」的对应关系推断。
+//
+// 可靠信号：题干中的 [materialid]ID[/materialid] 指向 materials 数组中的某条材料，
+//   而 materials 数组的顺序就是「材料一、材料二…」，其下标即材料序号。
+//   当「每道题都引用了材料，且各题引用的最小材料下标互不相同」时，
+//   按该下标升序排列即可还原真实题号（国考/多数省考的标准格式）。
+//
+// 兜底：若上述条件不成立（题目无 materialid 标记、或映射有歧义），
+//   则保留 fullData 原始顺序（这些试卷的原始顺序本身就是正确的）。
+// ============================================================
+var ESSAY_WRITING_TYPE_RE=/文章写作|大作文|申发论述|作文题|写作题|议论文|应用文写作/;
+
+// 从题干中提取引用的材料 id 列表（去重，保持出现顺序）
+function extractEssayMaterialIds(question){
+  if(!question) return [];
+  var text=String(question.content||'')+' '+String(question.question||'');
+  var ids=[], seen={};
+  var re=/\[materialid\]\s*(\d+)\s*\[\/materialid\]/gi, m;
+  while((m=re.exec(text))!==null){
+    if(!seen[m[1]]){ seen[m[1]]=true; ids.push(m[1]); }
+  }
+  return ids;
+}
+
+// 题目引用的最小材料下标（0 基）；无引用返回 -1
+function minEssayMaterialIndex(question, materials){
+  var list=Array.isArray(materials)?materials:[];
+  var ids=extractEssayMaterialIds(question);
+  var min=-1;
+  ids.forEach(function(id){
+    var idx=list.findIndex(function(material){ return material && String(material.id)===String(id); });
+    if(idx>=0 && (min<0 || idx<min)) min=idx;
+  });
+  return min;
+}
+
+// 题目是否属于写作类（大作文）
+function isEssayWritingQuestion(question){
+  if(!question) return false;
+  var typeText=[question.leafCategory, question.type, question.questionType,
+    (Array.isArray(question.keypoints)?question.keypoints.map(function(k){ return k&&k.name; }).join(' '):'')].join(' ');
+  if(ESSAY_WRITING_TYPE_RE.test(String(typeText))) return true;
+  var content=String(question.content||'').replace(/<[^>]*>/g,'');
+  return /自拟题目|写一篇文章|写一篇.{0,6}文章|联系实际，自选角度/.test(content);
+}
+
+// 为一整套试卷的题目计算 _paperQuestionNo（就地写入，返回同一数组）
+function computeEssayPaperQuestionNos(questions, materials){
+  var list=Array.isArray(questions)?questions:[];
+  if(!list.length) return list;
+  var total=list.length;
+
+  // 收集各题的最小材料下标
+  var idxs=list.map(function(question){ return minEssayMaterialIndex(question, materials); });
+  var nonNull=idxs.filter(function(x){ return x>=0; });
+  var distinct={}, allDistinct=true;
+  nonNull.forEach(function(x){ if(distinct[x]) allDistinct=false; distinct[x]=true; });
+
+  // 条件成立：每道题都引用了材料，且最小下标互不相同 → 按材料下标还原题号
+  if(nonNull.length===total && allDistinct){
+    var order=list.map(function(question,i){ return i; });
+    order.sort(function(a,b){ return idxs[a]-idxs[b]; });
+    order.forEach(function(originalIndex,position){
+      list[originalIndex]._paperQuestionNo=position+1;
+    });
+    return list;
+  }
+
+  // 兜底：保留原始顺序（这些试卷的 fullData 顺序本身正确）
+  list.forEach(function(question,index){
+    if(question && typeof question==='object') question._paperQuestionNo=index+1;
+  });
+  return list;
+}
+
+// 调试：打印某分区（默认申论）各题的真实题号推断结果
+// 用法：window.debugEssayOrder()  或  window.debugEssayOrder('行政执法')
+window.debugEssayOrder=function(paperNameKeyword){
+  var rows=[];
+  Object.keys(db.sl||{}).forEach(function(fileId){
+    var file=db.sl[fileId];
+    if(!file || !Array.isArray(file.questions)) return;
+    file.questions.forEach(function(paper,paperIndex){
+      if(!paper || !paper._essay || !Array.isArray(paper.essayQuestions)) return;
+      if(paperNameKeyword && String(paper.paperName||'').indexOf(paperNameKeyword)===-1) return;
+      var materials=Array.isArray(paper.materials)?paper.materials:[];
+      var ordered=paper.essayQuestions.slice().sort(function(a,b){
+        return (a._paperQuestionNo||0)-(b._paperQuestionNo||0);
+      });
+      ordered.forEach(function(q){
+        var matIdx=minEssayMaterialIndex(q, materials);
+        rows.push({
+          '试卷':paper.paperName||'',
+          '题目ID':q.id,
+          '原始fullData位置':paper.essayQuestions.indexOf(q),
+          '题型':q.leafCategory||'',
+          '引用材料':matIdx>=0?('材料'+(matIdx+1)):(isEssayWritingQuestion(q)?'综合材料':'—'),
+          '推断题号':q._paperQuestionNo,
+          '最终排序号':q._paperQuestionNo
+        });
+      });
+    });
+  });
+  if(!rows.length){ console.log('未找到匹配的申论试卷'); return []; }
+  console.table(rows);
+  return rows;
+};
 function detectModule(name, data){
   const n=name.toLowerCase();
   if(/常识|政治|法律|历史/.test(n)) return '常识判断';
@@ -3022,7 +3271,14 @@ function getZoneQuestions(zone, fileId){
     if(zone==='sl'){
       (f.questions||[]).forEach((paper,paperIndex)=>{
         if(!paper || !paper._essay || !Array.isArray(paper.essayQuestions)) return;
-        paper.essayQuestions.forEach((question,questionIndex)=>{
+        const paperMaterials=Array.isArray(paper.materials)?paper.materials:[];
+        // 先按「题目 ↔ 材料」关系推断真实试卷题号（写入 _paperQuestionNo），再按题号排序。
+        // 注意：fullData / questionIds 的数组顺序不代表试卷题号，不能直接用下标当题号。
+        const orderedQuestions=computeEssayPaperQuestionNos(paper.essayQuestions.slice(), paperMaterials);
+        orderedQuestions.sort(function(a,b){
+          return (a._paperQuestionNo||0)-(b._paperQuestionNo||0);
+        });
+        orderedQuestions.forEach((question,questionIndex)=>{
           const key='f'+f.id+'_p'+paperIndex+'_q'+questionIndex;
           arr.push(Object.assign({},question,{
             _fileId:f.id,
@@ -3031,11 +3287,11 @@ function getZoneQuestions(zone, fileId){
             _key:key,
             _zone:zone,
             _paperName:paper.paperName||'',
-            _paperYear:paper.year||'',
+            _paperYear:paper.year||paper._year||getYear(paper.paperDate)||'',
             _paperTopic:paper.topic||'',
-            _paperProvince:paper.province||'',
+            _paperProvince:(paper.province&&paper.province!==paper._year)?paper.province:(extractProvince(paper.paperName)||paper._region||''),
             _paperId:paper.paperId||'',
-            _materials:Array.isArray(paper.materials)?paper.materials:[],
+            _materials:paperMaterials,
             _isEssayQuestion:true,
             leafCategory:question.leafCategory||(Array.isArray(question.keypoints)&&question.keypoints[0]&&question.keypoints[0].name)||'其他',
             _answered:(f.answered&&f.answered[key]!==undefined)?f.answered[key]:undefined
@@ -3215,13 +3471,13 @@ function showPrompt(message, defaultValue, onSubmit){
 
 function getFilterBaseQuestions(){
   let qs=getZoneQuestions(activeZone, '__all__');
-  const kw=(filterState.search||'').toLowerCase().trim();
-  if(kw) qs=qs.filter(function(q){ return activeZone==='sl' ? ((q.paperName||'')+' '+(q.topic||'')).toLowerCase().includes(kw) : (q.content||'').toLowerCase().includes(kw); });
+  const kw=normalizeSearchText(filterState.search);
+  if(kw) qs=qs.filter(function(q){ return getQuestionSearchText(q).indexOf(kw)>=0; });
   if(filterState.year && filterState.year!=='all'){
-    qs=qs.filter(function(q){ return activeZone==='sl' ? q.year===filterState.year : (q.source||'').includes(filterState.year+'年'); });
+    qs=qs.filter(function(q){ return activeZone==='sl' ? (q._paperYear||q.year)===filterState.year : (q.source||'').includes(filterState.year+'年'); });
   }
   if(filterState.province && filterState.province!=='all'){
-    qs=qs.filter(function(q){ return activeZone==='sl' ? q.province===filterState.province : testProvince(q.source||'')===filterState.province; });
+    qs=qs.filter(function(q){ return activeZone==='sl' ? (q._paperProvince||q.province||'其他')===filterState.province : testProvince(q.source||'')===filterState.province; });
   }
   // 来源（改为包含匹配，所有分区生效）
   if(filterState.source && filterState.source!=='all'){
@@ -3777,19 +4033,12 @@ function getSpecialQuestionType(question){
   if(Array.isArray(question.keypoints) && question.keypoints[0]) return question.keypoints[0].name||'';
   return '未分类';
 }
-function getSpecialSearchText(question){
-  if(!question) return '';
-  if(activeZone==='sl'){
-    return String((question._paperName||'')+' '+(question._paperTopic||'')+' '+(question.content||'')).toLowerCase();
-  }
-  return String((question.paperName||question.source||'')+' '+(question.content||question.question||'')).toLowerCase();
-}
 function getFiltered(){
   let qs=getZoneQuestions(activeZone, '__all__');
-  const kw=(filterState.search||'').toLowerCase().trim();
+  const kw=normalizeSearchText(filterState.search);
 
   if(activeZone==='sl'){
-    if(kw) qs=qs.filter(function(q){ return getSpecialSearchText(q).includes(kw); });
+    if(kw) qs=qs.filter(function(q){ return getQuestionSearchText(q).indexOf(kw)>=0; });
     if(filterState.year!=='all') qs=qs.filter(function(q){ return q._paperYear===filterState.year; });
     if(filterState.province!=='all') qs=qs.filter(function(q){ return (q._paperProvince||'其他')===filterState.province; });
     if(filterState.subType!=='all') qs=qs.filter(function(q){ return (q._paperTopic||'其他')===filterState.subType; });
@@ -3806,7 +4055,7 @@ function getFiltered(){
   }
 
   if(activeZone==='ms'){
-    if(kw) qs=qs.filter(function(q){ return getSpecialSearchText(q).includes(kw); });
+    if(kw) qs=qs.filter(function(q){ return getQuestionSearchText(q).indexOf(kw)>=0; });
     if(filterState.province!=='all') qs=qs.filter(function(q){ return (q.region||'其他')===filterState.province; });
     if(filterState.module!=='all') qs=qs.filter(function(q){ return getSpecialQuestionType(q)===filterState.module; });
     if(filterState.status==='note') qs=qs.filter(function(q){ return getQuestionNoteCount(q._key) > 0; });
@@ -3822,9 +4071,9 @@ function getFiltered(){
   if(filterState.leafType!=='all')
     qs=qs.filter(q=>q.leafCategory===filterState.leafType);
 
-  // 关键词
+  // 关键词（统一全文搜索：题干 / 来源 / 材料 / 参考答案 / 解析…）
   if(kw)
-    qs=qs.filter(q=>(q.content||'').toLowerCase().includes(kw));
+    qs=qs.filter(q=>getQuestionSearchText(q).indexOf(kw)>=0);
 
   // 年份
   if(filterState.year!=='all'){
@@ -5436,11 +5685,13 @@ function renderShenLunPaper(question, index, key){
   const topic=question._paperTopic||'其他';
   const leafType=question.leafCategory||'';
   const materials=Array.isArray(question._materials)?question._materials:[];
+  // 题号必须使用推断出的真实试卷题号，不能用筛选结果数组下标（否则筛选单题时会显示成第1题）
+  const paperQuestionNo=question._paperQuestionNo||(index+1);
   let html='<article class="question visible essay-paper" id="q-'+escapeHtml(key)+'">';
   html+='<div class="q-title"><span style="font-weight:bold;">'+escapeHtml(paperName)+'</span>';
   html+=' <span style="color:var(--secondary);font-size:13px;">'+escapeHtml(year)+' · '+escapeHtml(topic)+'</span>';
   if(leafType) html+=' <span style="background:var(--mid);color:#fff;padding:2px 10px;border-radius:12px;font-size:12px;margin-left:6px;">'+escapeHtml(leafType)+'</span>';
-  html+=' <span style="color:var(--secondary);font-size:12px;">第 '+(index+1)+' 题</span> <button type="button" class="q-speak-btn" data-key="'+escapeHtml(key)+'" onclick="speakQuestion(this.dataset.key, this);event.stopPropagation();" title="朗读题目" aria-label="朗读题目">🔊</button></div>';
+  html+=' <span style="color:var(--secondary);font-size:12px;">第 '+paperQuestionNo+' 题</span> <button type="button" class="q-speak-btn" data-key="'+escapeHtml(key)+'" onclick="speakQuestion(this.dataset.key, this);event.stopPropagation();" title="朗读题目" aria-label="朗读题目">🔊</button></div>';
   materials.forEach(function(material,materialIndex){
     if(!material || !material.content) return;
     html+='<section class="q-material essay-material"><strong>材料'+(materialIndex+1)+'</strong><div>'+fixProtocols(replaceMaterialMarkers(material.content,materials))+'</div></section>';
@@ -8255,7 +8506,7 @@ window.updateSubTypeFilter = function() {
     setSelectValue(yearFilter,filterState.year);
     setSelectValue(provinceFilter,filterState.province);
     setSelectValue(moduleFilter,activeZone==='sl'?filterState.leafType:filterState.module);
-    searchBox.placeholder=activeZone==='sl'?'🔍 搜索试卷或题干...':'🔍 搜索题干或来源...';
+    searchBox.placeholder=activeZone==='sl'?'🔍 搜索试卷、题干、材料或答案...':'🔍 搜索题干、来源、材料或解析...';
     yearFilter.onchange=function(){ filterState.year=this.value; currentPage=1; saveView(); renderQuestions(); };
     provinceFilter.onchange=function(){
       filterState.province=this.value;
