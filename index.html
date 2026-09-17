@@ -8,6 +8,40 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Helium题库 · 三分区刷题</title>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+/* 主题预初始化：在页面首次绘制前确定最终主题，避免"默认色 → 保存色"闪烁与混合。
+   仅读取 localStorage 中的皮肤 key，写入 CSS 变量；不依赖任何后续脚本。 */
+(function(){
+  try{
+    var SKIN_KEY='qz_skin_v4';
+    var SKIN_THEMES={
+      default:{main:'#3a7ab0',mid:'#8fc1ed',deep:'#2c5f8a',bg:'#f0f7ff',light:'#eef4fc',onMain:'#ffffff'},
+      dark:{main:'#1f2937',mid:'#334155',deep:'#0f172a',bg:'#0b1220',light:'#dbeafe',onMain:'#e2e8f0'},
+      eye:{main:'#7cc98f',mid:'#a5d6a7',deep:'#4c8f5d',bg:'#e8f5e9',light:'#dfeee1',onMain:'#1f2937'},
+      klein:{main:'#002FA7',mid:'#1a4fc7',deep:'#001a5e',bg:'#e8ecf5',light:'#d6dce8',onMain:'#ffffff'},
+      burgundy:{main:'#800020',mid:'#b00038',deep:'#4a0012',bg:'#f5e8ea',light:'#e8d6d8',onMain:'#ffffff'},
+      mars:{main:'#18453B',mid:'#2a6b5a',deep:'#0a2a22',bg:'#e8f0ed',light:'#d6e3de',onMain:'#ffffff'},
+      titian:{main:'#C21807',mid:'#e03020',deep:'#7a0f04',bg:'#f5ece8',light:'#e8ddd6',onMain:'#ffffff'},
+      chinaRed:{main:'#A70000',mid:'#d02020',deep:'#5e0000',bg:'#f5e8e8',light:'#e8d6d6',onMain:'#ffffff'},
+      prussian:{main:'#003153',mid:'#1a5070',deep:'#001a2e',bg:'#e8edf0',light:'#d6dde3',onMain:'#ffffff'},
+      bordeaux:{main:'#7D1182',mid:'#a030a5',deep:'#4a0a4e',bg:'#f5e8f5',light:'#e8d6e8',onMain:'#ffffff'},
+      shenburen:{main:'#D4A820',mid:'#FADA5E',deep:'#a07810',bg:'#f8f4e0',light:'#f0e8c8',onMain:'#2d3748'},
+      tiffany:{main:'#06807a',mid:'#40d4cf',deep:'#045f5a',bg:'#e8f5f4',light:'#d6e8e6',onMain:'#ffffff'},
+      vandyke:{main:'#664228',mid:'#8a5a3a',deep:'#3a2416',bg:'#f0ece8',light:'#e3ded6',onMain:'#ffffff'}
+    };
+    var skin=localStorage.getItem(SKIN_KEY)||'default';
+    var t=SKIN_THEMES[skin]||SKIN_THEMES.default;
+    var r=document.documentElement.style;
+    r.setProperty('--main',t.main);
+    r.setProperty('--mid',t.mid);
+    r.setProperty('--deep',t.deep);
+    r.setProperty('--bg',t.bg);
+    r.setProperty('--light',t.light);
+    r.setProperty('--on-main',t.onMain);
+    document.documentElement.setAttribute('data-skin',skin);
+  }catch(e){}
+})();
+</script>
 <style>/* 最终统一 - PC手机完全一致 */
 /* 手机窄屏时保持PC布局，横向滚动 */
 .zone-tabs,
@@ -456,7 +490,7 @@ html, body { width:100%; max-width:100%; margin:0; padding:0; box-sizing:border-
 
 /* 分区统计 */
 .zone-stats { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin: 4px 0 14px; }
-.zone-stats span { background: #fff; color: var(--deep); padding: 8px 18px; border-radius: 22px; font-size: 14px; font-weight: bold; box-shadow: var(--shadow); border:2px solid var(--light); }
+.zone-stats span { background: #fff; color: var(--deep); padding: 8px 18px; border-radius: 22px; font-size: 14px; font-weight: bold; box-shadow: var(--shadow); border:2px solid var(--light); text-align: center; }
 .progress-panel { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; margin: 4px 0 14px; padding: 10px 14px; background: #fff; border-radius: 12px; box-shadow: var(--shadow); border:2px solid var(--light); font-size: 13px; }
 .pp-item { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .pp-label { font-weight: bold; color: var(--deep); }
@@ -704,31 +738,31 @@ body.review-zone .review-only-btn { display: inline-flex !important; }
 body.essay-zone .review-only-btn,
 body.ms-zone .review-only-btn { display: none !important; }
 
-.review-stats {
-  display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
-  margin: 4px 0 14px;
+/* 复盘统计卡（Sidebar 内，深色主题，独立 class 不污染现有 Sidebar 样式） */
+.sidebar-review-card {
+  margin-bottom: 14px; padding: 10px 12px;
+  background: rgba(255,255,255,0.05); border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.06);
+  box-sizing: border-box; width: 100%; overflow: hidden;
 }
-.review-stats .rs-item {
-  background: #fff; color: var(--deep); padding: 7px 16px; border-radius: 22px;
-  font-size: 13px; font-weight: bold; box-shadow: var(--shadow);
-  border: 2px solid var(--light);
+.sidebar-review-title {
+  font-size: 11px; color: #94a3b8; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
 }
-.review-stats .rs-due { border-color: #f59e0b; color: #b45309; }
-.review-stats .rs-learning { border-color: #fb923c; color: #c2410c; }
-.review-stats .rs-mastered { border-color: #34d399; color: #047857; }
-.review-stats .rs-today { border-color: #60a5fa; color: #1d4ed8; }
+.sidebar-review-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; padding: 3px 0; font-size: 12px; line-height: 1.5;
+  min-width: 0;
+}
+.sidebar-review-label { color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-review-value { font-weight: bold; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.sidebar-review-value.sr-due { color: #f59e0b; }
+.sidebar-review-value.sr-learning { color: #fb923c; }
+.sidebar-review-value.sr-mastered { color: #34d399; }
+.sidebar-review-value.sr-today { color: #60a5fa; }
 
-/* 复盘模式：题目卡片左侧色条 + 顶部提示条 */
+/* 复盘模式：题目卡片左侧色条 */
 body.review-mode #content .question { border-left: 4px solid #f59e0b; }
-.review-banner {
-  display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  flex-wrap: wrap; margin: 10px 0; padding: 10px 14px;
-  background: linear-gradient(135deg, #fef3c7, #fde68a);
-  border: 1px solid #f59e0b; border-radius: 10px;
-  font-size: 14px; font-weight: bold; color: #92400e;
-}
-.review-banner .rb-progress { font-weight: normal; color: #78350f; }
-.review-banner .rb-acc { font-weight: normal; color: #78350f; }
 .review-result-card {
   margin: 12px 0; padding: 14px 16px; border-radius: 10px;
   background: #f0fdf4; border: 1px solid #4ade80; color: #166534;
@@ -744,8 +778,8 @@ body.review-mode #content .question { border-left: 4px solid #f59e0b; }
 .review-empty .re-big { font-size: 40px; display: block; margin-bottom: 10px; }
 
 @media (max-width: 768px) {
-  .review-stats .rs-item { font-size: 12px; padding: 6px 12px; }
-  .review-banner { font-size: 13px; padding: 9px 12px; }
+  .sidebar-review-card { padding: 9px 10px; }
+  .sidebar-review-row { font-size: 11.5px; }
   .review-result-card { font-size: 13px; }
 }
 
@@ -1771,14 +1805,6 @@ body.skin-dark .new-chat-detail-note-title { color:#fbbf24; }
         <span id="zoneAccuracy">📈 正确率 0%</span>
     </div>
 
-    <!-- 复盘统计（仅 gk / mk / sy 显示） -->
-    <div class="review-stats" id="reviewStats" style="display:none;">
-        <span class="rs-item rs-due" id="rsDue">🔄 待复盘 0</span>
-        <span class="rs-item rs-learning" id="rsLearning">🟠 学习中 0</span>
-        <span class="rs-item rs-mastered" id="rsMastered">🟢 已掌握 0</span>
-        <span class="rs-item rs-today" id="rsToday">📅 今日已复盘 0</span>
-    </div>
-
     <!-- 子模块筛选 -->
     <div class="module-bar" id="moduleBar"></div>
 
@@ -1896,6 +1922,15 @@ const ZONE_THEMES = {
   ms: { main:'#10b981', mid:'#34d399', deep:'#059669', bg:'#ecfdf5', onMain:'#ffffff' }     // 面试 绿
 };
 function applyZoneTheme(z){
+  // 复盘系统仅覆盖 gk / mk / sy（与颜色无关，始终执行）
+  document.body.classList.toggle('review-zone', REVIEW_ZONES.indexOf(z)!==-1);
+  // 单一主题源：若用户已选择非默认皮肤，则皮肤颜色为最终主题，
+  // 分区切换不得覆盖皮肤色（否则会出现"默认分区色 + 保存皮肤色"混合）。
+  // 仅当皮肤为 default 时，分区色才作为主题生效。
+  if (typeof currentSkin !== 'undefined' && currentSkin && currentSkin !== 'default') {
+    if (typeof applySkin === 'function') applySkin(currentSkin);
+    return;
+  }
   const t = ZONE_THEMES[z] || ZONE_THEMES.gk;
   const r = document.documentElement.style;
   r.setProperty('--main', t.main);
@@ -1904,8 +1939,6 @@ function applyZoneTheme(z){
   r.setProperty('--bg', t.bg);
   r.setProperty('--light', t.bg);
   r.setProperty('--on-main', t.onMain);
-  // 复盘系统仅覆盖 gk / mk / sy
-  document.body.classList.toggle('review-zone', REVIEW_ZONES.indexOf(z)!==-1);
 }
 
 const ZONE_IDS = ['gk','mk','sy','sl','ms'];
@@ -2326,6 +2359,44 @@ function buildReviewPool(zone){
   });
   return pool;
 }
+// ============================================================
+// 历史错题回填：把「复盘系统加入之前」就存在的旧错题接入复盘调度
+// 原则：
+//   1. 绝不修改 wrongSet（错题集永久归档，只读）
+//   2. 只创建缺失的 review entry，已存在的 entry 一个字段都不覆盖
+//   3. 只处理当前题库中真实存在的题（失效 key 跳过）
+//   4. 回填的旧错题 nextReviewAt = 现在 → 首次进入复盘即为「今天到期」
+//   5. 不伪造历史复习记录（reviewCount / streak / lastReviewAt 保持初始值）
+// 幂等：重复调用不会重置任何已有进度。
+// ============================================================
+function backfillReviewFromWrongSet(){
+  const now=Date.now();
+  let created=0, skipped=0, invalid=0;
+  REVIEW_ZONES.forEach(function(zone){
+    if(!reviewState[zone]||typeof reviewState[zone]!=='object') reviewState[zone]={};
+    const zoneWrong=wrongSet[zone];
+    if(!zoneWrong||typeof zoneWrong!=='object') return;
+    Object.keys(zoneWrong).forEach(function(key){
+      if(!zoneWrong[key]) return;                       // 只处理标记为错题的 key
+      if(reviewState[zone][key]){ skipped++; return; }  // 已有复盘记录：完全保留，不覆盖
+      // 只给当前题库中真实存在的题创建复盘记录
+      if(!findQuestionByKey(key)){ invalid++; return; }
+      reviewState[zone][key]={
+        attempts:0, correctCount:0, wrongCount:0,
+        reviewCount:0, reviewCorrectCount:0, reviewWrongCount:0,
+        streak:0, mastery:'learning', masterIntervalIdx:0,
+        lastReviewAt:null, nextReviewAt:now,           // 首次进入复盘 → 今天到期
+        createdAt:now,
+        backfilled:true                                 // 标记来源：历史错题回填
+      };
+      created++;
+    });
+  });
+  if(created>0) saveReview();
+  if(created>0||invalid>0) console.log('复盘回填：新增 '+created+' 条，已存在 '+skipped+' 条，失效 '+invalid+' 条');
+  return { created:created, skipped:skipped, invalid:invalid };
+}
+
 // 今日复盘统计
 function getReviewStats(zone){
   const now=Date.now();
@@ -4894,7 +4965,6 @@ function renderReviewQuestions(){
   if(!total){
     content.innerHTML='<div class="review-empty"><span class="re-big">🎉</span>复盘池已清空</div>';
     pageMeta.style.display='none'; pagination.style.display='none';
-    renderReviewBanner(0,0);
     return;
   }
   const totalPages=Math.ceil(total/PAGE_SIZE);
@@ -4956,33 +5026,11 @@ function renderReviewQuestions(){
     ph+='<button onclick="goReviewPage('+(currentPage+1)+')" '+(currentPage===totalPages?'disabled':'')+'>下一页</button><button onclick="goReviewPage('+totalPages+')" '+(currentPage===totalPages?'disabled':'')+'>末页</button>';
     pagination.innerHTML=ph; pagination.style.display='flex';
   } else { pagination.style.display='none'; }
-  renderReviewBanner(total, Object.keys(reviewSession.results).length);
 }
 function goReviewPage(p){
   const total=Math.ceil(reviewSession.keys.length/PAGE_SIZE);
   if(p<1||p>total) return;
   currentPage=p; renderReviewQuestions(); window.scrollTo(0,0);
-}
-function renderReviewBanner(total,done){
-  let banner=document.getElementById('reviewBanner');
-  if(!banner){
-    banner=document.createElement('div');
-    banner.id='reviewBanner';
-    banner.className='review-banner';
-    const anchor=document.getElementById('reviewStats');
-    if(anchor && anchor.parentNode) anchor.parentNode.insertBefore(banner, anchor.nextSibling);
-    else content.parentNode.insertBefore(banner, content);
-  }
-  const stats=getReviewStats(reviewSession?reviewSession.zone:activeZone);
-  const acc=done?Math.round(stats.correctToday/done*100):0;
-  banner.innerHTML='<span>🔄 今日复盘 · '+zoneName(reviewSession?reviewSession.zone:activeZone)+'</span>'+
-    '<span class="rb-progress">已完成 '+done+' / '+total+'</span>'+
-    (done?'<span class="rb-acc">本次正确率 '+acc+'%</span>':'');
-  banner.style.display='';
-}
-function hideReviewBanner(){
-  const banner=document.getElementById('reviewBanner');
-  if(banner) banner.style.display='none';
 }
 // 复盘结果卡片
 function renderReviewResultCard(zone,key){
@@ -5058,18 +5106,18 @@ function submitReviewMultiple(key){
   renderReviewQuestions();
   renderReviewStats();
 }
-// 复盘统计面板
+// 复盘统计面板（渲染到右侧 Sidebar，仅 gk / mk / sy 显示）
 function renderReviewStats(){
-  const panel=document.getElementById('reviewStats');
-  if(!panel) return;
+  const card=document.getElementById('sidebarReviewCard');
+  if(!card) return;
   const zone=activeZone;
-  if(REVIEW_ZONES.indexOf(zone)===-1){ panel.style.display='none'; return; }
-  panel.style.display='flex';
+  if(REVIEW_ZONES.indexOf(zone)===-1){ card.style.setProperty('display','none','important'); return; }
+  card.style.removeProperty('display');
   const stats=getReviewStats(zone);
-  const dueEl=document.getElementById('rsDue'); if(dueEl) dueEl.textContent='🔄 待复盘 '+stats.due;
-  const learnEl=document.getElementById('rsLearning'); if(learnEl) learnEl.textContent='🟠 学习中 '+stats.learning;
-  const masterEl=document.getElementById('rsMastered'); if(masterEl) masterEl.textContent='🟢 已掌握 '+stats.mastered;
-  const todayEl=document.getElementById('rsToday'); if(todayEl) todayEl.textContent='📅 今日已复盘 '+stats.doneToday;
+  const dueEl=document.getElementById('sidebarReviewDue'); if(dueEl) dueEl.textContent=stats.due;
+  const learnEl=document.getElementById('sidebarReviewLearning'); if(learnEl) learnEl.textContent=stats.learning;
+  const masterEl=document.getElementById('sidebarReviewMastered'); if(masterEl) masterEl.textContent=stats.mastered;
+  const todayEl=document.getElementById('sidebarReviewToday'); if(todayEl) todayEl.textContent=stats.doneToday;
   const dueCountEl=document.getElementById('reviewDueCount'); if(dueCountEl) dueCountEl.textContent=stats.due;
 }
 
@@ -5751,7 +5799,7 @@ function switchFile(id){
 function switchZone(z){
   stopSpeaking();
   // 切换分区时退出复盘模式，避免跨分区数据混用
-  if(reviewMode){ reviewMode=false; reviewSession=null; document.body.classList.remove('review-mode'); hideReviewBanner(); }
+  if(reviewMode){ reviewMode=false; reviewSession=null; document.body.classList.remove('review-mode'); }
   const exitBtn=document.getElementById('reviewExitBtn'); if(exitBtn) exitBtn.style.display='none';
   const entryBtn=document.getElementById('reviewEntryBtn'); if(entryBtn) entryBtn.style.display='';
   saveStudyPosition();   // 切换前先保存当前分区的位置
@@ -7143,6 +7191,7 @@ function applySkin(skin) {
 
   document.body.classList.remove('skin-dark', 'skin-eye', 'skin-warm', 'ink-mode', 'skin-default', 'skin-klein', 'skin-burgundy', 'skin-mars', 'skin-titian', 'skin-chinaRed', 'skin-prussian', 'skin-bordeaux', 'skin-shenburen', 'skin-tiffany', 'skin-vandyke');
   document.body.classList.add('skin-' + skin);
+  document.documentElement.setAttribute('data-skin', skin);
 
   const r = document.documentElement.style;
   r.setProperty('--main', theme.main);
@@ -8016,7 +8065,13 @@ async function openChatHistory() {
   }
   try{ await loadWrong(); await loadFav(); await loadDaily(); await loadExam(); }catch(e){}
   try{ await loadReview(); }catch(e){ console.warn('加载复盘数据失败:', e); }
+  // 历史错题回填：把复盘系统上线前就存在的旧错题接入复盘调度（幂等，不覆盖已有进度）
+  try{ backfillReviewFromWrongSet(); }catch(e){ console.warn('复盘回填失败:', e); }
   if(!ZONES.some(function(z){ return z.id===activeZone; })) activeZone='gk';
+  // 主题初始化顺序（单一主题源）：
+  // 1) 先读取并应用用户保存的皮肤（决定最终主题色）
+  // 2) 再应用分区主题（仅当皮肤为 default 时才生效，否则保持皮肤色）
+  loadSkin();                          // 皮肤（含墨水屏）
   applyZoneTheme(activeZone);
   document.body.classList.toggle('essay-zone', activeZone==='sl');
   document.body.classList.toggle('ms-zone', activeZone==='ms');
@@ -8027,7 +8082,6 @@ async function openChatHistory() {
   setupLongPressExclude();             // 长按排除选项
   setupBackToTop();                    // 返回顶部按钮
   setupStudyPositionTracking();       // 滚动时保存做题位置
-  loadSkin();                          // 皮肤（含墨水屏）
 loadTimerData();                     // 计时统计
 loadAIConfig();                      // AI 配置
 
@@ -9345,6 +9399,14 @@ if (window.renderQuestions) window.renderQuestions();
       <button id="sidebarResetTimer" type="button">RESET</button>
     </div>
 
+    <div id="sidebarReviewCard" class="sidebar-review-card" style="display:none;">
+      <div class="sidebar-review-title">🔄 复盘统计</div>
+      <div class="sidebar-review-row"><span class="sidebar-review-label">🔄 待复盘</span><span class="sidebar-review-value sr-due" id="sidebarReviewDue">0</span></div>
+      <div class="sidebar-review-row"><span class="sidebar-review-label">🟠 学习中</span><span class="sidebar-review-value sr-learning" id="sidebarReviewLearning">0</span></div>
+      <div class="sidebar-review-row"><span class="sidebar-review-label">🟢 已掌握</span><span class="sidebar-review-value sr-mastered" id="sidebarReviewMastered">0</span></div>
+      <div class="sidebar-review-row"><span class="sidebar-review-label">📅 今日已复盘</span><span class="sidebar-review-value sr-today" id="sidebarReviewToday">0</span></div>
+    </div>
+
     <div id="pomodoroCard">
       <div class="pomodoro-title module-title">🍅 番茄钟</div>
       <div id="pomodoroTime">25:00</div>
@@ -10350,6 +10412,7 @@ function forceFixSidebar() {
   cards.forEach(function(card) {
     if (card.classList && card.classList.contains('pomodoro-controls')) return;
     if (card.id === 'pomodoroCard') return;
+    if (card.id === 'sidebarReviewCard') return;
     card.style.cssText = card.style.cssText + ';' + [
       'padding: 12px 14px !important',
       'margin: 0 0 10px 0 !important',
