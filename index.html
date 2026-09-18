@@ -560,6 +560,45 @@ html, body { width:100%; max-width:100%; margin:0; padding:0; box-sizing:border-
 .pc-mode .essay-top-filter, .mobile-mode .essay-top-filter { display:flex !important; grid-template-columns:none !important; }
 .essay-top-filter > select, .essay-top-filter > button { flex:1 1 0; min-width:0; width:auto !important; height:44px; min-height:44px; padding:0 8px; background:#fff; border:2px solid #dbe7f5; border-radius:8px; color:var(--deep); font-size:13px; text-align:center; text-align-last:center; box-sizing:border-box; }
 .essay-top-filter > .essay-filter-stats { flex:0 0 100%; text-align:center; color:var(--secondary); font-size:13px; padding:4px 0 0; }
+
+/* ===== 申论筛选栏修复：仅手机端（≤768px）生效，电脑端 >768px 完全不命中 ===== */
+@media (max-width: 768px) {
+
+    /* ① 把 .essay-top-filter 里非 sl 开头的 select/button 彻底移出布局（踢掉隐藏的行测 7 个，不占 flex 位） */
+    .essay-top-filter > select:not([id^="sl"]),
+    .essay-top-filter > button:not([id^="sl"]) {
+        display: none !important;
+        flex: 0 0 0 !important;
+        width: 0 !important;
+        min-width: 0 !important;
+        max-width: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+    }
+
+    /* ② 申论的 4 个下拉 + 清除按钮：每行最多 2 个，不裁字 */
+    .essay-top-filter > select[id^="sl"],
+    .essay-top-filter > button[id^="sl"] {
+        flex: 1 1 calc(50% - 6px) !important;
+        min-width: 0 !important;
+        height: auto !important;
+        min-height: 44px !important;
+        padding: 8px 12px !important;
+        white-space: nowrap !important;
+        text-overflow: clip !important;
+        overflow: visible !important;
+        box-sizing: border-box !important;
+        font-size: 13px !important;
+    }
+
+    /* ③ 统计条独占一整行 */
+    .essay-top-filter > .essay-filter-stats {
+        flex: 0 0 100% !important;
+        white-space: normal !important;
+        line-height: 1.4 !important;
+    }
+}
 .ratio-label { font-size: 13px; color:var(--text-muted); display:flex; align-items:center; gap:4px; white-space:nowrap; }
 .ratio-input { width: 58px; padding: 7px 8px; }
 .btn { padding: 8px 16px; border: none; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: bold; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all .18s ease; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
@@ -799,16 +838,26 @@ body.ms-zone .review-only-btn { display: none !important; }
   box-sizing: border-box; width: 100%; overflow: hidden;
 }
 .sidebar-review-title {
-  font-size: 11px; color: #94a3b8; font-weight: 600;
+  font-size: 10px; color: #94a3b8; font-weight: 600;
   text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
+  text-align: center;
+}
+/* 4 条统计强制排在一行（nowrap + 等宽），窄侧边栏下也不换行 */
+.sidebar-review-rows {
+  display: flex; flex-wrap: nowrap; width: 100%;
+  justify-content: space-between; align-items: stretch; gap: 2px;
 }
 .sidebar-review-row {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 8px; padding: 3px 0; font-size: 12px; line-height: 1.5;
-  min-width: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  flex: 1 1 0; width: 0; min-width: 0;
+  gap: 1px; padding: 2px 0; line-height: 1.1;
+  box-sizing: border-box;
 }
-.sidebar-review-label { color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sidebar-review-value { font-weight: bold; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.sidebar-review-label {
+  color: #cbd5e1; font-size: 9px; display: block; max-width: 100%;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.3px;
+}
+.sidebar-review-value { font-weight: bold; font-variant-numeric: tabular-nums; font-size: 14px; line-height: 1; }
 .sidebar-review-value.sr-due { color: #f59e0b; }
 .sidebar-review-value.sr-learning { color: #fb923c; }
 .sidebar-review-value.sr-mastered { color: #34d399; }
@@ -832,7 +881,8 @@ body.review-mode #content .question { border-left: 4px solid #f59e0b; }
 
 @media (max-width: 768px) {
   .sidebar-review-card { padding: 9px 10px; }
-  .sidebar-review-row { font-size: 11.5px; }
+  .sidebar-review-label { font-size: 8.5px; }
+  .sidebar-review-value { font-size: 13px; }
   .review-result-card { font-size: 13px; }
 }
 
@@ -10569,10 +10619,12 @@ if (window.renderQuestions) window.renderQuestions();
 
     <div id="sidebarReviewCard" class="sidebar-review-card" style="display:none;">
       <div class="sidebar-review-title">🔄 复盘统计</div>
-      <div class="sidebar-review-row"><span class="sidebar-review-label">🔄 待复盘</span><span class="sidebar-review-value sr-due" id="sidebarReviewDue">0</span></div>
-      <div class="sidebar-review-row"><span class="sidebar-review-label">🟠 学习中</span><span class="sidebar-review-value sr-learning" id="sidebarReviewLearning">0</span></div>
-      <div class="sidebar-review-row"><span class="sidebar-review-label">🟢 已掌握</span><span class="sidebar-review-value sr-mastered" id="sidebarReviewMastered">0</span></div>
-      <div class="sidebar-review-row"><span class="sidebar-review-label">📅 今日已复盘</span><span class="sidebar-review-value sr-today" id="sidebarReviewToday">0</span></div>
+      <div class="sidebar-review-rows">
+        <div class="sidebar-review-row"><span class="sidebar-review-label">🔄 待复盘</span><span class="sidebar-review-value sr-due" id="sidebarReviewDue">0</span></div>
+        <div class="sidebar-review-row"><span class="sidebar-review-label">🟠 学习中</span><span class="sidebar-review-value sr-learning" id="sidebarReviewLearning">0</span></div>
+        <div class="sidebar-review-row"><span class="sidebar-review-label">🟢 已掌握</span><span class="sidebar-review-value sr-mastered" id="sidebarReviewMastered">0</span></div>
+        <div class="sidebar-review-row"><span class="sidebar-review-label">📅 今日已复盘</span><span class="sidebar-review-value sr-today" id="sidebarReviewToday">0</span></div>
+      </div>
     </div>
 
     <div id="pomodoroCard">
@@ -11581,6 +11633,8 @@ function forceFixSidebar() {
     if (card.classList && card.classList.contains('pomodoro-controls')) return;
     if (card.id === 'pomodoroCard') return;
     if (card.id === 'sidebarReviewCard') return;
+    // 复盘统计卡内部：4 格一行靠 flex 布局，不能被当成"卡片"强写 display:block
+    if (card.classList && (card.classList.contains('sidebar-review-rows') || card.classList.contains('sidebar-review-row'))) return;
     card.style.cssText = card.style.cssText + ';' + [
       'padding: 12px 14px !important',
       'margin: 0 0 10px 0 !important',
