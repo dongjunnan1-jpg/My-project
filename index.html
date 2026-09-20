@@ -4307,19 +4307,19 @@ function renderSourceSuggestions(query) {
 
     sourceOptions.innerHTML = html;
 }
-function setSelectValue(sel, val){ if([...sel.options].some(o=>o.value===val)) sel.value=val; else sel.value='all'; }
+function setSelectValue(sel, val){ if(!sel) return; if([...sel.options].some(o=>o.value===val)) sel.value=val; else sel.value='all'; }
 function applyFilterStateToUI(){
   setSelectValue(yearFilter, filterState.year);
   if(provinceFilter) setSelectValue(provinceFilter, filterState.province);
-  sourceFilter.value=filterState.source==='all'?'':filterState.source;
+  if(sourceFilter) sourceFilter.value=filterState.source==='all'?'':filterState.source;
   setSelectValue(statusFilter, filterState.status);
   setSelectValue(sortFilter, filterState.sortBy);
-  searchBox.value=filterState.search;
-  minRatioInput.value=filterState.minRatio;
-  maxRatioInput.value=filterState.maxRatio;
-  filterState.year=yearFilter.value; if(provinceFilter) filterState.province=provinceFilter.value; filterState.source=sourceFilter.value;
-  filterState.status=statusFilter.value; filterState.sortBy=sortFilter.value;
-  filterState.search=searchBox.value; filterState.minRatio=minRatioInput.value; filterState.maxRatio=maxRatioInput.value;
+  if(searchBox) searchBox.value=filterState.search;
+  if(minRatioInput) minRatioInput.value=filterState.minRatio;
+  if(maxRatioInput) maxRatioInput.value=filterState.maxRatio;
+  if(yearFilter) filterState.year=yearFilter.value; if(provinceFilter) filterState.province=provinceFilter.value; if(sourceFilter) filterState.source=sourceFilter.value;
+  if(statusFilter) filterState.status=statusFilter.value; if(sortFilter) filterState.sortBy=sortFilter.value;
+  if(searchBox) filterState.search=searchBox.value; if(minRatioInput) filterState.minRatio=minRatioInput.value; if(maxRatioInput) filterState.maxRatio=maxRatioInput.value;
 }
 
 function renderFileList(){
@@ -7461,6 +7461,7 @@ async function importBackupFromObject(data){
           }
         });
       });
+      saveFav();   // 确保写入 IndexedDB
     }
     
     // 第五步：恢复做题次数（用 qid 匹配）
