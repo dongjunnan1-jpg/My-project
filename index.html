@@ -7159,7 +7159,7 @@ async function exportBackup(){
   // 统计所有分区中做过多少题
   let totalAnswered = 0;
   const answeredByZone = {};
-  const dataByZone = { gk: {}, mk: {}, sy: {}, sl: {}, ms: {} };
+  const dataByZone = {}; ZONE_IDS.forEach(function(z){ dataByZone[z] = {}; });
   
   ZONE_IDS.forEach(zone => {
     answeredByZone[zone] = 0;
@@ -7221,8 +7221,8 @@ async function exportBackup(){
   }
   
   // 读取错题集（按做题记录生成）、收藏、做题次数
-  const wrongSetData = { gk: {}, mk: {}, sy: {}, sl: {}, ms: {} };
-  const favoritesData = { gk: {}, mk: {}, sy: {}, sl: {}, ms: {} };
+  const wrongSetData = {}; ZONE_IDS.forEach(function(z){ wrongSetData[z] = {}; });
+  const favoritesData = {}; ZONE_IDS.forEach(function(z){ favoritesData[z] = {}; });
   const attemptsData = {};
   let chatHistory = {};
 
@@ -7673,8 +7673,8 @@ async function importBackupFromObject(data){
   }
   
   // ========== 旧版完整备份格式导入 ==========
-  let newIndex={gk:[],mk:[],sy:[],sl:[],ms:[]};
-  let newDb={gk:{},mk:{},sy:{},sl:{},ms:{}};
+  let newIndex = {}; ZONE_IDS.forEach(function(z){ newIndex[z] = []; });
+  let newDb = {}; ZONE_IDS.forEach(function(z){ newDb[z] = {}; });
   let fromLabel='';
   
   if(data._type==='helium_quiz_backup' && data.index){
