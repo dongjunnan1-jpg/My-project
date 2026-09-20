@@ -10776,6 +10776,7 @@ if (window.renderQuestions) window.renderQuestions();
         <button class="sidebar-tool-btn" data-tool="schulte" onclick="openToolFullscreen('schulte')">🧠 舒尔特表</button>
         <button class="sidebar-tool-btn" data-tool="memory" onclick="openToolFullscreen('memory')" style="grid-column:span 2;">🃏 记忆翻牌</button>
         <button class="sidebar-tool-btn" data-tool="chengyu" onclick="openToolFullscreen('chengyu')" style="grid-column:span 2;border-color:#a78bfa;color:#a78bfa;">📚 成语小助手</button>
+        <button class="sidebar-tool-btn" data-tool="news" onclick="openToolFullscreen('news')" style="grid-column:span 2;border-color:#38bdf8;color:#38bdf8;">📰 新闻时政简化</button>
       </div>
     </div>
 
@@ -12082,7 +12083,7 @@ document.addEventListener('click', activateAudio);
 // 全屏专项训练工具
 // ============================================================
 (function(){
-  var titles={bhf:'🧮 百化分训练',calc:'⚡ 速算训练',formula:'📐 公式选择训练',schulte:'🧠 舒尔特表训练',memory:'🃏 记忆翻牌训练',chengyu:'📚 成语小助手','exam-gk':'🏛️ 国考行政执法类','exam-lk':'📋 辽宁省考联考','exam-sy':'🏢 事业单位A类'};
+  var titles={bhf:'🧮 百化分训练',calc:'⚡ 速算训练',formula:'📐 公式选择训练',schulte:'🧠 舒尔特表训练',memory:'🃏 记忆翻牌训练',chengyu:'📚 成语小助手','exam-gk':'🏛️ 国考行政执法类','exam-lk':'📋 辽宁省考联考','exam-sy':'🏢 事业单位A类',news:'📰 新闻时政简化'};
   var activeTool='';
   var timers={schulte:0,memory:0};
   var fractions=[['1/2','50'],['1/3','33.3'],['1/4','25'],['1/5','20'],['1/6','16.7'],['1/7','14.3'],['1/8','12.5'],['1/9','11.1'],['1/10','10'],['1/11','9.1'],['1/12','8.3'],['1/13','7.7'],['1/14','7.1'],['1/15','6.7'],['1/16','6.3'],['1/17','5.9'],['1/18','5.6'],['1/19','5.3'],['1/20','5']];
@@ -12298,6 +12299,187 @@ document.addEventListener('click', activateAudio);
   function header(s,total,extra){return '<div class="tool-row" style="justify-content:space-between;margin-bottom:6px;"><strong>第 '+(s.i+1)+'/'+total+' 题</strong><span class="tool-muted">已答 '+s.i+' · 正确 '+s.right+(extra?' · '+extra:'')+'</span><span><button class="btn btn-outline" onclick="trainingReset()">🔄 重来</button> <button class="btn btn-outline" onclick="trainingSettings()">⚙️ 设置</button></span></div><div class="tool-progress"><div style="width:'+Math.round(s.i/total*100)+'%"></div></div>';}
   function result(s,total,name,detail){var pct=total?Math.round(s.right/total*100):0;return '<div class="tool-panel" style="text-align:center;"><h2>🎉 训练完成</h2><p class="tool-muted">'+name+' · 共 '+total+' 题</p><p>✅ 正确 '+s.right+' 题　📈 正确率 '+pct+'%</p><p class="tool-muted">⏱️ 用时 '+Math.max(0,Math.round((Date.now()-s.start)/1000))+' 秒</p><div class="tool-actions"><button class="btn btn-primary" onclick="trainingReset()">🔄 再来一组</button><button class="btn btn-outline" onclick="trainingSettings()">⚙️ 设置</button><button class="btn btn-outline" onclick="closeToolFullscreen()">✕ 返回题库</button></div>'+(detail||'')+'</div>';}
   function newQuestions(k,gen){var s=states[k];s.qs=gen();s.i=0;s.right=0;s.start=Date.now();save(k);}
+  // ============================================================
+  // 新闻时政简化（独立功能，不依赖题目解析）
+  // 存储：IndexedDB (idbSet/idbGet/idbGetByPrefix)，键前缀 news:
+  // ============================================================
+  var newsState = { url:'', text:'', result:'', busy:false, date:'' };
+
+  // 新闻专用提示词（与题目解析完全不同）——针对新闻联播6类真实风险加固
+  var NEWS_SYSTEM_PROMPT = [
+    '你是公考时政教研员，专门把《新闻联播》等官方新闻稿提炼成公务员考试的时政学习要点。',
+    '',
+    '输出格式：',
+    '1. 按主题分条，每条一个考点，用「一、二、三…」编号；',
+    '2. 每条包含三部分：【核心事件】一句话、【关键提法/数字】、【可考角度】；',
+    '3. 全文控制在 400-600 字，必须写完整，结尾要有句号。',
+    '',
+    '【严格约束——违反即为错误输出】',
+    'A. 【三层过滤法】按以下优先级提炼，不要平均用力：',
+    '   第一层·领导人活动 → 单独成条（考察概率最高）：谁、去了哪、见了谁、谈了什么、定了什么。',
+    '   第二层·带数字的成就类 → 合并为一条（数据题常考）：把全文的 GDP/增长率/产量/金额/人数等数字成就归为一条。',
+    '   第三层·国际简讯 → 只留冲突升级类（模拟题常以此为背景）：战争、制裁、断交、重大协议；一般性外事会见不入条。',
+    '   套话（指出/强调/要求/表示/会见/出席/考察）全部剔除，只保留“谁 + 做了什么 + 关键数字”。',
+    'B. 人名与职务必须原样照抄：不得凭记忆补全、猜测或替换职务。若原文未写全职务，就不要自行补充。',
+    '   例：原文只写“习近平”，就不要写成“中共中央总书记习近平”，除非原文如此。',
+    'C. 数字必须逐字保留：GDP、增长率、百分比、金额、人数、日期、届次等一律原样引用，绝不四舍五入、换算或估算。',
+    '   不确定的数字宁可省略该条，也不要写错。',
+    'D. 只依据本文：不要用你已有的旧知识补充背景或解读。本文没有的信息一律不写。',
+    '   如果文中出现你不确定的新提法、新机构名、新政策名，原样引用即可，不要解释。',
+    'E. 不得改变原意：涉及政治表述、政策定性、领导人讲话要点的，必须贴近原文措辞，不得简化成不同含义。',
+    '   宁可少写一条，也不得让表述与原文有偏差。',
+    'F. 若原文很长被截断，只提炼你能看到的部分，并在末尾注明“（注：原文较长，仅提炼已提供部分）”。',
+    'G. 不要评论、不要写客套话、不要写“本次新闻主要内容如下”之类的过渡语。'
+  ].join('\n');
+
+  function newsToday(){
+    var d = new Date();
+    var m = String(d.getMonth()+1); if(m.length<2) m='0'+m;
+    var day = String(d.getDate()); if(day.length<2) day='0'+day;
+    return d.getFullYear()+'-'+m+'-'+day;
+  }
+
+  function newsKey(dateStr){ return 'news:' + dateStr; }
+
+  function newsEscHtml(t){
+    return String(t||'')
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\n/g,'<br>');
+  }
+
+  window.renderNews = function(){
+    if(!root()) return;
+    var r = root();
+    var resHtml = newsState.result
+      ? '<div class="tool-panel" style="margin-top:14px"><div style="font-weight:700;margin-bottom:8px">🤖 AI 时政要点</div><div style="line-height:1.9;font-size:14px">'+newsEscHtml(newsState.result)+'</div></div>'
+      : '';
+    var busyHtml = newsState.busy
+      ? '<div class="tool-muted" style="margin-top:10px">⏳ AI 正在简化，请稍候…</div>'
+      : '';
+    r.innerHTML =
+      '<div class="tool-shell">'+
+        '<div class="tool-panel">'+
+          '<div style="font-weight:700;margin-bottom:10px">📰 新闻时政简化</div>'+
+          '<div class="tool-muted" style="margin-bottom:10px;font-size:12px">粘贴新闻稿全文（如新闻联播文字版、人民网/新华网新闻），点「AI 简化」生成公考时政要点。数据保存在本机 IndexedDB。</div>'+
+          '<textarea id="newsText" class="tool-input" style="width:100%;min-height:160px;text-align:left;font-size:14px;box-sizing:border-box" placeholder="在此粘贴新闻稿全文…">'+newsEscHtml(newsState.text)+'</textarea>'+
+          '<div class="tool-actions" style="justify-content:flex-start;margin-top:10px">'+
+            '<button class="btn btn-primary" onclick="newsSimplify()">🤖 AI 简化</button>'+
+            '<button class="btn btn-outline" onclick="newsSave()">💾 保存到 IndexedDB</button>'+
+            '<button class="btn btn-outline" onclick="newsLoadList()">📚 历史记录</button>'+
+          '</div>'+
+          busyHtml+
+        '</div>'+
+        resHtml+
+        '<div id="newsHistory" style="margin-top:14px"></div>'+
+      '</div>';
+  };
+
+  window.newsSimplify = async function(){
+    if(newsState.busy) return;
+    var ta = document.getElementById('newsText');
+    var text = ta ? String(ta.value||'').trim() : '';
+    if(!text){ alert('请先粘贴新闻稿全文'); return; }
+    if(text.length < 50){ alert('内容太短，请粘贴完整新闻稿'); return; }
+    if(!aiConfig || !aiConfig.apiKey){ alert('请先点左下角 ⚙️ 配置 API Key'); return; }
+    newsState.text = text;
+    newsState.busy = true;
+    renderNews();
+    try{
+      var resp = await requestAI({
+        provider: aiConfig.provider || 'deepseek',
+        model: aiConfig.model || (AI_ENDPOINTS[aiConfig.provider||'deepseek']||{}).model,
+        messages: [
+          { role:'system', content: NEWS_SYSTEM_PROMPT },
+          { role:'user', content: text.length > 12000 ? (text.substring(0, 12000) + '\n\n（注：原文超过12000字，此处已截断，请仅提炼以上部分）') : text }
+        ],
+        temperature: 0.1,
+        max_tokens: 3000
+      });
+      var data = resp && resp.data ? resp.data : resp;
+      var content = '';
+      if(data && data.choices && data.choices[0]){
+        var msg = data.choices[0].message || data.choices[0].delta || {};
+        content = msg.content || '';
+      }
+      if(!content){ throw new Error('AI 返回为空'); }
+      newsState.result = content;
+      newsState.busy = false;
+      newsState.date = newsToday();
+      await idbSet(newsKey(newsState.date), {
+        date: newsState.date,
+        text: newsState.text,
+        result: content,
+        savedAt: Date.now()
+      });
+      renderNews();
+    }catch(e){
+      newsState.busy = false;
+      renderNews();
+      alert('AI 简化失败：' + (e && (e.message || e)) + '\n\n提示：若直连不通，需要在 AI_PROXY_URL 配置中转。');
+    }
+  };
+
+  window.newsSave = async function(){
+    var ta = document.getElementById('newsText');
+    if(ta) newsState.text = String(ta.value||'');
+    if(!newsState.text && !newsState.result){ alert('没有可保存的内容'); return; }
+    var date = newsState.date || newsToday();
+    try{
+      await idbSet(newsKey(date), {
+        date: date,
+        text: newsState.text,
+        result: newsState.result,
+        savedAt: Date.now()
+      });
+      alert('已保存到 IndexedDB：' + newsKey(date));
+    }catch(e){
+      alert('保存失败：' + (e && (e.message||e)));
+    }
+  };
+
+  window.newsLoadList = async function(){
+    var box = document.getElementById('newsHistory');
+    if(!box) return;
+    try{
+      var items = await idbGetByPrefix('news:');
+      if(!items || !items.length){ box.innerHTML = '<div class="tool-muted">暂无历史记录</div>'; return; }
+      items.sort(function(a,b){ return (b.value.savedAt||0) - (a.value.savedAt||0); });
+      var html = '<div class="tool-panel"><div style="font-weight:700;margin-bottom:8px">📚 历史记录（IndexedDB）</div>';
+      items.forEach(function(it){
+        var v = it.value || {};
+        html += '<div style="border-bottom:1px solid #eee;padding:8px 0">'+
+          '<div style="font-weight:600">'+newsEscHtml(v.date||it.key)+'</div>'+
+          '<div class="tool-muted" style="font-size:12px;margin:4px 0">'+newsEscHtml((v.text||'').substring(0,60))+'…</div>'+
+          '<button class="btn btn-outline" onclick="newsShow(\''+String(v.date||'').replace(/'/g,'')+'\')">查看</button> '+
+          '<button class="btn btn-outline" onclick="newsDel(\''+String(v.date||'').replace(/'/g,'')+'\')">删除</button>'+
+        '</div>';
+      });
+      html += '</div>';
+      box.innerHTML = html;
+    }catch(e){
+      box.innerHTML = '<div class="tool-muted">读取失败：'+newsEscHtml(e && (e.message||e))+'</div>';
+    }
+  };
+
+  window.newsShow = async function(date){
+    try{
+      var v = await idbGet(newsKey(date));
+      if(!v){ alert('未找到'); return; }
+      newsState.text = v.text || '';
+      newsState.result = v.result || '';
+      newsState.date = date;
+      renderNews();
+    }catch(e){ alert('读取失败：'+(e&&(e.message||e))); }
+  };
+
+  window.newsDel = async function(date){
+    if(!confirm('确定删除 '+date+' 的记录？')) return;
+    try{
+      await idbDel(newsKey(date));
+      newsLoadList();
+    }catch(e){ alert('删除失败：'+(e&&(e.message||e))); }
+  };
+
   function render(k){
     if(!root())return;
     activeTool=k;
@@ -12307,6 +12489,7 @@ document.addEventListener('click', activateAudio);
     else if(k==='schulte')renderSchulte();
     else if(k==='memory')renderMemory();
     else if(k==='chengyu')renderChengyu();
+    else if(k==='news')renderNews();
   }
   window.openToolFullscreen=function(k){
     if(!titles[k])return;
