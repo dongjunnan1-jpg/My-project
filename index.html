@@ -10905,11 +10905,18 @@ function getSoundContext() {
   if (!soundCtx) {
     soundCtx = new (window.AudioContext || window.webkitAudioContext)();
   }
-  if (soundCtx.state === 'suspended') {
+  if (soundCtx.state === 'suspended' || soundCtx.state === 'interrupted') {
     soundCtx.resume();
   }
   return soundCtx;
 }
+
+// iOS 静音键绕过：让 Web Audio 不受响铃/静音拨片控制
+try {
+  if (navigator.audioSession && 'type' in navigator.audioSession) {
+    navigator.audioSession.type = 'playback';
+  }
+} catch(e) {}
 
 function createNoiseBuffer(type) {
   var c = getSoundContext();
@@ -11453,7 +11460,7 @@ function playCustomSound(sound) {
     if (!customSoundCtx) {
       customSoundCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
-    if (customSoundCtx.state === 'suspended') customSoundCtx.resume();
+    if (customSoundCtx.state === 'suspended' || customSoundCtx.state === 'interrupted') customSoundCtx.resume();
     var binaryString = atob(sound.data.split(',')[1]);
     var len = binaryString.length;
     var bytes = new Uint8Array(len);
