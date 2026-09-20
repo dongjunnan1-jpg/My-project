@@ -564,9 +564,9 @@ html, body { width:100%; max-width:100%; margin:0; padding:0; box-sizing:border-
 /* ===== 申论筛选栏修复：仅手机端（≤768px）生效，电脑端 >768px 完全不命中 ===== */
 @media (max-width: 768px) {
 
-    /* ① 把 .essay-top-filter 里非 sl 开头的 select/button 彻底移出布局（踢掉隐藏的行测 7 个，不占 flex 位） */
-    .essay-top-filter > select:not([id^="sl"]),
-    .essay-top-filter > button:not([id^="sl"]) {
+    /* ① 把 .essay-top-filter 里非 sl/zy 开头的 select/button 彻底移出布局（踢掉隐藏的行测 7 个，不占 flex 位） */
+    .essay-top-filter > select:not([id^="sl"]):not([id^="zy"]),
+    .essay-top-filter > button:not([id^="sl"]):not([id^="zy"]) {
         display: none !important;
         flex: 0 0 0 !important;
         width: 0 !important;
@@ -577,9 +577,11 @@ html, body { width:100%; max-width:100%; margin:0; padding:0; box-sizing:border-
         border: 0 !important;
     }
 
-    /* ② 申论的 4 个下拉 + 清除按钮：每行最多 2 个，不裁字 */
+    /* ② 申论/综应的 4 个下拉 + 清除按钮：每行最多 2 个，不裁字 */
     .essay-top-filter > select[id^="sl"],
-    .essay-top-filter > button[id^="sl"] {
+    .essay-top-filter > button[id^="sl"],
+    .essay-top-filter > select[id^="zy"],
+    .essay-top-filter > button[id^="zy"] {
         flex: 1 1 calc(50% - 6px) !important;
         min-width: 0 !important;
         height: auto !important;
@@ -813,12 +815,14 @@ body.essay-zone #zoneDone, body.essay-zone #zoneCorrect, body.essay-zone #zoneAc
 body.essay-zone #sourceFilter, body.essay-zone #statusFilter, body.essay-zone #sortFilter,
 body.essay-zone #moduleFilter, body.essay-zone #leafTypeFilter, body.essay-zone .ratio-label { display:none !important; }
 
-/* ====== 分区专属按钮（面试 / 申论） ====== */
+/* ====== 分区专属按钮（面试 / 申论 / 综应） ====== */
 .ms-only-btn { display: none !important; }
 body.ms-zone .ms-only-btn { display: inline-flex !important; }
 .sl-only-btn { display: none !important; }
-body.essay-zone .sl-only-btn { display: inline-flex !important; }
-/* 申论、面试分区隐藏「错题集」「导出错题本」 */
+body.essay-zone:not(.zy-zone) .sl-only-btn { display: inline-flex !important; }
+.zy-only-btn { display: none !important; }
+body.zy-zone .zy-only-btn { display: inline-flex !important; }
+/* 申论、综应、面试分区隐藏「错题集」「导出错题本」 */
 body.essay-zone .wrong-only-btn,
 body.ms-zone .wrong-only-btn {
   display: none !important;
@@ -2043,6 +2047,7 @@ body.skin-dark .new-chat-detail-note-title { color:#fbbf24; }
             <option value="mk">粉笔模考</option>
             <option value="sy">事业单位</option>
             <option value="sl">申论</option>
+            <option value="zy">综应</option>
             <option value="ms">面试</option>
         </select>
         <select id="moduleSelect">
@@ -2113,6 +2118,8 @@ body.skin-dark .new-chat-detail-note-title { color:#fbbf24; }
             <button class="btn btn-outline ms-only-btn" id="msFavFilterBtn" onclick="toggleMsFavFilter()">⭐ 只显示收藏</button>
             <button class="btn btn-outline sl-only-btn" id="slNoteFilterBtn" onclick="toggleSlNoteFilter()">📝 只显示有笔记</button>
             <button class="btn btn-outline sl-only-btn" id="slFavFilterBtn" onclick="toggleSlFavFilter()">⭐ 只显示收藏</button>
+            <button class="btn btn-outline zy-only-btn" id="zyNoteFilterBtn" onclick="toggleZyNoteFilter()">📝 只显示有笔记</button>
+            <button class="btn btn-outline zy-only-btn" id="zyFavFilterBtn" onclick="toggleZyFavFilter()">⭐ 只显示收藏</button>
         </div>
         <input type="file" id="backupInput" accept="application/json,.json" style="display:none;" onchange="importBackup(this)">
     </div>
@@ -2143,6 +2150,7 @@ const ZONES = [
   { id:'mk', name:'模考', icon:'📝' },
   { id:'sy', name:'事业单位', icon:'🏢' },
   { id:'sl', name:'申论', icon:'✍️' },
+  { id:'zy', name:'综应', icon:'🖊️' },
   { id:'ms', name:'面试', icon:'🎙️' }
 ];
 const MODS = ['常识判断','政治理论','言语理解与表达','数量关系','判断推理','资料分析'];
@@ -2153,6 +2161,7 @@ const ZONE_THEMES = {
   mk: { main:'#f5a623', mid:'#f8c560', deep:'#b97312', bg:'#fef3e2', onMain:'#2d3748' },   // 模考 橙
   sy: { main:'#f7c948', mid:'#fae08a', deep:'#8a6d12', bg:'#fef9e0', onMain:'#2d3748' },    // 事业单位 黄
   sl: { main:'#8b5cf6', mid:'#c4b5fd', deep:'#6d28d9', bg:'#f5f3ff', onMain:'#ffffff' },   // 申论 紫
+  zy: { main:'#06b6d4', mid:'#7dd3e8', deep:'#0e7490', bg:'#ecfeff', onMain:'#ffffff' },   // 综应 青
   ms: { main:'#10b981', mid:'#34d399', deep:'#059669', bg:'#ecfdf5', onMain:'#ffffff' }     // 面试 绿
 };
 function applyZoneTheme(z){
@@ -2175,9 +2184,9 @@ function applyZoneTheme(z){
   r.setProperty('--on-main', t.onMain);
 }
 
-const ZONE_IDS = ['gk','mk','sy','sl','ms'];
-let index = { gk:[], mk:[], sy:[], sl:[], ms:[] };   // 轻量元数据：{id,fileName,zone,module,uploadTime,size,count}
-let db = { gk:{}, mk:{}, sy:{}, sl:{}, ms:{} };      // 完整数据：id -> {fileName,zone,module,uploadTime,size,questions,answered}
+const ZONE_IDS = ['gk','mk','sy','sl','zy','ms'];
+let index = { gk:[], mk:[], sy:[], sl:[], zy:[], ms:[] };   // 轻量元数据：{id,fileName,zone,module,uploadTime,size,count}
+let db = { gk:{}, mk:{}, sy:{}, sl:{}, zy:{}, ms:{} };      // 完整数据：id -> {fileName,zone,module,uploadTime,size,questions,answered}
 let activeZone = 'gk';
 let activeFile = '__all__';   // '__all__' 表示显示本分区全部文件合并
 let currentPage = 1;
@@ -2190,8 +2199,8 @@ let filterState = {
 };
 
 // 错题集 / 收藏 / 每日任务 / 考试日期（均持久化到 IndexedDB）
-let wrongSet = { gk:{}, mk:{}, sy:{}, sl:{}, ms:{} };
-let favorites = { gk:{}, mk:{}, sy:{}, sl:{}, ms:{} };
+let wrongSet = { gk:{}, mk:{}, sy:{}, sl:{}, zy:{}, ms:{} };
+let favorites = { gk:{}, mk:{}, sy:{}, sl:{}, zy:{}, ms:{} };
 let daily = { date:'', count:0, goal:50 };
 let examDate = '';
 
@@ -2727,11 +2736,36 @@ function updateSlFilterBtnState(){
     favBtn.classList.toggle('btn-outline', !on);
   }
 }
-// —— 申论笔记 key（与 renderShenLunPaper 保持一致） ——
+// —— 综应分区：只显示有笔记 / 只显示收藏（控制栏按钮） ——
+function toggleZyNoteFilter(){
+  const on = filterState.status === 'note';
+  filterState.status = on ? 'all' : 'note';
+  currentPage = 1; saveView(); updateZyFilterBtnState(); renderQuestions();
+}
+function toggleZyFavFilter(){
+  const on = filterState.status === 'favorite';
+  filterState.status = on ? 'all' : 'favorite';
+  currentPage = 1; saveView(); updateZyFilterBtnState(); renderQuestions();
+}
+function updateZyFilterBtnState(){
+  const noteBtn = document.getElementById('zyNoteFilterBtn');
+  const favBtn = document.getElementById('zyFavFilterBtn');
+  if(noteBtn){
+    const on = filterState.status === 'note';
+    noteBtn.classList.toggle('btn-primary', on);
+    noteBtn.classList.toggle('btn-outline', !on);
+  }
+  if(favBtn){
+    const on = filterState.status === 'favorite';
+    favBtn.classList.toggle('btn-primary', on);
+    favBtn.classList.toggle('btn-outline', !on);
+  }
+}
+// —— 申论/综应笔记 key（与 renderShenLunPaper 保持一致） ——
 function getEssayNoteKey(q){
   if(!q) return '';
   if(q._noteKey) return q._noteKey;
-  return 'sl_note_'+String(q._paperId||q._paperName||q._key||'')+'_'+String(q.id||q._qi||'');
+  return (activeZone==='zy'?'zy_note_':'sl_note_')+String(q._paperId||q._paperName||q._key||'')+'_'+String(q.id||q._qi||'');
 }
 // —— 错题集操作 ——
 function unmarkWrong(key){ if(wrongSet[activeZone]&&wrongSet[activeZone][key]){ delete wrongSet[activeZone][key]; saveWrong(); renderQuestions(); } }
@@ -2887,6 +2921,7 @@ function renderProgressPanel(){
 // ============================================================
 function detectZone(name){
   const n=name.toLowerCase();
+  if(/综应|综合应用|zongying/.test(n)) return 'zy';
   if(/申论|shenlun/.test(n)) return 'sl';
   if(/面试/.test(n)) return 'ms';
   if(/国考|省考|行测|xingce/.test(n)) return 'gk';
@@ -2912,6 +2947,18 @@ function extractProvince(paperName){
   return '其他';
 }
 function getYear(paperDate){ return String(paperDate||'').substring(0,4)||'未知'; }
+// 综应：从试卷名 / source 字符串中抠出 4 位年份（要求 4 位数字在 19xx~20xx 范围）
+// 匹配 "2016年"、"2022年9月" 等；"0908" 这种 4 位日期（非年份）不匹配
+// 抠不出返回空串（由调用方兜底为"无年份"或"未知"）
+function extractYearForZy(text){
+  var s = String(text || '');
+  // 优先匹配带"年"的
+  var m = s.match(/((?:19|20)\d{2})\s*年/);
+  if(m) return m[1];
+  // 退而求其次：匹配 19xx/20xx 开头的 4 位数字（避免误抓 "0908"）
+  m = s.match(/\b((?:19|20)\d{2})\b/);
+  return m ? m[1] : '';
+}
 function getAnswer(question){ return question&&question.solutionAccessories ? (question.solutionAccessories.find(s=>s.label==='reference')||{}).content||'' : ''; }
 function getAnalysis(question){ return question&&question.solutionAccessories ? (question.solutionAccessories.find(s=>s.label==='demonstrate')||{}).content||'' : ''; }
 function getSolutionAccessory(question, label){
@@ -3346,6 +3393,29 @@ function getEssayQuestionMaterialIndices(question, materials){
   return Object.keys(picked).map(Number).sort(function(x,y){ return x-y; });
 }
 
+// 综应：题目引用的材料下标（0 基）。
+// 综应题目不含 [materialid] 文本标记，而是通过 accessories[].materialIndexes（材料 id 数组）
+// 引用材料；这里把这些 id 匹配到 _materials 的 id 上，得到材料下标。
+// 未引用任何材料时返回 []（调用方决定是否回退为「全部材料」）。
+function getZyQuestionMaterialIndices(question, materials){
+  var list=Array.isArray(materials)?materials:[];
+  if(!list.length) return [];
+  var idToIndex={};
+  list.forEach(function(material,index){
+    if(material && material.id!==undefined && material.id!==null) idToIndex[String(material.id)]=index;
+  });
+  var picked={};
+  var accessories=Array.isArray(question&&question.accessories)?question.accessories:[];
+  accessories.forEach(function(acc){
+    var refs=acc&&acc.materialIndexes;
+    (Array.isArray(refs)?refs:[]).forEach(function(materialId){
+      var idx=idToIndex[String(materialId)];
+      if(idx!==undefined) picked[idx]=true;
+    });
+  });
+  return Object.keys(picked).map(Number).sort(function(x,y){ return x-y; });
+}
+
 // 题目引用的最小材料下标（0 基）；无引用返回 -1
 function minEssayMaterialIndex(question, materials){
   var list=Array.isArray(materials)?materials:[];
@@ -3495,7 +3565,39 @@ function handleFiles(fileListArr){
           importBackupFromObject(raw);
           return;
         }
-        const essayPapers=normalizeEssayPapers(raw);
+        let essayPapers=normalizeEssayPapers(raw);
+
+        // ★ 综应原生格式：{ part, questions:[...], materialsByPaper:{...} }
+        //   每题自带 _paperName / _paperId / _materials，直接把每题当一套"试卷"
+        if(!essayPapers && raw && typeof raw === 'object' && Array.isArray(raw.questions)){
+          const looksLikeZy = raw.questions.some(function(q){
+            return q && typeof q === 'object' &&
+              (q._paperName !== undefined || q._paperId !== undefined || Array.isArray(q._materials));
+          });
+          if(looksLikeZy){
+            essayPapers = raw.questions.map(function(q){
+              const materials = Array.isArray(q._materials) ? q._materials : [];
+              return {
+                _essay: true,
+                paperId: q._paperId || q.globalId || String(q.id),
+                paperName: q._paperName || ('综应试卷_' + (q.id || '')),
+                paperDate: '',
+                year: extractYearForZy(q._paperName || q.source || ''),
+                province: extractProvince(q._paperName || '') || '其他',
+                topic: '综应',
+                materials: materials,
+                essayQuestions: [ q ],
+                content: q._paperName || '',
+                source: q.source || '',
+                category: '综应',
+                bigCategory: '综应',
+                subCategory: '综应',
+                leafCategory: (Array.isArray(q.keypoints) && q.keypoints[0] && q.keypoints[0].name) || '未分类'
+              };
+            });
+          }
+        }
+
         const isEssay=Array.isArray(essayPapers);
         // 兼容多种题库 JSON 结构：纯数组 / {questions:[...]} / {categories:[...]}
         const questions=isEssay ? essayPapers : normalizeQuestions(raw);
@@ -3504,11 +3606,12 @@ function handleFiles(fileListArr){
           return;
         }
         const mz=zoneSelect.value, mm=moduleSelect.value;
-        let zone = isEssay ? 'sl' : (mz==='auto' ? detectZone(file.name) : mz);
+        // 申论/综应：显式选 zy 走综应；选 auto 时按文件名识别（综应/综合应用 → zy，否则 sl）
+        let zone = isEssay ? (mz==='zy' ? 'zy' : (mz==='auto' ? (detectZone(file.name)==='zy' ? 'zy' : 'sl') : 'sl')) : (mz==='auto' ? detectZone(file.name) : mz);
         if(!zone) zone = activeZone;
         const isMianShi = zone === 'ms';
         if(isMianShi) questions.forEach(function(q){ if(q && typeof q==='object') q._interview=true; });
-        let module = isEssay ? '申论' : (isMianShi ? '面试' : (mm==='auto' ? detectModule(file.name, questions) : mm));
+        let module = isEssay ? (zone==='zy' ? '综应' : '申论') : (isMianShi ? '面试' : (mm==='auto' ? detectModule(file.name, questions) : mm));
         if(!module) module = '常识判断';
         const id=genId();
         const exist=index[zone].find(x=>x.fileName===file.name);
@@ -3613,14 +3716,14 @@ function renderAll(){
   renderModuleBar();
   updateFilterOptions();
   if(window.updateSubTypeFilter) window.updateSubTypeFilter();
-  if(activeZone!=='sl') applyFilterStateToUI();
+  if(activeZone!=='sl' && activeZone!=='zy') applyFilterStateToUI();
   renderFileList();
   renderQuestions();
 }
 
 function renderZoneTabs(){
   zoneTabs.innerHTML = ZONES.map(z=>{
-    const total=z.id==='sl' ? getZoneQuestions(z.id,'__all__').length : index[z.id].reduce((s,m)=>s+(m.count||0),0);
+    const total=(z.id==='sl'||z.id==='zy') ? getZoneQuestions(z.id,'__all__').length : index[z.id].reduce((s,m)=>s+(m.count||0),0);
     return `<button class="zone-tab ${z.id===activeZone?'active':''}" data-zone="${z.id}" onclick="switchZone('${z.id}')">${z.icon||'📂'} ${z.name}<span class="z-count">${total} 题</span></button>`;
   }).join('');
 }
@@ -3639,7 +3742,7 @@ function getZoneQuestions(zone, fileId){
   else files=Object.values(db[zone]);
   files.forEach(f=>{
     if(!f) return;
-    if(zone==='sl'){
+    if(zone==='sl'||zone==='zy'){
       (f.questions||[]).forEach((paper,paperIndex)=>{
         if(!paper || !paper._essay || !Array.isArray(paper.essayQuestions)) return;
         const paperMaterials=Array.isArray(paper.materials)?paper.materials:[];
@@ -3845,10 +3948,10 @@ function getFilterBaseQuestions(){
   const kw=normalizeSearchText(filterState.search);
   if(kw) qs=qs.filter(function(q){ return getQuestionSearchText(q).indexOf(kw)>=0; });
   if(filterState.year && filterState.year!=='all'){
-    qs=qs.filter(function(q){ return activeZone==='sl' ? (q._paperYear||q.year)===filterState.year : (q.source||'').includes(filterState.year+'年'); });
+    qs=qs.filter(function(q){ return (activeZone==='sl'||activeZone==='zy') ? (q._paperYear||q.year)===filterState.year : (q.source||'').includes(filterState.year+'年'); });
   }
   if(filterState.province && filterState.province!=='all'){
-    qs=qs.filter(function(q){ return activeZone==='sl' ? (q._paperProvince||q.province||'其他')===filterState.province : testProvince(q.source||'')===filterState.province; });
+    qs=qs.filter(function(q){ return (activeZone==='sl'||activeZone==='zy') ? (q._paperProvince||q.province||'其他')===filterState.province : testProvince(q.source||'')===filterState.province; });
   }
   // 来源（改为包含匹配，所有分区生效）
   if(filterState.source && filterState.source!=='all'){
@@ -3859,7 +3962,7 @@ function getFilterBaseQuestions(){
 }
 
 function renderModuleBar(){
-  if(activeZone==='sl'){
+  if(activeZone==='sl'||activeZone==='zy'){
     moduleBar.innerHTML='';
     moduleBar.style.display='none';
     renderEssayFilterBar();
@@ -3946,7 +4049,7 @@ function renderModuleBar(){
   });
 }
 
-function getEssayQuestions(){ return getZoneQuestions('sl','__all__'); }
+function getEssayQuestions(){ return getZoneQuestions(activeZone==='zy'?'zy':'sl','__all__'); }
 function filterEssayQuestions(excludeField){
   var qs=getEssayQuestions();
   function active(field){ return field!==excludeField; }
@@ -3973,7 +4076,8 @@ function buildEssaySelect(id,label,stats,sortFn){
   return html+'</select>';
 }
 function updateEssaySelects(){
-  if(activeZone!=='sl') return;
+  if(activeZone!=='sl' && activeZone!=='zy') return;
+  var p = activeZone==='zy' ? 'zy' : 'sl';
   var bar=document.getElementById('filterBar');
   if(!bar) return;
   if(!bar.dataset.essayMode){
@@ -3982,26 +4086,26 @@ function updateEssaySelects(){
   }
   bar.querySelectorAll('.essay-dynamic').forEach(function(element){ element.remove(); });
   var current={year:filterState.year,province:filterState.province,subType:filterState.subType,leafType:filterState.leafType};
-  bar.insertAdjacentHTML('beforeend',buildEssaySelect('slYearFilter','📅 全部年份',getEssayOptionStats('year'),function(a,b){ return Number(b)-Number(a); })+
-    buildEssaySelect('slProvinceFilter','📍 全部省份',getEssayOptionStats('province'),function(a,b){
+  bar.insertAdjacentHTML('beforeend',buildEssaySelect(p+'YearFilter','📅 全部年份',getEssayOptionStats('year'),function(a,b){ return Number(b)-Number(a); })+
+    buildEssaySelect(p+'ProvinceFilter','📍 全部省份',getEssayOptionStats('province'),function(a,b){
       if(a==='国考'&&b!=='国考') return -1;
       if(b==='国考'&&a!=='国考') return 1;
       return String(a).localeCompare(String(b),'zh-CN');
     })+
-    buildEssaySelect('slTopicFilter','🏷️ 全部话题',getEssayOptionStats('subType'))+
-    buildEssaySelect('slLeafFilter','📋 全部题型',getEssayOptionStats('leafType'))+
-    '<button class="essay-dynamic" id="slClearFilter" type="button">✕ 清除筛选</button>'+
+    buildEssaySelect(p+'TopicFilter','🏷️ 全部话题',getEssayOptionStats('subType'))+
+    buildEssaySelect(p+'LeafFilter','📋 全部题型',getEssayOptionStats('leafType'))+
+    '<button class="essay-dynamic" id="'+p+'ClearFilter" type="button">✕ 清除筛选</button>'+
     '<div class="essay-dynamic essay-filter-stats">共 '+getEssayQuestions().length+' 题 · 筛选后 '+getFiltered().length+' 题</div>');
   bar.className='filter-bar essay-top-filter';
   ['year','province','subType','leafType'].forEach(function(field){
-    var id=field==='year'?'slYearFilter':field==='province'?'slProvinceFilter':field==='subType'?'slTopicFilter':'slLeafFilter';
+    var id=field==='year'?p+'YearFilter':field==='province'?p+'ProvinceFilter':field==='subType'?p+'TopicFilter':p+'LeafFilter';
     var element=document.getElementById(id);
     if(!element) return;
     element.value=current[field];
     if(element.value!==current[field]){ filterState[field]='all'; element.value='all'; }
     element.onchange=function(){ filterState[field]=this.value; currentPage=1; saveView(); renderAll(); };
   });
-  document.getElementById('slClearFilter').onclick=clearFilters;
+  document.getElementById(p+'ClearFilter').onclick=clearFilters;
 }
 function renderEssayFilterBar(){
   var bar=document.getElementById('filterBar');
@@ -4022,7 +4126,7 @@ function updateFilterOptions() {
       '<option value="favorite">⭐ 只显示收藏</option>' +
       '<option value="note">📝 只显示心得</option>';
   }
-  if(activeZone==='sl' || activeZone==='ms') return;
+  if(activeZone==='sl' || activeZone==='zy' || activeZone==='ms') return;
   yearFilter.style.display='';
   provinceFilter.style.display='';
   sourceFilter.style.display='';
@@ -4238,7 +4342,7 @@ function renderFileList(){
   </div>`;
   html+=list.map(m=>{
     const f=db[activeZone][m.id];
-    const questionCount=activeZone==='sl' ? getZoneQuestions(activeZone,m.id).length : m.count;
+    const questionCount=(activeZone==='sl'||activeZone==='zy') ? getZoneQuestions(activeZone,m.id).length : m.count;
     let done=0; if(f&&f.answered) for(const k in f.answered) if(f.answered[k]!==undefined) done++;
     return `<div ${tabAttrs(m.id, ` title="${escapeHtml(m.fileName)}"`)}>
       <span>📄 ${escapeHtml(m.fileName)}</span>
@@ -4408,8 +4512,8 @@ function getFiltered(){
   let qs=getZoneQuestions(activeZone, '__all__');
   const kw=normalizeSearchText(filterState.search);
 
-  if(activeZone==='sl'){
-    // 申论：保持全文搜索（材料 / 题目 / 答案 / 解析）
+  if(activeZone==='sl'||activeZone==='zy'){
+    // 申论/综应：保持全文搜索（材料 / 题目 / 答案 / 解析）
     if(kw) qs=qs.filter(function(q){ return getZoneSearchText(q).indexOf(kw)>=0; });
     if(filterState.year!=='all') qs=qs.filter(function(q){ return q._paperYear===filterState.year; });
     if(filterState.province!=='all') qs=qs.filter(function(q){ return (q._paperProvince||'其他')===filterState.province; });
@@ -5495,7 +5599,7 @@ setTimeout(function() {
 }, 3000);
 
 function hasEssayFilter(){
-  if(activeZone!=='sl') return false;
+  if(activeZone!=='sl' && activeZone!=='zy') return false;
   return filterState.year!=='all' || filterState.province!=='all' || filterState.subType!=='all' || filterState.leafType!=='all' ||
     (filterState.search&&filterState.search.trim()!=='') || filterState.status!=='all' || filterState.source!=='all';
 }
@@ -5887,7 +5991,7 @@ function renderQuestions(){
     return;
   }
   controls.style.display='flex';
-  const essayPaperMode=activeZone==='sl' && !hasEssayFilter();
+  const essayPaperMode=(activeZone==='sl'||activeZone==='zy') && !hasEssayFilter();
   const renderItems=essayPaperMode ? groupEssayPapers(filteredQuestions) : filteredQuestions;
   const displayTotal=renderItems.length;
   const totalPages=Math.ceil(displayTotal/PAGE_SIZE);
@@ -5897,7 +6001,7 @@ function renderQuestions(){
   let html=''; const optLtrs=['A','B','C','D','E','F'];
   for(let i=start;i<end;i++){
     const item=renderItems[i], key=essayPaperMode ? ('paper-'+i) : item._key;
-    if(activeZone==='sl'){
+    if(activeZone==='sl'||activeZone==='zy'){
       html+=essayPaperMode ? renderEssayPaperGroup(item, i) : renderShenLunPaper(item, i, key);
       continue;
     }
@@ -5967,7 +6071,7 @@ function renderQuestions(){
   // （搜索流程会在 renderQuestions() 之后调用 scheduleSearchResultFocus() 重新建立）
   resetSearchNav();
   if(activeZone==='ms') bindMianShiRecorders();
-  if(activeZone==='sl') restoreNotes();
+  if(activeZone==='sl'||activeZone==='zy') restoreNotes();
   try{ content.querySelectorAll('img').forEach(fixImg); }catch(e){}
   scanRenderedImages();
   if(shouldFreeze) unfreezeAndRestore(frozenScrollY);
@@ -5989,6 +6093,7 @@ function renderQuestions(){
   renderZoneStats();
   updateMsFilterBtnState();
   updateSlFilterBtnState();
+  updateZyFilterBtnState();
   // 若当前有搜索关键词：DOM 重建后自动重新高亮 + 定位（筛选/翻页/切换分区后同样生效）
   if(normalizeSearchText(filterState.search || '')){
     scheduleSearchResultFocus();
@@ -6067,9 +6172,16 @@ function renderShenLunPaper(question, index, key){
   const materials=Array.isArray(question._materials)?question._materials:[];
   // 题号必须使用推断出的真实试卷题号，不能用筛选结果数组下标（否则筛选单题时会显示成第1题）
   const paperQuestionNo=question._paperQuestionNo||(index+1);
-  // 只渲染「这道题实际引用的材料」：按 [materialid] 关联解析出材料下标（支持范围/离散引用）。
+  // 只渲染「这道题实际引用的材料」：
+  //  - 申论：按 [materialid] 关联解析出材料下标（支持范围/离散引用）。
+  //  - 综应：按 accessories[].materialIndexes（材料 id 数组）匹配 _materials 的 id 得到下标。
   // 若题目未引用任何材料（如大作文/综合题），回退为整套试卷的全部材料，保持原语义。
-  let materialIndices=getEssayQuestionMaterialIndices(question, materials);
+  let materialIndices;
+  if(activeZone==='zy'){
+    materialIndices=getZyQuestionMaterialIndices(question, materials);
+  }else{
+    materialIndices=getEssayQuestionMaterialIndices(question, materials);
+  }
   if(!materialIndices.length){
     materialIndices=materials.map(function(_,i){ return i; });
   }
@@ -6089,7 +6201,7 @@ function renderShenLunPaper(question, index, key){
   const analysis=getAnalysis(question);
   if(answer) html+='<details class="essay-answer"><summary>📖 参考答案</summary><div>'+fixProtocols(replaceMaterialMarkers(answer,materials))+'</div></details>';
   if(analysis) html+='<details class="essay-analysis"><summary>💡 解析</summary><div>'+fixProtocols(replaceMaterialMarkers(analysis,materials))+'</div></details>';
-  question._noteKey='sl_note_'+String(question._paperId||question._paperName||key)+'_'+String(question.id||question._qi||index);
+  question._noteKey=(activeZone==='zy'?'zy_note_':'sl_note_')+String(question._paperId||question._paperName||key)+'_'+String(question.id||question._qi||index);
   html+='<div class="essay-note-box">'
       + '<div class="essay-note-head"><div class="essay-note-label">✏️ 我的笔记</div><span class="essay-note-count" data-count-key="'+escapeHtml(getEssayNoteKey(question))+'">0 字</span></div>'
       + '<textarea class="essay-note-input" data-key="'+escapeHtml(getEssayNoteKey(question))+'" placeholder="记录你的答题思路..."></textarea>'
@@ -6549,7 +6661,8 @@ function switchZone(z){
   const entryBtn=document.getElementById('reviewEntryBtn'); if(entryBtn) entryBtn.style.display='';
   saveStudyPosition();   // 切换前先保存当前分区的位置
   activeZone=z; activeFile='__all__';
-  document.body.classList.toggle('essay-zone', z==='sl');
+  document.body.classList.toggle('essay-zone', z==='sl'||z==='zy');
+  document.body.classList.toggle('zy-zone', z==='zy');
   document.body.classList.toggle('ms-zone', z==='ms');
   filterState={module:'all',year:'all',province:'all',source:'all',subType:'all',leafType:'all',search:'',status:'all',sortBy:'default',minRatio:'',maxRatio:''};
   applyZoneTheme(z); currentPage=1;
@@ -7526,7 +7639,7 @@ async function importBackupFromObject(data){
         });
         essayNotesCache = current;
         await idbSet('essay_notes', essayNotesCache);
-        if (activeZone === 'sl' && typeof restoreNotes === 'function') {
+        if ((activeZone === 'sl' || activeZone === 'zy') && typeof restoreNotes === 'function') {
           document.querySelectorAll('.essay-note-input').forEach(function(textarea){
             const key = textarea.dataset.key;
             if(key && essayNotesCache[key]) textarea.value = essayNotesCache[key];
@@ -7567,7 +7680,7 @@ async function importBackupFromObject(data){
   if(data._type==='helium_quiz_backup' && data.index){
     alert('检测到旧版备份格式，正在导入...');
     fromLabel='备份对象';
-    const zoneMap={'gk':'gk','mk':'mk','sy':'sy','sl':'sl','ms':'ms','国考省考':'gk','国考/省考':'gk','粉笔模考':'mk','事业单位':'sy','申论':'sl','面试':'ms'};
+    const zoneMap={'gk':'gk','mk':'mk','sy':'sy','sl':'sl','zy':'zy','ms':'ms','国考省考':'gk','国考/省考':'gk','粉笔模考':'mk','事业单位':'sy','申论':'sl','综应':'zy','面试':'ms'};
     Object.keys(data.index).forEach(zoneKey=>{
       const zone=zoneMap[zoneKey]||zoneKey;
       if(!newIndex[zone]){ newIndex[zone]=[]; newDb[zone]={}; }
@@ -7599,7 +7712,7 @@ async function importBackupFromObject(data){
   // —— 电脑版数组格式 ——
   else if(Array.isArray(data)){
     fromLabel='数组格式';
-    const zoneMap={'国考省考':'gk','国考/省考':'gk','粉笔模考':'mk','事业单位':'sy','申论':'sl','面试':'ms'};
+    const zoneMap={'国考省考':'gk','国考/省考':'gk','粉笔模考':'mk','事业单位':'sy','申论':'sl','综应':'zy','面试':'ms'};
     data.forEach(item=>{
       if(!item) return;
       const zone=zoneMap[item.partition]||'gk';
@@ -7633,7 +7746,7 @@ async function importBackupFromObject(data){
   saveIndex();
   const v=data.view||null;
   if(v&&v.activeZone){ activeZone=v.activeZone; if(v.activeFile!==undefined) activeFile=v.activeFile; }
-  applyZoneTheme(activeZone); document.body.classList.toggle('essay-zone', activeZone==='sl');
+  applyZoneTheme(activeZone); document.body.classList.toggle('essay-zone', activeZone==='sl'||activeZone==='zy'); document.body.classList.toggle('zy-zone', activeZone==='zy');
   currentPage=1; saveView(); renderAll();
   if(totalQ===0){
     alert('导入成功！但备份中未包含题目内容（可能为文件清单），请重新上传原始题目文件以恢复题目。');
@@ -7683,8 +7796,8 @@ function clearSearchHighlights(){
 //   申论/面试：整题容器（材料 / 题目 / 答案 / 解析 全部允许）
 function getSearchHighlightRoots(questionEl){
   if(!questionEl) return [];
-  // 申论 / 面试：整题容器全部允许
-  if(activeZone==='sl' || activeZone==='ms') return [questionEl];
+  // 申论 / 综应 / 面试：整题容器全部允许
+  if(activeZone==='sl' || activeZone==='zy' || activeZone==='ms') return [questionEl];
   // 行测类：只取题干、选项、来源（年份/地区）等允许区域
   var roots = [];
   var title = questionEl.querySelector('.q-title');
@@ -9284,7 +9397,8 @@ async function openChatHistory() {
   // 2) 再应用分区主题（仅当皮肤为 default 时才生效，否则保持皮肤色）
   loadSkin();                          // 皮肤（含墨水屏）
   applyZoneTheme(activeZone);
-  document.body.classList.toggle('essay-zone', activeZone==='sl');
+  document.body.classList.toggle('essay-zone', activeZone==='sl'||activeZone==='zy');
+  document.body.classList.toggle('zy-zone', activeZone==='zy');
   document.body.classList.toggle('ms-zone', activeZone==='ms');
   initMode();
   applyFs(getFs());
@@ -9336,7 +9450,7 @@ window.updateSubTypeFilter = function() {
   var leafTypeFilter = document.getElementById('leafTypeFilter');
   if (!moduleFilter || !subTypeFilter || !leafTypeFilter) return;
 
-  if(activeZone==='sl') return;
+  if(activeZone==='sl' || activeZone==='zy') return;
   if(activeZone==='ms'){
     var specialQs=getZoneQuestions(activeZone,'__all__');
     var unique=function(list){ return Array.from(new Set(list.filter(Boolean))); };
@@ -9789,7 +9903,8 @@ if (window.renderQuestions) window.renderQuestions();
   };
   document.body.appendChild(historyBtn);
   applyZoneTheme(activeZone);
-  document.body.classList.toggle('essay-zone', activeZone==='sl');
+  document.body.classList.toggle('essay-zone', activeZone==='sl'||activeZone==='zy');
+  document.body.classList.toggle('zy-zone', activeZone==='zy');
   renderAll();
   if (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || window.innerWidth < 768) {
     setTimeout(function() {
