@@ -12361,6 +12361,8 @@ document.addEventListener('click', activateAudio);
         '<div class="tool-panel">'+
           '<div style="font-weight:700;margin-bottom:10px">📰 新闻时政简化</div>'+
           '<div class="tool-muted" style="margin-bottom:10px;font-size:12px">粘贴新闻稿全文（如新闻联播文字版、人民网/新华网新闻），点「AI 简化」生成公考时政要点。数据保存在本机 IndexedDB。</div>'+
+          '<div style="margin-bottom:10px"><label style="display:inline-block;padding:7px 14px;border:1px solid #60a5fa;border-radius:6px;color:#60a5fa;cursor:pointer;font-size:13px">📎 上传文件（txt/md/pdf/docx）<input type="file" id="newsFile" accept=".txt,.md,.markdown,.pdf,.docx" style="display:none" onchange="newsHandleFile(this)"></label><span id="newsFileStatus" class="tool-muted" style="margin-left:10px;font-size:12px"></span></div>'+
+          
           '<textarea id="newsText" class="tool-input" style="width:100%;min-height:160px;text-align:left;font-size:14px;box-sizing:border-box" placeholder="在此粘贴新闻稿全文…">'+newsEscHtml(newsState.text)+'</textarea>'+
           '<div class="tool-actions" style="justify-content:flex-start;margin-top:10px">'+
             '<button class="btn btn-primary" onclick="newsSimplify()">🤖 AI 简化</button>'+
@@ -12372,6 +12374,95 @@ document.addEventListener('click', activateAudio);
         resHtml+
         '<div id="newsHistory" style="margin-top:14px"></div>'+
       '</div>';
+  };
+
+  // ============================================================
+  // 文件上传读取（懒加载 CDN：只在用到 pdf/docx 时才加载库）
+  // ============================================================
+  var NEWS_CDN = {
+    pdf:    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/6.3.289/pdf.min.mjs',
+    pdfWk:  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/6.3.289/pdf.worker.min.mjs',
+    mammoth:'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.12.3/mammoth.browser.min.js'
+  };
+
+  // 通用：动态加载 <script>（用于 mammoth，UMD 全局变量）
+  function newsLoadScript(url){
+    return new Promise(function(resolve, reject){
+      if(document.querySelector('script[data-news-cdn="'+url+'"]')){ resolve(); return; }
+      var el = document.createElement('script');
+      el.src = url;
+      el.setAttribute('data-news-cdn', url);
+      el.onload = function(){ resolve(); };
+      el.onerror = function(){ reject(new Error('加载失败: '+url)); };
+      document.head.appendChild(el);
+    });
+  }
+
+  function newsSetFileStatus(msg, isErr){
+    var el = document.getElementById('newsFileStatus');
+    if(!el) return;
+    el.textContent = msg || '';
+    el.style.color = isErr ? '#f87171' : '';
+  }
+
+  function newsFileExt(name){
+    var m = String(name||'').toLowerCase().match(/\.([a-z0-9]+)$/);
+    return m ? m[1] : '';
+  }
+
+  window.newsHandleFile = async function(input){
+    var file = input && input.files && input.files[0];
+    if(!file) return;
+    var ext = newsFileExt(file.name);
+    newsSetFileStatus('⏳ 读取中…');
+    try{
+      var text = '';
+      if(ext === 'txt' || ext === 'md' || ext === 'markdown'){
+        text = await file.text();
+      } else if(ext === 'docx'){
+        if(!window.mammoth){
+          newsSetFileStatus('⏳ 首次加载 Word 解析库…');
+          await newsLoadScript(NEWS_CDN.mammoth);
+        }
+        if(!window.mammoth) throw new Error('mammoth 未加载');
+        var buf = await file.arrayBuffer();
+        var res = await window.mammoth.extractRawText({arrayBuffer: buf});
+        text = res && res.value ? res.value : '';
+      } else if(ext === 'pdf'){
+        var pdfjs = window.pdfjsLib;
+        if(!pdfjs){
+          newsSetFileStatus('⏳ 首次加载 PDF 解析库…');
+          pdfjs = await import(NEWS_CDN.pdf);
+          window.pdfjsLib = pdfjs;
+        }
+        if(pdfjs.GlobalWorkerOptions){
+          pdfjs.GlobalWorkerOptions.workerSrc = NEWS_CDN.pdfWk;
+        }
+        var data = await file.arrayBuffer();
+        var doc = await pdfjs.getDocument({data: data}).promise;
+        var parts = [];
+        for(var i=1; i<=doc.numPages; i++){
+          var page = await doc.getPage(i);
+          var content = await page.getTextContent();
+          var pageText = content.items.map(function(it){ return it.str; }).join('');
+          parts.push(pageText);
+        }
+        text = parts.join('\n');
+      } else {
+        throw new Error('不支持的文件类型：.'+ext);
+      }
+      text = String(text||'').replace(/\r\n/g,'\n').trim();
+      if(!text){ throw new Error('文件里没读到文字（扫描版 PDF 无文字层无法提取）'); }
+      newsState.text = text;
+      renderNews();
+      newsSetFileStatus('✅ 已读取 '+text.length+' 字：'+file.name);
+    }catch(e){
+      var msg = e && (e.message || e) ? (e.message || e) : e;
+      newsSetFileStatus('❌ 读取失败：'+msg, true);
+      alert('文件读取失败：'+msg+'\n\n提示：库加载失败请联网后重试，或手动复制文字粘贴。');
+    }finally{
+      try{ input.value = ''; }catch(_){}
+    }
   };
 
   window.newsSimplify = async function(){
