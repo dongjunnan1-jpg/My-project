@@ -601,6 +601,19 @@ html, body { width:100%; max-width:100%; margin:0; padding:0; box-sizing:border-
         line-height: 1.4 !important;
     }
 }
+
+/* ===== essay filter: pc narrow unified ===== */
+@media (max-width: 768px) {
+  body.pc-mode:not(.pc-touch) .essay-top-filter > .essay-dynamic {
+    flex: 0 0 calc(50% - 6px) !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    height: auto !important;
+    min-height: 52px !important;
+    padding: 12px 12px !important;
+    font-size: 14px !important;
+  }
+}
 .ratio-label { font-size: 13px; color:var(--text-muted); display:flex; align-items:center; gap:4px; white-space:nowrap; }
 .ratio-input { width: 58px; padding: 7px 8px; }
 .btn { padding: 8px 16px; border: none; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: bold; -webkit-tap-highlight-color: transparent; touch-action: manipulation; transition: all .18s ease; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
@@ -10962,11 +10975,27 @@ function loadSoundState() {
 }
 
 function getSoundContext() {
-  if (!soundCtx) {
-    soundCtx = new (window.AudioContext || window.webkitAudioContext)();
+  // 修复(2026-09-22)：AudioContext 生命周期自愈。
+  // 手机浏览器(尤其 iOS Safari / 微信)在切后台、锁屏、来电后会把 ctx 置为
+  // 'suspended'，有时直接置为 'closed'。closed 状态无法用 resume() 救回，
+  // 必须丢弃旧对象并重新 new，否则页面会永久失声（只能靠刷新恢复）。
+  var AC = window.AudioContext || window.webkitAudioContext;
+  if (!soundCtx || soundCtx.state === 'closed') {
+    try {
+      soundCtx = new AC();
+    } catch(e) {
+      // new 失败(音频会话被占用/达到配额)时返回 null，交由调用方兜底
+      soundCtx = null;
+      return null;
+    }
   }
   if (soundCtx.state === 'suspended' || soundCtx.state === 'interrupted') {
-    soundCtx.resume();
+    // resume() 是异步的；正常路径下不 await（保持同步返回 ctx 不变），
+    // 但捕获其 Promise rejection，避免未处理的错误中断后续流程。
+    try {
+      var p = soundCtx.resume();
+      if (p && typeof p.catch === 'function') p.catch(function(){});
+    } catch(e) {}
   }
   return soundCtx;
 }
@@ -11116,6 +11145,13 @@ function stopAllSounds() {
 
 function playSound(type) {
   var c = getSoundContext();
+  // 修复(2026-09-22)：getSoundContext() 现在可能返回 null（AudioContext 创建失败）。
+  // 此时提前退出并在状态栏提示，避免后续 c.createGain() 抛异常导致整个流程静默中断。
+  if (!c) {
+    var errEl = document.getElementById('sidebarStatus');
+    if (errEl) errEl.textContent = '⚠️ 音频初始化失败，请刷新重试';
+    return;
+  }
   // 修复：先停自定义音效（替代原来的二次包装），避免两种背景音同时播放
   if (isCustomSoundPlaying) stopCustomSound();
   if (isSoundPlaying && currentSoundType === type) { stopAllSounds(); return; }
@@ -11587,11 +11623,15 @@ function initCustomSounds() {
 setTimeout(initCustomSounds, 500);
 
 function activateAudio() {
+  // 修复(2026-09-22)：不再 removeEventListener。
+  // 之前只激活一次；若之后 ctx 被系统挂起，就没有再次唤醒的机会。
+  // 保持监听（幂等，开销极小），每次点击都能尝试唤醒音频上下文。
   var c = getSoundContext();
-  if (c.state === 'suspended') c.resume();
+  if (c && c.state === 'suspended') {
+    try { var p = c.resume(); if (p && typeof p.catch === 'function') p.catch(function(){}); } catch(e) {}
+  }
   var statusEl = document.getElementById('sidebarStatus');
-  if (statusEl) statusEl.textContent = '✅ 已激活';
-  document.removeEventListener('click', activateAudio);
+  if (statusEl && c && c.state === 'running') statusEl.textContent = '✅ 已激活';
 }
 
 function restoreSoundState() {
@@ -12134,6 +12174,37 @@ document.getElementById('sidebarResetTimer').onclick = function() {
 restoreSoundState();
 setupPomodoroCard();
 document.addEventListener('click', activateAudio);
+
+// 修复(2026-09-22)：页面从后台回到前台时唤醒 AudioContext。
+// 手机浏览器切后台/锁屏常把 ctx 挂起，回前台时主动 resume，
+// 避免用户看到「点击没声音、要刷新才好」。
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState !== 'visible') return;
+  try {
+    var c = getSoundContext();
+    if (c && c.state === 'suspended') {
+      var p = c.resume();
+      if (p && typeof p.catch === 'function') p.catch(function(){});
+    }
+    // 若回到前台时正处于「应该播放」的状态，但上下文曾被关闭，
+    // 则重新触发当前音效，让自愈后的 ctx 立即出声。
+    if (typeof isSoundPlaying !== 'undefined' && isSoundPlaying && currentSoundType) {
+      var t = currentSoundType;
+      isSoundPlaying = false; currentSoundType = '';
+      playSound(t);
+    }
+  } catch(e) {}
+});
+// iOS 从 bfcache 恢复时也可能需要唤醒
+document.addEventListener('pageshow', function() {
+  try {
+    var c = getSoundContext();
+    if (c && c.state === 'suspended') {
+      var p = c.resume();
+      if (p && typeof p.catch === 'function') p.catch(function(){});
+    }
+  } catch(e) {}
+});
 </script>
 <script>
 // ============================================================
