@@ -1633,6 +1633,12 @@ body.skin-dark .ms-record-time { color:#94a3b8 !important; }
 /* ====== 全屏专项训练 ====== */
 #toolFullscreen { display:none; position:fixed; inset:0; z-index:100001; overflow-y:auto; background:var(--bg,#f7fafc); color:var(--text,#1f2937); padding:16px; box-sizing:border-box; }
 #toolFullscreen .tool-shell { width:min(940px,100%); min-height:100%; margin:0 auto; }
+/* ===== 新闻时政简化：收窄 + 居中 + 降高度（仅作用于 .news-shell，不影响其他工具）===== */
+#toolFullscreen .news-shell { width:min(680px,100%); min-height:auto; }
+#toolFullscreen .news-shell .tool-panel { padding:16px 20px; margin-bottom:10px !important; }
+#toolFullscreen .news-shell .news-head { text-align:center; }
+#toolFullscreen .news-shell .news-quick { text-align:center; line-height:2; }
+#toolFullscreen .news-shell .tool-muted { text-align:center; }
 #toolFullscreen .tool-head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 0 16px; border-bottom:2px solid var(--border,#e5e7eb); margin-bottom:20px; }
 /* 修复：标题/题目/输入框不再直接用 --deep（暗夜/深色皮肤下 --deep 过暗，与背景几乎同色导致看不清），
    改用 --main 并加兜底色，保证所有皮肤下都有足够对比度。 */
@@ -12344,6 +12350,44 @@ document.addEventListener('click', activateAudio);
 
   function newsKey(dateStr){ return 'news:' + dateStr; }
 
+  // 新闻联播文字版 URL（默认今天，可回退昨天）
+  function newsXinwenUrl(dateStr){
+    // dateStr 形如 2026-09-21 → 20260921
+    var d = String(dateStr||'').replace(/-/g,'');
+    return 'https://cn.govopendata.com/xinwenlianbo/' + d + '/';
+  }
+  function newsYesterday(){
+    var d = new Date();
+    d.setDate(d.getDate() - 1);
+    var m = String(d.getMonth()+1); if(m.length<2) m='0'+m;
+    var day = String(d.getDate()); if(day.length<2) day='0'+day;
+    return d.getFullYear()+'-'+m+'-'+day;
+  }
+  // 一键取今天（今天没有则由抓取时自动回退昨天）
+  window.newsPickToday = function(){
+    var url = newsXinwenUrl(newsToday());
+    var el = document.getElementById('newsUrl');
+    if(el){ el.value = url; }
+    newsState.url = url;
+    newsState._dateFallback = 'today';  // 标记：抓取时若失败回退昨天
+    var st = document.getElementById('newsUrlStatus');
+    if(st){ st.style.color = ''; st.textContent = '已填入当天链接，点「抓取正文」'; }
+  };
+
+  // 按指定日期取新闻联播链接（YYYY-MM-DD）
+  window.newsPickDate = function(){
+    var dp = document.getElementById('newsDatePick');
+    var d = dp ? String(dp.value||'').trim() : '';
+    if(!d){ alert('请先选择日期'); return; }
+    var url = newsXinwenUrl(d);
+    var el = document.getElementById('newsUrl');
+    if(el){ el.value = url; }
+    newsState.url = url;
+    newsState._dateFallback = '';  // 指定日期不自动回退
+    var st = document.getElementById('newsUrlStatus');
+    if(st){ st.style.color = ''; st.textContent = '已填入 ' + d + ' 链接，点「抓取正文」'; }
+  };
+
   function newsEscHtml(t){
     return String(t||'')
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
@@ -12376,23 +12420,54 @@ document.addEventListener('click', activateAudio);
       ? '<div class="tool-muted" style="margin-top:10px">⏳ AI 正在简化，请稍候…</div>'
       : '';
     r.innerHTML =
-      '<div class="tool-shell">'+
-        '<div class="tool-panel">'+
-          '<div style="font-weight:700;margin-bottom:10px">📰 新闻时政简化</div>'+
-          '<div class="tool-muted" style="margin-bottom:10px;font-size:12px">粘贴新闻稿全文（如新闻联播文字版、人民网/新华网新闻），点「AI 简化」生成公考时政要点。数据保存在本机 IndexedDB。</div>'+
-          '<div style="margin-bottom:10px"><label style="display:inline-block;padding:7px 14px;border:1px solid #60a5fa;border-radius:6px;color:#60a5fa;cursor:pointer;font-size:13px">📎 上传文件（txt/md/pdf/docx）<input type="file" id="newsFile" accept=".txt,.md,.markdown,.pdf,.docx" style="display:none" onchange="newsHandleFile(this)"></label><span id="newsFileStatus" class="tool-muted" style="margin-left:10px;font-size:12px"></span></div>'+'<div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">'+
-          '<div style="margin-bottom:10px;font-size:12px;line-height:2">'+'<span class="tool-muted">🔗 快捷入口：</span>'+'<a href="https://www.people.com.cn/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 8px">人民网</a>'+'<a href="https://www.xinhuanet.com/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 8px">新华网</a>'+'<a href="https://news.cctv.com/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 8px">央视新闻</a>'+'<a href="https://www.gov.cn/yaowen/liebiao/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 8px">中国政府网</a>'+'<a href="https://www.qstheory.cn/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 8px">求是网</a>'+'<a href="https://www.gmw.cn/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 8px">光明网</a>'+'<a href="https://www.xuexi.cn/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 8px">学习强国</a>'+'<a href="https://cn.govopendata.com/xinwenlianbo/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 8px">新闻联播文字版</a>'+'</div>'+
-            '<input type="url" id="newsUrl" class="tool-input" style="flex:1;min-width:200px;font-size:13px" placeholder="粘贴新闻网页链接（如人民网/新华网文章 URL）" value="'+newsEscHtml(newsState.url)+'">'+
-            '<button class="btn btn-outline" onclick="newsFetchUrl()">🔗 抓取正文</button>'+
-            '<button class="btn btn-outline" onclick="newsClearUrl()">🗑️ 清空链接</button>'+
-            '<span id="newsUrlStatus" class="tool-muted" style="font-size:12px"></span>'+
+      '<div class="tool-shell news-shell">'+
+        // ── 头部 ──
+        '<div class="tool-panel" style="margin-bottom:12px">'+
+          '<div class="news-head" style="font-weight:700;font-size:16px;margin-bottom:6px">📰 新闻时政简化</div>'+
+          '<div class="tool-muted" style="font-size:12px;line-height:1.7">粘贴或抓取新闻稿全文（新闻联播文字版 / 人民网 / 新华网），点「AI 简化」生成公考时政要点。数据存本机。</div>'+
+        '</div>'+
+        // ── ① 快捷入口 ──
+        '<div style=""+card+"">'+
+          '<div style=""+sec_title+"">🔗 快捷入口</div>'+
+          '<div class="news-quick" style="font-size:12px;line-height:2.2">'+
+            '<a href="https://www.people.com.cn/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 10px 0 0">人民网</a>'+
+            '<a href="https://www.xinhuanet.com/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 10px 0 0">新华网</a>'+
+            '<a href="https://news.cctv.com/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 10px 0 0">央视新闻</a>'+
+            '<a href="https://www.gov.cn/yaowen/liebiao/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 10px 0 0">中国政府网</a>'+
+            '<a href="https://www.qstheory.cn/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 10px 0 0">求是网</a>'+
+            '<a href="https://www.gmw.cn/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 10px 0 0">光明网</a>'+
+            '<a href="https://www.xuexi.cn/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 10px 0 0">学习强国</a>'+
+            '<a href="https://cn.govopendata.com/xinwenlianbo/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 10px 0 0">新闻联播文字版</a>'+
           '</div>'+
-          
-          
-          '<textarea id="newsText" class="tool-input" style="width:100%;min-height:160px;text-align:left;font-size:14px;box-sizing:border-box" placeholder="在此粘贴新闻稿全文…">'+String(newsState.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</textarea>'+
-          '<div class="tool-actions" style="justify-content:flex-start;margin-top:10px">'+
+        '</div>'+
+        // ── ② 新闻联播一键取稿 ──
+        '<div style=""+card+"">'+
+          '<div style=""+sec_title+"">📺 新闻联播 · 一键取稿</div>'+
+          '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">'+
+            '<button class="btn btn-outline" onclick="newsPickToday()">📺 取当天</button>'+
+            '<input type="date" id="newsDatePick" class="tool-input" style="font-size:13px;padding:5px 8px" title="选择新闻联播日期">'+
+            '<button class="btn btn-outline" onclick="newsPickDate()">📅 取该日</button>'+
+          '</div>'+
+          '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'+
+            '<input type="url" id="newsUrl" class="tool-input" style="flex:1;min-width:200px;font-size:13px" placeholder="或粘贴任意新闻网页链接" value="'+newsEscHtml(newsState.url)+'">'+
+            '<button class="btn btn-primary" onclick="newsFetchUrl()">🔗 抓取正文</button>'+
+            '<button class="btn btn-outline" onclick="newsClearUrl()">🗑️ 清空链接</button>'+
+          '</div>'+
+          '<div class="tool-muted" style="font-size:12px;margin-top:8px;line-height:1.6">⚠️ 抓取需<b style="color:#f59e0b">开代理</b>才能成功；打不开就改用「上传文件」或手动复制正文粘贴到下方。</div>'+
+          '<span id="newsUrlStatus" class="tool-muted" style="font-size:12px;display:block;margin-top:6px"></span>'+
+        '</div>'+
+        // ── ③ 新闻正文 ──
+        '<div style=""+card+"">'+
+          '<div style=""+sec_title+"">📄 新闻正文</div>'+
+          '<div style="margin-bottom:8px"><label style="display:inline-block;padding:7px 14px;border:1px solid #60a5fa;border-radius:6px;color:#60a5fa;cursor:pointer;font-size:13px">📎 上传文件（txt/md/pdf/docx）<input type="file" id="newsFile" accept=".txt,.md,.markdown,.pdf,.docx" style="display:none" onchange="newsHandleFile(this)"></label><span id="newsFileStatus" class="tool-muted" style="margin-left:10px;font-size:12px"></span></div>'+
+          '<textarea id="newsText" class="tool-input" style="width:100%;min-height:180px;text-align:left;font-size:14px;box-sizing:border-box" placeholder="抓取或粘贴的新闻稿全文会出现在这里…">'+String(newsState.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</textarea>'+
+        '</div>'+
+        // ── ④ 操作 ──
+        '<div style=""+card+"">'+
+          '<div style=""+sec_title+"">⚙️ 操作</div>'+
+          '<div class="tool-actions" style="justify-content:flex-start;flex-wrap:wrap;gap:8px">'+
             '<button class="btn btn-primary" onclick="newsSimplify()">🤖 AI 简化</button>'+
-            '<button class="btn btn-outline" onclick="newsSave()">💾 保存到 IndexedDB</button>'+
+            '<button class="btn btn-outline" onclick="newsSave()">💾 保存</button>'+
             '<button class="btn btn-outline" onclick="newsLoadList()">📚 历史记录</button>'+
             '<button class="btn btn-outline" onclick="newsClearText()">🗑️ 清空正文</button>'+
           '</div>'+
@@ -12529,6 +12604,33 @@ document.addEventListener('click', activateAudio);
       setStatus('✅ 已抓取 ' + text.length + ' 字');
     }catch(e){
       var m = e && (e.message || e) ? (e.message || e) : e;
+      // 若由「取当天」触发的抓取失败，自动回退到昨天再试一次
+      if(newsState._dateFallback === 'today'){
+        newsState._dateFallback = '';
+        var yUrl = newsXinwenUrl(newsYesterday());
+        setStatus('当天稿件未发布，自动改用昨天…');
+        try{
+          var resp2 = await fetch(NEWS_FETCH_WORKER + '/?url=' + encodeURIComponent(yUrl));
+          if(resp2.ok){
+            var html2 = await resp2.text();
+            if(html2 && html2.length >= 100){
+              var doc2 = new DOMParser().parseFromString(html2, 'text/html');
+              doc2.querySelectorAll('script,style,nav,footer,header,aside,iframe,noscript,.adsense-container').forEach(function(el){ el.remove(); });
+              var main2 = doc2.querySelector('.article-content') || doc2.querySelector('.content-body') || doc2.querySelector('[class*="article-content"]') || doc2.querySelector('main') || doc2.querySelector('[class*="content"]') || doc2.body;
+              var text2 = (main2 ? main2.textContent : '') || doc2.body.textContent || '';
+              text2 = text2.replace(/\n{3,}/g,'\n\n').replace(/[ \t]{2,}/g,' ').trim();
+              if(text2 && text2.length >= 50){
+                newsState.text = text2;
+                newsState.url = yUrl;
+                var urlEl2 = document.getElementById('newsUrl'); if(urlEl2) urlEl2.value = yUrl;
+                if(typeof renderNews === 'function'){ renderNews(); }
+                setStatus('✅ 已抓取 ' + text2.length + ' 字（昨天）');
+                return;
+              }
+            }
+          }
+        }catch(e2){ /* 昨天也失败，继续走下面的报错 */ }
+      }
       setStatus('❌ 抓取失败：' + m, true);
       alert('抓取失败：' + m + '\n\n提示：公众号文章、需要登录的页面抓不了；可改用「上传文件」或手动复制粘贴。');
     }
