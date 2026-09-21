@@ -8629,6 +8629,8 @@ const AI_ENDPOINTS={
 };
 // 中转接口地址（部署后替换为真实地址；留空则直接走直连）
 const AI_PROXY_URL = 'https://你的中转接口地址';
+// 新闻抓取 Worker（用于把新闻网页 URL 抓成纯文本，喂给 AI 简化）
+const NEWS_FETCH_WORKER = 'https://newsfetch.dongjunnan1.workers.dev';
 // AI 请求带自动重试：App WebView 网络不稳时，失败后隔 1 秒重试，最多 3 次
 async function axiosWithRetry(config, retries){
   retries = (typeof retries === 'number') ? retries : 3;
@@ -12361,7 +12363,12 @@ document.addEventListener('click', activateAudio);
         '<div class="tool-panel">'+
           '<div style="font-weight:700;margin-bottom:10px">📰 新闻时政简化</div>'+
           '<div class="tool-muted" style="margin-bottom:10px;font-size:12px">粘贴新闻稿全文（如新闻联播文字版、人民网/新华网新闻），点「AI 简化」生成公考时政要点。数据保存在本机 IndexedDB。</div>'+
-          '<div style="margin-bottom:10px"><label style="display:inline-block;padding:7px 14px;border:1px solid #60a5fa;border-radius:6px;color:#60a5fa;cursor:pointer;font-size:13px">📎 上传文件（txt/md/pdf/docx）<input type="file" id="newsFile" accept=".txt,.md,.markdown,.pdf,.docx" style="display:none" onchange="newsHandleFile(this)"></label><span id="newsFileStatus" class="tool-muted" style="margin-left:10px;font-size:12px"></span></div>'+
+          '<div style="margin-bottom:10px"><label style="display:inline-block;padding:7px 14px;border:1px solid #60a5fa;border-radius:6px;color:#60a5fa;cursor:pointer;font-size:13px">📎 上传文件（txt/md/pdf/docx）<input type="file" id="newsFile" accept=".txt,.md,.markdown,.pdf,.docx" style="display:none" onchange="newsHandleFile(this)"></label><span id="newsFileStatus" class="tool-muted" style="margin-left:10px;font-size:12px"></span></div>'+'<div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">'+
+            '<input type="url" id="newsUrl" class="tool-input" style="flex:1;min-width:200px;font-size:13px" placeholder="粘贴新闻网页链接（如人民网/新华网文章 URL）" value="'+newsEscHtml(newsState.url)+'">'+
+            '<button class="btn btn-outline" onclick="newsFetchUrl()">🔗 抓取正文</button>'+
+            '<span id="newsUrlStatus" class="tool-muted" style="font-size:12px"></span>'+
+          '</div>'+
+          
           
           '<textarea id="newsText" class="tool-input" style="width:100%;min-height:160px;text-align:left;font-size:14px;box-sizing:border-box" placeholder="在此粘贴新闻稿全文…">'+newsEscHtml(newsState.text)+'</textarea>'+
           '<div class="tool-actions" style="justify-content:flex-start;margin-top:10px">'+
@@ -12462,6 +12469,44 @@ document.addEventListener('click', activateAudio);
       alert('文件读取失败：'+msg+'\n\n提示：库加载失败请联网后重试，或手动复制文字粘贴。');
     }finally{
       try{ input.value = ''; }catch(_){}
+    }
+  };
+
+  window.newsFetchUrl = async function(){
+    var urlInput = document.getElementById('newsUrl');
+    var statusEl = document.getElementById('newsUrlStatus');
+    var url = urlInput ? String(urlInput.value||'').trim() : '';
+    function setStatus(msg, isErr){
+      if(!statusEl) return;
+      statusEl.textContent = msg || '';
+      statusEl.style.color = isErr ? '#f87171' : '';
+    }
+    if(!url){ alert('请先粘贴新闻网页链接'); return; }
+    if(!/^https?:\/\//i.test(url)){ alert('链接必须以 http:// 或 https:// 开头'); return; }
+    newsState.url = url;
+    setStatus('⏳ 抓取中…');
+    try{
+      var resp = await fetch(NEWS_FETCH_WORKER + '/?url=' + encodeURIComponent(url));
+      if(!resp.ok){ throw new Error('HTTP ' + resp.status); }
+      var html = await resp.text();
+      if(!html || html.length < 100){ throw new Error('返回内容为空或过短'); }
+      var doc = new DOMParser().parseFromString(html, 'text/html');
+      doc.querySelectorAll('script,style,nav,footer,header,aside,iframe,noscript').forEach(function(el){ el.remove(); });
+      var main = doc.querySelector('article')
+              || doc.querySelector('[class*="article"]')
+              || doc.querySelector('[class*="content"]')
+              || doc.querySelector('main')
+              || doc.body;
+      var text = (main ? main.innerText : '') || doc.body.innerText || '';
+      text = text.replace(/\n{3,}/g,'\n\n').replace(/[ \t]{2,}/g,' ').trim();
+      if(!text || text.length < 50){ throw new Error('未能从页面提取到正文（可能是动态加载或反爬）'); }
+      newsState.text = text;
+      if(typeof renderNews === 'function'){ renderNews(); }
+      setStatus('✅ 已抓取 ' + text.length + ' 字');
+    }catch(e){
+      var m = e && (e.message || e) ? (e.message || e) : e;
+      setStatus('❌ 抓取失败：' + m, true);
+      alert('抓取失败：' + m + '\n\n提示：公众号文章、需要登录的页面抓不了；可改用「上传文件」或手动复制粘贴。');
     }
   };
 
