@@ -605,7 +605,7 @@ html, body { width:100%; max-width:100%; margin:0; padding:0; box-sizing:border-
 /* ===== essay filter: pc narrow unified ===== */
 @media (max-width: 768px) {
   body.pc-mode:not(.pc-touch) .essay-top-filter > .essay-dynamic {
-    flex: 0 0 calc(50% - 6px) !important;
+    flex: 1 1 0 !important;
     min-width: 0 !important;
     box-sizing: border-box !important;
     height: auto !important;
@@ -2047,6 +2047,103 @@ body.skin-dark .new-chat-detail-note-title { color:#fbbf24; }
     font-weight: 400 !important;
 }
 
+
+/* === [FIX 2026-09-22] 申论/综应筛选栏：电脑端中等宽度断点 + 清除按钮不等宽 === */
+/* 1) 清除筛选按钮：不再参与等宽分配 */
+.essay-top-filter > button[id$="ClearFilter"] {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: 110px !important;
+}
+/* 2) 电脑端中等宽度(769-1024px)：两列 + 清除筛选独占一行 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .essay-top-filter > select[id^="sl"],
+  .essay-top-filter > button[id^="sl"],
+  .essay-top-filter > select[id^="zy"],
+  .essay-top-filter > button[id^="zy"] {
+    flex: 1 1 calc(50% - 4px) !important;
+    min-width: 0 !important;
+  }
+  .essay-top-filter > button[id$="ClearFilter"] {
+    flex: 0 0 auto !important;
+    min-width: 110px !important;
+    margin-left: auto;
+  }
+}
+
+/* === [FIX2 2026-09-22] 申论/综应筛选栏(.essay-filter-grid)：电脑端中等宽度降为2列 === */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .essay-filter-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .essay-filter-grid input {
+    grid-column: span 2 !important;
+  }
+  .essay-filter-grid .filter-stats {
+    grid-column: span 2 !important;
+  }
+}
+
+/* === [FIX3 2026-09-22] 申论/综应筛选栏：电脑端中等宽度改为一行5项 === */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .essay-top-filter > select[id^="sl"],
+  .essay-top-filter > button[id^="sl"],
+  .essay-top-filter > select[id^="zy"],
+  .essay-top-filter > button[id^="zy"] {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+  }
+  .essay-top-filter > button[id$="ClearFilter"] {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: 78px !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+}
+
+/* === [FIX4 2026-09-22] 申论/综应筛选栏：窗口缩到<=768px也强制一行5项 === */
+@media (max-width: 768px) {
+  .essay-top-filter > select[id^="sl"],
+  .essay-top-filter > button[id^="sl"],
+  .essay-top-filter > select[id^="zy"],
+  .essay-top-filter > button[id^="zy"] {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+  }
+  .essay-top-filter > button[id$="ClearFilter"] {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: 62px !important;
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+    font-size: 12px !important;
+  }
+}
+
+/* === [FIX5 2026-09-22] 申论/综应筛选栏：5个控件高度统一，比例协调 === */
+.essay-top-filter > select[id^="sl"],
+.essay-top-filter > button[id^="sl"],
+.essay-top-filter > select[id^="zy"],
+.essay-top-filter > button[id^="zy"] {
+  height: 38px !important;
+  min-height: 38px !important;
+  max-height: 38px !important;
+  box-sizing: border-box !important;
+  line-height: 1 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  vertical-align: middle !important;
+}
+.essay-top-filter > button[id$="ClearFilter"] {
+  height: 38px !important;
+  min-height: 38px !important;
+  max-height: 38px !important;
+  box-sizing: border-box !important;
+  line-height: 1 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
 </style>
 </head>
 <body class="pc-mode">
