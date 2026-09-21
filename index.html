@@ -8670,7 +8670,7 @@ async function requestAI(payload){
           enable_search: payload.enable_search,
           search: payload.search
         },
-        timeout: 30000,
+        timeout: 90000,
         proxy: false
       });
       return res;
@@ -8693,7 +8693,7 @@ async function requestAI(payload){
       enable_search: payload.enable_search,
       search: payload.search
     },
-    timeout: 30000,
+    timeout: 90000,
     proxy: false
   });
 }
@@ -12331,7 +12331,8 @@ document.addEventListener('click', activateAudio);
     'E. 不得改变原意：涉及政治表述、政策定性、领导人讲话要点的，必须贴近原文措辞，不得简化成不同含义。',
     '   宁可少写一条，也不得让表述与原文有偏差。',
     'F. 若原文很长被截断，只提炼你能看到的部分，并在末尾注明“（注：原文较长，仅提炼已提供部分）”。',
-    'G. 不要评论、不要写客套话、不要写“本次新闻主要内容如下”之类的过渡语。'
+    'G. 不要评论、不要写客套话、不要写“本次新闻主要内容如下”之类的过渡语。',
+    'H. 只输出最终要点。禁止输出任何思考过程、分析过程、自问自答、自我检查（例如“我们需要回答用户”“这条太长”“需要压缩”等一律不要出现）。'
   ].join('\n');
 
   function newsToday(){
@@ -12364,14 +12365,14 @@ document.addEventListener('click', activateAudio);
           '<div style="font-weight:700;margin-bottom:10px">📰 新闻时政简化</div>'+
           '<div class="tool-muted" style="margin-bottom:10px;font-size:12px">粘贴新闻稿全文（如新闻联播文字版、人民网/新华网新闻），点「AI 简化」生成公考时政要点。数据保存在本机 IndexedDB。</div>'+
           '<div style="margin-bottom:10px"><label style="display:inline-block;padding:7px 14px;border:1px solid #60a5fa;border-radius:6px;color:#60a5fa;cursor:pointer;font-size:13px">📎 上传文件（txt/md/pdf/docx）<input type="file" id="newsFile" accept=".txt,.md,.markdown,.pdf,.docx" style="display:none" onchange="newsHandleFile(this)"></label><span id="newsFileStatus" class="tool-muted" style="margin-left:10px;font-size:12px"></span></div>'+'<div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">'+
-          '<div style="margin-bottom:10px;font-size:12px;line-height:2">'+'<span class="tool-muted">🔗 快捷入口：</span>'+'<a href="https://www.people.com.cn/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 8px">人民网</a>'+'<a href="https://www.xinhuanet.com/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 8px">新华网</a>'+'<a href="https://news.cctv.com/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 8px">央视新闻</a>'+'<a href="https://www.gov.cn/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 8px">中国政府网</a>'+'<a href="https://www.qstheory.cn/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 8px">求是网</a>'+'<a href="https://www.gmw.cn/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 8px">光明网</a>'+'<a href="https://www.xuexi.cn/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 8px">学习强国</a>'+'<a href="https://cn.govopendata.com/xinwenlianbo/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 8px">新闻联播文字版</a>'+'</div>'+
+          '<div style="margin-bottom:10px;font-size:12px;line-height:2">'+'<span class="tool-muted">🔗 快捷入口：</span>'+'<a href="https://www.people.com.cn/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 8px">人民网</a>'+'<a href="https://www.xinhuanet.com/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 8px">新华网</a>'+'<a href="https://news.cctv.com/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 8px">央视新闻</a>'+'<a href="https://www.gov.cn/yaowen/liebiao/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 8px">中国政府网</a>'+'<a href="https://www.qstheory.cn/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 8px">求是网</a>'+'<a href="https://www.gmw.cn/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 8px">光明网</a>'+'<a href="https://www.xuexi.cn/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 8px">学习强国</a>'+'<a href="https://cn.govopendata.com/xinwenlianbo/" target="_blank" rel="noopener" style="color:#60a5fa;margin:0 8px">新闻联播文字版</a>'+'</div>'+
             '<input type="url" id="newsUrl" class="tool-input" style="flex:1;min-width:200px;font-size:13px" placeholder="粘贴新闻网页链接（如人民网/新华网文章 URL）" value="'+newsEscHtml(newsState.url)+'">'+
             '<button class="btn btn-outline" onclick="newsFetchUrl()">🔗 抓取正文</button>'+
             '<span id="newsUrlStatus" class="tool-muted" style="font-size:12px"></span>'+
           '</div>'+
           
           
-          '<textarea id="newsText" class="tool-input" style="width:100%;min-height:160px;text-align:left;font-size:14px;box-sizing:border-box" placeholder="在此粘贴新闻稿全文…">'+newsEscHtml(newsState.text)+'</textarea>'+
+          '<textarea id="newsText" class="tool-input" style="width:100%;min-height:160px;text-align:left;font-size:14px;box-sizing:border-box" placeholder="在此粘贴新闻稿全文…">'+String(newsState.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</textarea>'+
           '<div class="tool-actions" style="justify-content:flex-start;margin-top:10px">'+
             '<button class="btn btn-primary" onclick="newsSimplify()">🤖 AI 简化</button>'+
             '<button class="btn btn-outline" onclick="newsSave()">💾 保存到 IndexedDB</button>'+
@@ -12493,13 +12494,16 @@ document.addEventListener('click', activateAudio);
       var html = await resp.text();
       if(!html || html.length < 100){ throw new Error('返回内容为空或过短'); }
       var doc = new DOMParser().parseFromString(html, 'text/html');
-      doc.querySelectorAll('script,style,nav,footer,header,aside,iframe,noscript').forEach(function(el){ el.remove(); });
-      var main = doc.querySelector('article')
-              || doc.querySelector('[class*="article"]')
-              || doc.querySelector('[class*="content"]')
+      doc.querySelectorAll('script,style,nav,footer,header,aside,iframe,noscript,.adsense-container').forEach(function(el){ el.remove(); });
+      // 优先命中新闻正文容器（实测 govopendata 正文在 .article-content）
+      var main = doc.querySelector('.article-content')
+              || doc.querySelector('.content-body')
+              || doc.querySelector('[class*="article-content"]')
               || doc.querySelector('main')
+              || doc.querySelector('[class*="content"]')
               || doc.body;
-      var text = (main ? main.innerText : '') || doc.body.innerText || '';
+      // 关键：DOMParser 生成的离屏文档无布局引擎，innerText 会返回空/残缺，必须用 textContent
+      var text = (main ? main.textContent : '') || doc.body.textContent || '';
       text = text.replace(/\n{3,}/g,'\n\n').replace(/[ \t]{2,}/g,' ').trim();
       if(!text || text.length < 50){ throw new Error('未能从页面提取到正文（可能是动态加载或反爬）'); }
       newsState.text = text;
@@ -12531,15 +12535,22 @@ document.addEventListener('click', activateAudio);
           { role:'user', content: text.length > 12000 ? (text.substring(0, 12000) + '\n\n（注：原文超过12000字，此处已截断，请仅提炼以上部分）') : text }
         ],
         temperature: 0.1,
-        max_tokens: 3000
+        max_tokens: 16000
       });
       var data = resp && resp.data ? resp.data : resp;
+      // 若接口返回 error 字段，直接抛出真实原因，不再吞成'返回为空'
+      if(data && data.error){
+        var em = (data.error && data.error.message) ? data.error.message : JSON.stringify(data.error);
+        throw new Error('接口报错：' + em);
+      }
       var content = '';
       if(data && data.choices && data.choices[0]){
         var msg = data.choices[0].message || data.choices[0].delta || {};
         content = msg.content || '';
       }
-      if(!content){ throw new Error('AI 返回为空'); }
+      if(!content){
+        throw new Error('AI 返回为空（raw=' + JSON.stringify(data).substring(0,300) + '）');
+      }
       newsState.result = content;
       newsState.busy = false;
       newsState.date = newsToday();
@@ -12578,6 +12589,13 @@ document.addEventListener('click', activateAudio);
   window.newsLoadList = async function(){
     var box = document.getElementById('newsHistory');
     if(!box) return;
+    // 开关：已展开则收起
+    if(box.dataset.open === '1'){
+      box.innerHTML = '';
+      box.dataset.open = '0';
+      return;
+    }
+    box.dataset.open = '1';
     try{
       var items = await idbGetByPrefix('news:');
       if(!items || !items.length){ box.innerHTML = '<div class="tool-muted">暂无历史记录</div>'; return; }
