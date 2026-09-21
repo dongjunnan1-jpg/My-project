@@ -1639,6 +1639,19 @@ body.skin-dark .ms-record-time { color:#94a3b8 !important; }
 #toolFullscreen .news-shell .news-head { text-align:center; }
 #toolFullscreen .news-shell .news-quick { text-align:center; line-height:2; }
 #toolFullscreen .news-shell .tool-muted { text-align:center; }
+/* ===== 新闻阅读页：全主题适配，字体跟随主题变量 ===== */
+#toolFullscreen .news-reader-wrap { background:var(--card,#fff); border:1px solid var(--border,#e5e7eb); border-radius:14px; padding:18px 20px; margin-bottom:10px; }
+#toolFullscreen .news-reader-head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid var(--border,#e5e7eb); }
+#toolFullscreen .news-reader-title { font-weight:700; font-size:16px; color:var(--main,#1e3a5f); }
+#toolFullscreen .news-reader-text { width:100%; box-sizing:border-box; min-height:56vh; resize:vertical; background:var(--bg,#f7fafc); color:var(--text,#1f2937); border:1px solid var(--border,#e5e7eb); border-radius:10px; padding:16px 18px; font-size:16px; line-height:2; font-family:inherit; outline:none; }
+#toolFullscreen .news-reader-text:focus { border-color:var(--main,#1e3a5f); }
+#toolFullscreen .news-reader-bar { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; padding:10px 0; }
+body.skin-dark #toolFullscreen .news-reader-wrap { background:#1c2333; border-color:#52627a; }
+body.skin-dark #toolFullscreen .news-reader-text { background:#161c29; color:#e5e7eb; border-color:#52627a; }
+body.skin-dark #toolFullscreen .news-reader-title { color:#93c5fd; }
+body.skin-shenburen #toolFullscreen .news-reader-wrap { background:#fffdf5; border-color:#e0d5a8; }
+body.skin-shenburen #toolFullscreen .news-reader-text { background:#fffef9; color:#2b2b2b; border-color:#e0d5a8; }
+body.skin-shenburen #toolFullscreen .news-reader-title { color:#7c5a1e; }
 #toolFullscreen .tool-head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 0 16px; border-bottom:2px solid var(--border,#e5e7eb); margin-bottom:20px; }
 /* 修复：标题/题目/输入框不再直接用 --deep（暗夜/深色皮肤下 --deep 过暗，与背景几乎同色导致看不清），
    改用 --main 并加兜底色，保证所有皮肤下都有足够对比度。 */
@@ -12311,7 +12324,7 @@ document.addEventListener('click', activateAudio);
   // 新闻时政简化（独立功能，不依赖题目解析）
   // 存储：IndexedDB (idbSet/idbGet/idbGetByPrefix)，键前缀 news:
   // ============================================================
-  var newsState = { url:'', text:'', result:'', busy:false, date:'' };
+  var newsState = { url:'', text:'', result:'', busy:false, date:'', view:'main' };
 
   // 新闻专用提示词（与题目解析完全不同）——针对新闻联播6类真实风险加固
   var NEWS_SYSTEM_PROMPT = [
@@ -12348,7 +12361,7 @@ document.addEventListener('click', activateAudio);
     return d.getFullYear()+'-'+m+'-'+day;
   }
 
-  function newsKey(dateStr){ return 'news:' + dateStr; }
+  function newsKey(dateStr, type){ return 'news:' + (type||'ai') + ':' + dateStr; }
 
   // 新闻联播文字版 URL（默认今天，可回退昨天）
   function newsXinwenUrl(dateStr){
@@ -12410,8 +12423,79 @@ document.addEventListener('click', activateAudio);
     newsState.text = '';
   };
 
+  // ── 阅读视图 ──
+  window.newsOpenReader = function(){
+    var ta = document.getElementById('newsText');
+    if(ta) newsState.text = String(ta.value||'');
+    newsState.view = 'reader';
+    renderNews();
+  };
+  window.newsCloseReader = function(){
+    var ta = document.getElementById('newsReaderText');
+    if(ta) newsState.text = String(ta.value||'');
+    newsState.view = 'main';
+    renderNews();
+  };
+  window.newsReaderHistory = function(){
+    var ta = document.getElementById('newsReaderText');
+    if(ta) newsState.text = String(ta.value||'');
+    newsState.view = 'main';
+    renderNews();
+    newsLoadList();
+  };
+  window.newsReaderInput = function(el){
+    if(el) newsState.text = String(el.value||'');
+  };
+  window.newsReaderSimplify = function(){
+    var ta = document.getElementById('newsReaderText');
+    if(ta) newsState.text = String(ta.value||'');
+    newsState.view = 'main';
+    renderNews();
+    setTimeout(function(){ if(typeof newsSimplify==='function') newsSimplify(); }, 50);
+  };
+  window.newsReaderSaveRaw = async function(){
+    var ta = document.getElementById('newsReaderText');
+    if(ta) newsState.text = String(ta.value||'');
+    if(!newsState.text){ alert('正文为空'); return; }
+    var date = newsState.date || newsToday();
+    try{
+      await idbSet(newsKey(date, 'raw'), {
+        date: date,
+        text: newsState.text,
+        result: '',
+        type: 'raw',
+        savedAt: Date.now()
+      });
+      alert('正文已保存：' + newsKey(date, 'raw'));
+    }catch(e){
+      alert('保存失败：' + (e && (e.message||e)));
+    }
+  };
+
+  function renderNewsReader(){
+    var r = root(); if(!r) return;
+    var esc = function(t){ return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+    r.innerHTML =
+      '<div class="tool-shell news-shell">'+
+        '<div class="news-reader-wrap">'+
+          '<div class="news-reader-head">'+
+            '<div class="news-reader-title">📰 新闻正文稿</div>'+
+            '<button class="btn btn-outline" onclick="newsCloseReader()">← 返回</button>'+
+          '</div>'+
+          '<textarea id="newsReaderText" class="news-reader-text" oninput="newsReaderInput(this)" placeholder="正文内容…">'+esc(newsState.text||'')+'</textarea>'+
+        '</div>'+
+        '<div class="news-reader-bar">'+
+          '<button class="btn btn-primary" onclick="newsReaderSaveRaw()">💾 保存正文</button>'+
+          '<button class="btn btn-outline" onclick="newsReaderSimplify()">🤖 AI 简化</button>'+
+          '<button class="btn btn-outline" onclick="newsReaderHistory()">📚 历史记录</button>'+
+          '<button class="btn btn-outline" onclick="newsCloseReader()">← 返回</button>'+
+        '</div>'+
+      '</div>';
+  }
+
   window.renderNews = function(){
     if(!root()) return;
+    if(newsState.view === 'reader'){ renderNewsReader(); return; }
     var r = root();
     var resHtml = newsState.result
       ? '<div class="tool-panel" style="margin-top:14px"><div style="font-weight:700;margin-bottom:8px">🤖 AI 时政要点</div><div style="line-height:1.9;font-size:14px">'+newsEscHtml(newsState.result)+'</div></div>'
@@ -12459,7 +12543,7 @@ document.addEventListener('click', activateAudio);
         // ── ③ 新闻正文 ──
         '<div style=""+card+"">'+
           '<div style=""+sec_title+"">📄 新闻正文</div>'+
-          '<div style="margin-bottom:8px"><label style="display:inline-block;padding:7px 14px;border:1px solid #60a5fa;border-radius:6px;color:#60a5fa;cursor:pointer;font-size:13px">📎 上传文件（txt/md/pdf/docx）<input type="file" id="newsFile" accept=".txt,.md,.markdown,.pdf,.docx" style="display:none" onchange="newsHandleFile(this)"></label><span id="newsFileStatus" class="tool-muted" style="margin-left:10px;font-size:12px"></span></div>'+
+          '<div style="margin-bottom:8px"><label style="display:inline-block;padding:7px 14px;border:1px solid #60a5fa;border-radius:6px;color:#60a5fa;cursor:pointer;font-size:13px">📎 上传文件（txt/md/pdf/docx）<input type="file" id="newsFile" accept=".txt,.md,.markdown,.pdf,.docx" style="display:none" onchange="newsHandleFile(this)"></label><span id="newsFileStatus" class="tool-muted" style="margin-left:10px;font-size:12px"></span><button class="btn btn-outline" style="margin-left:10px" onclick="newsOpenReader()">📖 阅读</button></div>'+
           '<textarea id="newsText" class="tool-input" style="width:100%;min-height:180px;text-align:left;font-size:14px;box-sizing:border-box" placeholder="抓取或粘贴的新闻稿全文会出现在这里…">'+String(newsState.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</textarea>'+
         '</div>'+
         // ── ④ 操作 ──
@@ -12557,6 +12641,7 @@ document.addEventListener('click', activateAudio);
       text = String(text||'').replace(/\r\n/g,'\n').trim();
       if(!text){ throw new Error('文件里没读到文字（扫描版 PDF 无文字层无法提取）'); }
       newsState.text = text;
+      newsState.view = 'reader';
       renderNews();
       newsSetFileStatus('✅ 已读取 '+text.length+' 字：'+file.name);
     }catch(e){
@@ -12600,6 +12685,7 @@ document.addEventListener('click', activateAudio);
       text = text.replace(/\n{3,}/g,'\n\n').replace(/[ \t]{2,}/g,' ').trim();
       if(!text || text.length < 50){ throw new Error('未能从页面提取到正文（可能是动态加载或反爬）'); }
       newsState.text = text;
+      newsState.view = 'reader';
       if(typeof renderNews === 'function'){ renderNews(); }
       setStatus('✅ 已抓取 ' + text.length + ' 字');
     }catch(e){
@@ -12694,13 +12780,15 @@ document.addEventListener('click', activateAudio);
     if(!newsState.text && !newsState.result){ alert('没有可保存的内容'); return; }
     var date = newsState.date || newsToday();
     try{
-      await idbSet(newsKey(date), {
+      var _t = newsState.result ? 'ai' : 'raw';
+      await idbSet(newsKey(date, _t), {
         date: date,
         text: newsState.text,
         result: newsState.result,
+        type: _t,
         savedAt: Date.now()
       });
-      alert('已保存到 IndexedDB：' + newsKey(date));
+      alert('已保存到 IndexedDB：' + newsKey(date, _t));
     }catch(e){
       alert('保存失败：' + (e && (e.message||e)));
     }
@@ -12719,7 +12807,7 @@ document.addEventListener('click', activateAudio);
     try{
       var items = await idbGetByPrefix('news:');
       if(!items || !items.length){ box.innerHTML = '<div class="tool-muted">暂无历史记录</div>'; return; }
-      items.sort(function(a,b){ return (b.value.savedAt||0) - (a.value.savedAt||0); });
+      items.sort(function(a,b){ return (b.savedAt||0) - (a.savedAt||0); });
       var html = '<div class="tool-panel"><div style="font-weight:700;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">'+
         '<span>📚 历史记录（IndexedDB）</span>'+
         '<span>'+
@@ -12728,14 +12816,17 @@ document.addEventListener('click', activateAudio);
         '</span>'+
       '</div>';
       items.forEach(function(it){
-        var v = it.value || {};
-        html += '<div style="border-bottom:1px solid #eee;padding:8px 0">'+
-          '<div style="font-weight:600">'+newsEscHtml(v.date||it.key)+'</div>'+
-          '<div class="tool-muted" style="font-size:12px;margin:4px 0">'+newsEscHtml((v.text||'').substring(0,60))+'…</div>'+
-          '<button class="btn btn-outline" onclick="newsShow(\''+String(v.date||'').replace(/'/g,'')+'\')">查看</button> '+
-          '<button class="btn btn-outline" onclick="newsDel(\''+String(v.date||'').replace(/'/g,'')+'\')">删除</button>'+
-          '<button class="btn btn-outline" onclick="newsCopyResult(\''+String(v.date||'').replace(/'/g,'')+'\')">📋 复制要点</button> '+
-          '<button class="btn btn-outline" onclick="newsExportResult(\''+String(v.date||'').replace(/'/g,'')+'\')">📥 下载要点</button>'+
+        var v = it || {};
+        var _dt = String(v.date||'').replace(/'/g,'');
+        var _ty = v.type || (v.result ? 'ai' : 'raw');
+        var _tag = _ty === 'raw' ? '📄 正文稿' : '🤖 AI要点';
+        html += '<div style="border-bottom:1px solid var(--border,#eee);padding:8px 0">'+
+          '<div style="font-weight:600">'+_tag+' · '+newsEscHtml(v.date||'(无日期)')+'</div>'+
+          '<div class="tool-muted" style="font-size:12px;margin:4px 0">'+newsEscHtml((v.text||v.result||'').substring(0,60))+'…</div>'+
+          '<button class="btn btn-outline" onclick="newsShow(\''+_dt+'\',\''+_ty+'\')">查看</button> '+
+          '<button class="btn btn-outline" onclick="newsDel(\''+_dt+'\',\''+_ty+'\')">删除</button>'+
+          '<button class="btn btn-outline" onclick="newsCopyResult(\''+_dt+'\',\''+_ty+'\')">📋 复制要点</button> '+
+          '<button class="btn btn-outline" onclick="newsExportResult(\''+_dt+'\',\''+_ty+'\')">📥 下载要点</button>'+
         '</div>';
       });
       html += '</div>';
@@ -12745,9 +12836,9 @@ document.addEventListener('click', activateAudio);
     }
   };
 
-  window.newsShow = async function(date){
+  window.newsShow = async function(date, type){
     try{
-      var v = await idbGet(newsKey(date));
+      var v = await idbGet(newsKey(date, type));
       if(!v){ alert('未找到'); return; }
       newsState.text = v.text || '';
       newsState.result = v.result || '';
@@ -12756,10 +12847,10 @@ document.addEventListener('click', activateAudio);
     }catch(e){ alert('读取失败：'+(e&&(e.message||e))); }
   };
 
-  window.newsDel = async function(date){
+  window.newsDel = async function(date, type){
     if(!confirm('确定删除 '+date+' 的记录？')) return;
     try{
-      await idbDel(newsKey(date));
+      await idbDel(newsKey(date, type));
       newsLoadList();
     }catch(e){ alert('删除失败：'+(e&&(e.message||e))); }
   };
@@ -12777,9 +12868,9 @@ document.addEventListener('click', activateAudio);
   }
 
   // 单条复制要点
-  window.newsCopyResult = async function(date){
+  window.newsCopyResult = async function(date, type){
     try{
-      var v = await idbGet(newsKey(date));
+      var v = await idbGet(newsKey(date, type));
       if(!v || !v.result){ alert('该记录没有要点内容'); return; }
       if(navigator.clipboard && navigator.clipboard.writeText){
         await navigator.clipboard.writeText(v.result);
@@ -12794,9 +12885,9 @@ document.addEventListener('click', activateAudio);
   };
 
   // 单条下载要点 .txt
-  window.newsExportResult = async function(date){
+  window.newsExportResult = async function(date, type){
     try{
-      var v = await idbGet(newsKey(date));
+      var v = await idbGet(newsKey(date, type));
       if(!v || !v.result){ alert('该记录没有要点内容'); return; }
       newsDownloadText(v.result, '新闻要点-' + date + '.txt');
     }catch(e){ alert('导出失败：' + (e && (e.message||e))); }
@@ -12812,11 +12903,12 @@ document.addEventListener('click', activateAudio);
         exportedAt: new Date().toISOString(),
         count: items.length,
         items: items.map(function(it){
-          var v = it.value || {};
+          var v = it || {};
           return {
-            date: v.date || String(it.key || '').replace(/^news:/,''),
+            date: v.date || '',
             text: v.text || '',
             result: v.result || '',
+            type: v.type || (v.result ? 'ai' : 'raw'),
             savedAt: v.savedAt || 0
           };
         })
