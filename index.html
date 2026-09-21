@@ -12380,6 +12380,7 @@ document.addEventListener('click', activateAudio);
         '</div>'+
         resHtml+
         '<div id="newsHistory" style="margin-top:14px"></div>'+
+        '<input type="file" id="newsBackupInput" accept=".json,application/json" style="display:none" onchange="newsImportBackup(this)">'+
       '</div>';
   };
 
@@ -12580,7 +12581,13 @@ document.addEventListener('click', activateAudio);
       var items = await idbGetByPrefix('news:');
       if(!items || !items.length){ box.innerHTML = '<div class="tool-muted">暂无历史记录</div>'; return; }
       items.sort(function(a,b){ return (b.value.savedAt||0) - (a.value.savedAt||0); });
-      var html = '<div class="tool-panel"><div style="font-weight:700;margin-bottom:8px">📚 历史记录（IndexedDB）</div>';
+      var html = '<div class="tool-panel"><div style="font-weight:700;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">'+
+        '<span>📚 历史记录（IndexedDB）</span>'+
+        '<span>'+
+          '<button class="btn btn-outline" onclick="newsExportBackup()">📦 导出备份</button> '+
+          '<button class="btn btn-outline" onclick="document.getElementById(\'newsBackupInput\').click()">📥 导入备份</button>'+
+        '</span>'+
+      '</div>';
       items.forEach(function(it){
         var v = it.value || {};
         html += '<div style="border-bottom:1px solid #eee;padding:8px 0">'+
@@ -12588,6 +12595,8 @@ document.addEventListener('click', activateAudio);
           '<div class="tool-muted" style="font-size:12px;margin:4px 0">'+newsEscHtml((v.text||'').substring(0,60))+'…</div>'+
           '<button class="btn btn-outline" onclick="newsShow(\''+String(v.date||'').replace(/'/g,'')+'\')">查看</button> '+
           '<button class="btn btn-outline" onclick="newsDel(\''+String(v.date||'').replace(/'/g,'')+'\')">删除</button>'+
+          '<button class="btn btn-outline" onclick="newsCopyResult(\''+String(v.date||'').replace(/'/g,'')+'\')">📋 复制要点</button> '+
+          '<button class="btn btn-outline" onclick="newsExportResult(\''+String(v.date||'').replace(/'/g,'')+'\')">📥 下载要点</button>'+
         '</div>';
       });
       html += '</div>';
@@ -12614,6 +12623,100 @@ document.addEventListener('click', activateAudio);
       await idbDel(newsKey(date));
       newsLoadList();
     }catch(e){ alert('删除失败：'+(e&&(e.message||e))); }
+  };
+
+
+  // 通用：下载文本文件
+  function newsDownloadText(text, filename, mime){
+    var blob = new Blob(['\ufeff' + text], {type: (mime || 'text/plain') + ';charset=utf-8'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 0);
+  }
+
+  // 单条复制要点
+  window.newsCopyResult = async function(date){
+    try{
+      var v = await idbGet(newsKey(date));
+      if(!v || !v.result){ alert('该记录没有要点内容'); return; }
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        await navigator.clipboard.writeText(v.result);
+      }else{
+        var ta = document.createElement('textarea');
+        ta.value = v.result; ta.style.position='fixed'; ta.style.opacity='0';
+        document.body.appendChild(ta); ta.select();
+        document.execCommand('copy'); ta.remove();
+      }
+      alert('✅ 已复制 ' + date + ' 的要点');
+    }catch(e){ alert('复制失败：' + (e && (e.message||e))); }
+  };
+
+  // 单条下载要点 .txt
+  window.newsExportResult = async function(date){
+    try{
+      var v = await idbGet(newsKey(date));
+      if(!v || !v.result){ alert('该记录没有要点内容'); return; }
+      newsDownloadText(v.result, '新闻要点-' + date + '.txt');
+    }catch(e){ alert('导出失败：' + (e && (e.message||e))); }
+  };
+
+  // 整体导出备份 JSON
+  window.newsExportBackup = async function(){
+    try{
+      var items = await idbGetByPrefix('news:');
+      if(!items || !items.length){ alert('暂无历史记录可导出'); return; }
+      var payload = {
+        _type: 'news_backup_v1',
+        exportedAt: new Date().toISOString(),
+        count: items.length,
+        items: items.map(function(it){
+          var v = it.value || {};
+          return {
+            date: v.date || String(it.key || '').replace(/^news:/,''),
+            text: v.text || '',
+            result: v.result || '',
+            savedAt: v.savedAt || 0
+          };
+        })
+      };
+      newsDownloadText(JSON.stringify(payload, null, 2), '新闻要点备份-' + newsToday() + '.json', 'application/json');
+    }catch(e){ alert('导出失败：' + (e && (e.message||e))); }
+  };
+
+  // 导入备份
+  window.newsImportBackup = async function(input){
+    var file = input && input.files && input.files[0];
+    try{
+      if(!file) return;
+      var text = await file.text();
+      var data = null;
+      try{ data = JSON.parse(text); }catch(_){ alert('文件不是合法 JSON，无法导入'); return; }
+      if(!data || data._type !== 'news_backup_v1' || !Array.isArray(data.items)){
+        alert('文件格式不对：不是本程序导出的新闻要点备份文件'); return;
+      }
+      var ok = 0, skip = 0;
+      for(var i=0;i<data.items.length;i++){
+        var it = data.items[i] || {};
+        var d = String(it.date || '').trim();
+        if(!d){ skip++; continue; }
+        await idbSet(newsKey(d), {
+          date: d,
+          text: String(it.text || ''),
+          result: String(it.result || ''),
+          savedAt: Number(it.savedAt) || Date.now()
+        });
+        ok++;
+      }
+      alert('✅ 导入完成：成功 ' + ok + ' 条' + (skip ? '，跳过 ' + skip + ' 条（缺日期）' : ''));
+      newsLoadList();
+    }catch(e){
+      alert('导入失败：' + (e && (e.message||e)));
+    }finally{
+      try{ input.value = ''; }catch(_){}
+    }
   };
 
   function render(k){
