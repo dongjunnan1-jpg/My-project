@@ -1639,6 +1639,13 @@ body.skin-dark .ms-record-time { color:#94a3b8 !important; }
 #toolFullscreen .news-shell .news-head { text-align:center; }
 #toolFullscreen .news-shell .news-quick { text-align:center; line-height:2; }
 #toolFullscreen .news-shell .tool-muted { text-align:center; }
+/* 补齐：区块标题（sec_title 生成的）、按钮行、一键取稿区、正文区 全部居中 */
+#toolFullscreen .news-shell > div > div { text-align:center; }
+#toolFullscreen .news-shell .tool-row { justify-content:center !important; }
+#toolFullscreen .news-shell [style*="display:flex"] { justify-content:center !important; }
+#toolFullscreen .news-shell textarea { text-align:left !important; }
+#toolFullscreen .news-shell label { margin-left:auto; margin-right:auto; }
+
 /* ===== 新闻阅读页：全主题适配，字体跟随主题变量 ===== */
 #toolFullscreen .news-reader-wrap { background:var(--card,#fff); border:1px solid var(--border,#e5e7eb); border-radius:14px; padding:18px 20px; margin-bottom:10px; }
 #toolFullscreen .news-reader-head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid var(--border,#e5e7eb); }
@@ -12549,7 +12556,7 @@ document.addEventListener('click', activateAudio);
         // ── ④ 操作 ──
         '<div style=""+card+"">'+
           '<div style=""+sec_title+"">⚙️ 操作</div>'+
-          '<div class="tool-actions" style="justify-content:flex-start;flex-wrap:wrap;gap:8px">'+
+          '<div class="tool-actions" style="justify-content:center;flex-wrap:wrap;gap:8px">'+
             '<button class="btn btn-primary" onclick="newsSimplify()">🤖 AI 简化</button>'+
             '<button class="btn btn-outline" onclick="newsSave()">💾 保存</button>'+
             '<button class="btn btn-outline" onclick="newsLoadList()">📚 历史记录</button>'+
