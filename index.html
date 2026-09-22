@@ -12571,7 +12571,7 @@ document.addEventListener('pageshow', function() {
   // 新闻时政简化（独立功能，不依赖题目解析）
   // 存储：IndexedDB (idbSet/idbGet/idbGetByPrefix)，键前缀 news:
   // ============================================================
-  var newsState = { url:'', text:'', result:'', busy:false, date:'', view:'main' };
+  var newsState = { url:'', text:'', result:'', busy:false, date:'', view:'main', publishDate:'' };
 
   // 新闻专用提示词（与题目解析完全不同）——针对新闻联播6类真实风险加固
   var NEWS_SYSTEM_PROMPT = [
@@ -12631,6 +12631,7 @@ document.addEventListener('pageshow', function() {
     var el = document.getElementById('newsUrl');
     if(el){ el.value = url; }
     newsState.url = url;
+    newsState.publishDate = newsToday();  // 新闻日期=今天
     newsState._dateFallback = 'today';  // 标记：抓取时若失败回退昨天
     var st = document.getElementById('newsUrlStatus');
     if(st){ st.style.color = ''; st.textContent = '已填入当天链接，点「抓取正文」'; }
@@ -12645,6 +12646,7 @@ document.addEventListener('pageshow', function() {
     var el = document.getElementById('newsUrl');
     if(el){ el.value = url; }
     newsState.url = url;
+    newsState.publishDate = d;  // 新闻日期=用户选定日
     newsState._dateFallback = '';  // 指定日期不自动回退
     var st = document.getElementById('newsUrlStatus');
     if(st){ st.style.color = ''; st.textContent = '已填入 ' + d + ' 链接，点「抓取正文」'; }
@@ -12707,16 +12709,18 @@ document.addEventListener('pageshow', function() {
     if(ta) newsState.text = String(ta.value||'');
     if(!newsState.text){ alert('正文为空'); return; }
     var date = newsState.date || newsToday();
+    var _pub = newsState.publishDate || date;
     try{
       var _uid = Date.now();
-      await idbSet(newsKey(date, 'raw', _uid), {
-        date: date,
+      await idbSet(newsKey(_pub, 'raw', _uid), {
+        date: _pub,
+        publishDate: _pub,
         text: newsState.text,
         result: '',
         type: 'raw',
         savedAt: _uid
       });
-      alert('正文已保存：' + newsKey(date, 'raw', _uid));
+      alert('正文已保存：' + newsKey(_pub, 'raw', _uid));
     }catch(e){
       alert('保存失败：' + (e && (e.message||e)));
     }
@@ -13081,9 +13085,11 @@ document.addEventListener('pageshow', function() {
       newsState.result = content;
       newsState.busy = false;
       newsState.date = newsToday();
+      var _pub2 = newsState.publishDate || newsState.date;
       var _uid2 = Date.now();
-      await idbSet(newsKey(newsState.date, 'ai', _uid2), {
-        date: newsState.date,
+      await idbSet(newsKey(_pub2, 'ai', _uid2), {
+        date: _pub2,
+        publishDate: _pub2,
         text: newsState.text,
         result: content,
         savedAt: _uid2
@@ -13101,11 +13107,13 @@ document.addEventListener('pageshow', function() {
     if(ta) newsState.text = String(ta.value||'');
     if(!newsState.text && !newsState.result){ alert('没有可保存的内容'); return; }
     var date = newsState.date || newsToday();
+    var _pub3 = newsState.publishDate || date;
     try{
       var _t = newsState.result ? 'ai' : 'raw';
       var _uid3 = Date.now();
-      await idbSet(newsKey(date, _t, _uid3), {
-        date: date,
+      await idbSet(newsKey(_pub3, _t, _uid3), {
+        date: _pub3,
+        publishDate: _pub3,
         text: newsState.text,
         result: newsState.result,
         type: _t,
@@ -13152,7 +13160,7 @@ document.addEventListener('pageshow', function() {
         var _timeStr = '';
         if(v.savedAt){ var _d2=new Date(v.savedAt); _timeStr=' · '+(_d2.getMonth()+1)+'/'+_d2.getDate()+' '+String(_d2.getHours()).padStart(2,'0')+':'+String(_d2.getMinutes()).padStart(2,'0'); }
         html += '<div style="border-bottom:1px solid var(--border,#eee);padding:8px 0">'+
-          '<div style="font-weight:600">'+_tag+' · '+newsEscHtml(v.date||'(无日期)')+newsEscHtml(_timeStr)+'</div>'+
+          '<div style="font-weight:600">'+_tag+' · 新闻'+newsEscHtml(v.publishDate||v.date||'(无日期)')+(v.savedAt?newsEscHtml(_timeStr.replace(' · ',' 存于 ')):'')+'</div>'+
           '<div class="tool-muted" style="font-size:12px;margin:4px 0">'+newsEscHtml((v.text||v.result||'').substring(0,60))+'…</div>'+
           '<button class="btn btn-outline" onclick="newsShow(\''+_k+'\')">查看</button> '+
           '<button class="btn btn-outline" onclick="newsDel(\''+_k+'\')">删除</button>'+
@@ -13220,7 +13228,10 @@ document.addEventListener('pageshow', function() {
     try{
       var v = await idbGet(key);
       if(!v || !v.result){ alert('该记录没有要点内容'); return; }
-      newsDownloadText(v.result, '新闻要点-' + (v.date||'') + '.txt');
+      var _pd = v.publishDate || v.date || '';
+      var _st = v.savedAt ? new Date(v.savedAt) : null;
+      var _suf = _st ? ('-' + String(_st.getHours()).padStart(2,'0') + String(_st.getMinutes()).padStart(2,'0')) : '';
+      newsDownloadText(v.result, '新闻要点-' + _pd + _suf + '.txt');
     }catch(e){ alert('导出失败：' + (e && (e.message||e))); }
   };
 
