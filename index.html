@@ -1673,8 +1673,6 @@ body.skin-dark .ms-record-time { color:#94a3b8 !important; }
   #toolFullscreen .news-shell .tool-input { font-size: 12px !important; min-width: 0 !important; }
   /* 正文框高度减小 */
   #toolFullscreen .news-shell textarea.tool-input { min-height: 140px !important; font-size: 13px !important; }
-  /* 阅读页正文也降一点 */
-  #toolFullscreen .news-reader-text { min-height: 46vh; font-size: 15px; padding: 12px 14px; }
   /* 取当天 / 日期框 / 取该日：强制一行，日期框弹性缩短 */
   #toolFullscreen .news-shell .news-pick-row { flex-wrap: nowrap !important; gap: 4px !important; }
   #toolFullscreen .news-shell .news-pick-row input[type="date"] { flex: 1 1 0 !important; min-width: 0 !important; width: auto !important; }
@@ -1688,19 +1686,59 @@ body.skin-dark .ms-record-time { color:#94a3b8 !important; }
 #toolFullscreen .news-shell textarea { text-align:left !important; }
 #toolFullscreen .news-shell label { margin-left:auto; margin-right:auto; }
 
-/* ===== 新闻阅读页：全主题适配，字体跟随主题变量 ===== */
-#toolFullscreen .news-reader-wrap { background:var(--card,#fff); border:1px solid var(--border,#e5e7eb); border-radius:14px; padding:18px 20px; margin-bottom:10px; }
-#toolFullscreen .news-reader-head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid var(--border,#e5e7eb); }
-#toolFullscreen .news-reader-title { font-weight:700; font-size:16px; color:var(--main,#1e3a5f); }
-#toolFullscreen .news-reader-text { width:100%; box-sizing:border-box; min-height:56vh; resize:vertical; background:var(--bg,#f7fafc); color:var(--text,#1f2937); border:1px solid var(--border,#e5e7eb); border-radius:10px; padding:16px 18px; font-size:16px; line-height:2; font-family:inherit; outline:none; }
-#toolFullscreen .news-reader-text:focus { border-color:var(--main,#1e3a5f); }
-#toolFullscreen .news-reader-bar { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; padding:10px 0; }
-body.skin-dark #toolFullscreen .news-reader-wrap { background:#1c2333; border-color:#52627a; }
-body.skin-dark #toolFullscreen .news-reader-text { background:#161c29; color:#e5e7eb; border-color:#52627a; }
-body.skin-dark #toolFullscreen .news-reader-title { color:#93c5fd; }
-body.skin-shenburen #toolFullscreen .news-reader-wrap { background:#fffdf5; border-color:#e0d5a8; }
-body.skin-shenburen #toolFullscreen .news-reader-text { background:#fffef9; color:#2b2b2b; border-color:#e0d5a8; }
-body.skin-shenburen #toolFullscreen .news-reader-title { color:#7c5a1e; }
+/* ===== 新闻阅读页（阅读模式）：无边框文章排版，全主题适配 ===== */
+#toolFullscreen .news-reader-shell { width:min(720px,100%); }
+#toolFullscreen .news-reader-topbar { position:sticky; top:0; z-index:5; display:flex; align-items:center; padding:6px 0 12px; background:linear-gradient(180deg,var(--bg,#f7fafc) 70%,transparent); }
+#toolFullscreen .news-reader-back { background:none; border:none; color:var(--main,#1e3a5f); font-size:15px; font-weight:600; cursor:pointer; padding:6px 4px; }
+#toolFullscreen .news-reader-back:hover { text-decoration:underline; }
+#toolFullscreen .news-reader-article { background:transparent; border:none; padding:0 4px 8px; }
+#toolFullscreen .news-reader-header { margin:0 0 22px; text-align:center; }
+#toolFullscreen .news-reader-h1 { margin:0 0 10px; font-size:clamp(20px,3.4vw,26px); line-height:1.4; font-weight:800; color:var(--main,#1e3a5f); }
+#toolFullscreen .news-reader-meta { font-size:13px; color:var(--secondary,#64748b); line-height:1.7; }
+#toolFullscreen .news-reader-meta .news-reader-sep { margin:0 8px; opacity:.5; }
+#toolFullscreen .news-reader-body { font-size:17px; line-height:1.85; color:var(--text,#1f2937); max-width:42em; margin:0 auto; word-break:break-word; overflow-wrap:anywhere; }
+#toolFullscreen .news-reader-body p { margin:0 0 1.1em; }
+#toolFullscreen .news-reader-body h2 { margin:1.6em 0 .7em; font-size:1.25em; line-height:1.4; color:var(--main,#1e3a5f); }
+#toolFullscreen .news-reader-body h3 { margin:1.4em 0 .6em; font-size:1.12em; line-height:1.4; color:var(--main,#1e3a5f); }
+#toolFullscreen .news-reader-body h4 { margin:1.2em 0 .5em; font-size:1.02em; }
+#toolFullscreen .news-reader-body ul, #toolFullscreen .news-reader-body ol { margin:0 0 1.1em; padding-left:1.5em; }
+#toolFullscreen .news-reader-body li { margin:0 0 .45em; }
+#toolFullscreen .news-reader-body blockquote { margin:0 0 1.1em; padding:.4em 0 .4em 1em; border-left:3px solid var(--main,#1e3a5f); color:var(--secondary,#475569); background:var(--surface-muted,rgba(0,0,0,.03)); border-radius:0 8px 8px 0; }
+#toolFullscreen .news-reader-body strong { font-weight:700; color:var(--text,#111827); }
+#toolFullscreen .news-reader-body a { color:var(--main,#2563eb); }
+#toolFullscreen .news-reader-body hr { border:none; border-top:1px solid var(--border,#e5e7eb); margin:1.6em 0; }
+#toolFullscreen .news-reader-body code { background:var(--surface-muted,#f1f5f9); padding:.1em .35em; border-radius:4px; font-size:.92em; }
+#toolFullscreen .news-reader-bar { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; padding:16px 0 4px; margin-top:10px; border-top:1px solid var(--border,#e5e7eb); }
+
+/* 深色皮肤 */
+body.skin-dark #toolFullscreen .news-reader-back { color:#93c5fd; }
+body.skin-dark #toolFullscreen .news-reader-h1 { color:#93c5fd; }
+body.skin-dark #toolFullscreen .news-reader-meta { color:#94a3b8; }
+body.skin-dark #toolFullscreen .news-reader-body { color:#e5e7eb; }
+body.skin-dark #toolFullscreen .news-reader-body strong { color:#f1f5f9; }
+body.skin-dark #toolFullscreen .news-reader-body h2,
+body.skin-dark #toolFullscreen .news-reader-body h3 { color:#bfdbfe; }
+body.skin-dark #toolFullscreen .news-reader-body blockquote { color:#cbd5e1; background:rgba(255,255,255,.05); border-left-color:#60a5fa; }
+body.skin-dark #toolFullscreen .news-reader-body code { background:#2d3748; }
+
+/* 神不人皮肤 */
+body.skin-shenburen #toolFullscreen .news-reader-back { color:#7c5a1e; }
+body.skin-shenburen #toolFullscreen .news-reader-h1 { color:#7c5a1e; }
+body.skin-shenburen #toolFullscreen .news-reader-meta { color:#8a7a4a; }
+body.skin-shenburen #toolFullscreen .news-reader-body { color:#2b2b2b; }
+body.skin-shenburen #toolFullscreen .news-reader-body h2,
+body.skin-shenburen #toolFullscreen .news-reader-body h3 { color:#7c5a1e; }
+body.skin-shenburen #toolFullscreen .news-reader-body blockquote { color:#5a4a1e; background:rgba(124,90,30,.06); border-left-color:#c9a94e; }
+body.skin-shenburen #toolFullscreen .news-reader-body code { background:#f3ecd4; }
+
+/* 手机端阅读模式 */
+@media (max-width: 768px) {
+  #toolFullscreen .news-reader-shell { width:100% !important; }
+  #toolFullscreen .news-reader-h1 { font-size:19px !important; }
+  #toolFullscreen .news-reader-body { font-size:16px !important; line-height:1.8 !important; }
+  #toolFullscreen .news-reader-article { padding:0 2px 8px; }
+}
+
 #toolFullscreen .tool-head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 0 16px; border-bottom:2px solid var(--border,#e5e7eb); margin-bottom:20px; }
 /* 修复：标题/题目/输入框不再直接用 --deep（暗夜/深色皮肤下 --deep 过暗，与背景几乎同色导致看不清），
    改用 --main 并加兜底色，保证所有皮肤下都有足够对比度。 */
@@ -12676,18 +12714,89 @@ document.addEventListener('pageshow', function() {
     }
   };
 
+  // 极简 Markdown 结构渲染：标题/列表/引用/加粗/分段（输入先做 HTML 转义）
+  function newsRenderArticle(src){
+    var esc = function(t){ return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+    var inline = function(t){
+      var x = esc(t);
+      x = x.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      x = x.replace(/`([^`]+)`/g, '<code>$1</code>');
+      return x;
+    };
+    var lines = String(src==null?'':src).replace(/\r\n?/g,'\n').split('\n');
+    var out = [];
+    var para = [];
+    var list = null; // 'ul' | 'ol'
+    var flushPara = function(){ if(para.length){ out.push('<p>'+inline(para.join(' '))+'</p>'); para = []; } };
+    var flushList = function(){ if(list){ out.push('</'+list+'>'); list = null; } };
+    for(var i=0;i<lines.length;i++){
+      var raw = lines[i];
+      var line = raw.replace(/\s+$/,'');
+      if(!line.trim()){ flushPara(); flushList(); continue; }
+      var m;
+      if((m = line.match(/^\s{0,3}#{1,6}\s+(.*)$/))){
+        flushPara(); flushList();
+        var lvl = Math.min(4, (line.match(/^\s{0,3}#+/)||[''])[0].trim().length);
+        if(lvl < 2) lvl = 2;
+        out.push('<h'+lvl+'>'+inline(m[1])+'</h'+lvl+'>');
+        continue;
+      }
+      if((m = line.match(/^\s{0,3}>\s?(.*)$/))){
+        flushPara(); flushList();
+        out.push('<blockquote>'+inline(m[1])+'</blockquote>');
+        continue;
+      }
+      if((m = line.match(/^\s{0,3}[-*+]\s+(.*)$/))){
+        flushPara();
+        if(list !== 'ul'){ flushList(); out.push('<ul>'); list = 'ul'; }
+        out.push('<li>'+inline(m[1])+'</li>');
+        continue;
+      }
+      if((m = line.match(/^\s{0,3}\d+[.)]\s+(.*)$/))){
+        flushPara();
+        if(list !== 'ol'){ flushList(); out.push('<ol>'); list = 'ol'; }
+        out.push('<li>'+inline(m[1])+'</li>');
+        continue;
+      }
+      if(/^\s{0,3}(-{3,}|\*{3,}|_{3,})\s*$/.test(line)){
+        flushPara(); flushList(); out.push('<hr>'); continue;
+      }
+      para.push(line.trim());
+    }
+    flushPara(); flushList();
+    return out.join('');
+  }
+
   function renderNewsReader(){
     var r = root(); if(!r) return;
     var esc = function(t){ return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+    // 优先展示 AI 简化结果；没有则展示原始正文稿
+    var bodySrc = (newsState.result && String(newsState.result).trim()) ? newsState.result : (newsState.text || '');
+    var isAi = !!(newsState.result && String(newsState.result).trim());
+    // 标题：取正文首个非空行，去掉常见 Markdown 标记，截断
+    var title = '';
+    var srcLines = String(bodySrc||'').replace(/\r\n?/g,'\n').split('\n');
+    for(var i=0;i<srcLines.length;i++){
+      var t = srcLines[i].replace(/^\s{0,3}#{1,6}\s+/,'').replace(/^\s{0,3}[-*+]\s+/,'').trim();
+      if(t){ title = t; break; }
+    }
+    if(!title) title = '📰 新闻正文';
+    if(title.length > 60) title = title.substring(0,60) + '…';
+    var dateStr = newsState.date || '';
+    var statusStr = isAi ? '已 AI 简化' : '原始正文';
+    var meta = '来源：本地' + (dateStr ? '<span class="news-reader-sep">·</span>' + esc(dateStr) : '') + '<span class="news-reader-sep">·</span>' + statusStr;
     r.innerHTML =
-      '<div class="tool-shell news-shell">'+
-        '<div class="news-reader-wrap">'+
-          '<div class="news-reader-head">'+
-            '<div class="news-reader-title">📰 新闻正文稿</div>'+
-            '<button class="btn btn-outline" onclick="newsCloseReader()">← 返回</button>'+
-          '</div>'+
-          '<textarea id="newsReaderText" class="news-reader-text" oninput="newsReaderInput(this)" placeholder="正文内容…">'+esc(newsState.text||'')+'</textarea>'+
+      '<div class="tool-shell news-shell news-reader-shell">'+
+        '<div class="news-reader-topbar">'+
+          '<button class="news-reader-back" onclick="newsCloseReader()">← 返回</button>'+
         '</div>'+
+        '<article class="news-reader-article">'+
+          '<header class="news-reader-header">'+
+            '<h1 class="news-reader-h1">'+esc(title)+'</h1>'+
+            '<div class="news-reader-meta">'+meta+'</div>'+
+          '</header>'+
+          '<div class="news-reader-body">'+newsRenderArticle(bodySrc)+'</div>'+
+        '</article>'+
         '<div class="news-reader-bar">'+
           '<button class="btn btn-primary" onclick="newsReaderSaveRaw()">💾 保存正文</button>'+
           '<button class="btn btn-outline" onclick="newsReaderSimplify()">🤖 AI 简化</button>'+
