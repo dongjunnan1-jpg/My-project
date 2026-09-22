@@ -12652,6 +12652,11 @@ document.addEventListener('pageshow', function() {
     if(st){ st.style.color = ''; st.textContent = '已填入 ' + d + ' 链接，点「抓取正文」'; }
   };
 
+  // 用户手动设置新闻日期（输入框 onchange）
+  window.newsSetPubDate = function(v){
+    newsState.publishDate = String(v||'').trim();
+  };
+
   function newsEscHtml(t){
     return String(t||'')
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
@@ -12868,6 +12873,10 @@ document.addEventListener('pageshow', function() {
         // ── ③ 新闻正文 ──
         '<div style=""+card+"">'+
           '<div style=""+sec_title+"">📄 新闻正文</div>'+
+          '<div style="margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
+            '<span class="tool-muted" style="font-size:13px">📅 新闻日期</span>'+
+            '<input type="date" id="newsPubDate" class="tool-input" style="font-size:13px;padding:5px 8px" value="'+newsEscHtml(newsState.publishDate||newsToday())+'" onchange="newsSetPubDate(this.value)" title="这条新闻是哪天的（默认今天，可改）">'+
+          '</div>'+
           '<div style="margin-bottom:8px"><label style="display:inline-block;padding:7px 14px;border:1px solid #60a5fa;border-radius:6px;color:#60a5fa;cursor:pointer;font-size:13px">📎 上传文件（txt/md/pdf/docx）<input type="file" id="newsFile" accept=".txt,.md,.markdown,.pdf,.docx" style="display:none" onchange="newsHandleFile(this)"></label><span id="newsFileStatus" class="tool-muted" style="margin-left:10px;font-size:12px"></span><button class="btn btn-outline" style="margin-left:10px" onclick="newsOpenReader()">📖 阅读</button></div>'+
           '<textarea id="newsText" class="tool-input" style="width:100%;min-height:180px;text-align:left;font-size:14px;box-sizing:border-box" placeholder="抓取或粘贴的新闻稿全文会出现在这里…">'+String(newsState.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</textarea>'+
         '</div>'+
