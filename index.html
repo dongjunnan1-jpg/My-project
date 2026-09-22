@@ -1653,6 +1653,11 @@ body.skin-dark .ms-record-time { color:#94a3b8 !important; }
 #toolFullscreen .news-shell .news-quick { text-align:center; line-height:2; }
 #toolFullscreen .news-shell .tool-muted { text-align:center; }
 
+/* ===== 滚动穿透修复（2026-09-22）：面板打开时锁背景 + 防滚动链 ===== */
+#toolFullscreen { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+body.tool-fs-open { overflow: hidden !important; position: fixed !important; width: 100% !important; }
+#newsHistory { max-height: 60vh; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+
 /* ===== 手机端（<=768px）新闻面板优化：只影响手机，电脑端不动 ===== */
 @media (max-width: 768px) {
   /* 面板撑满可用宽度，去掉 680 死宽 */
@@ -13632,6 +13637,30 @@ document.addEventListener('touchend', function(){
   }
 
   updateVisibility();
+})();
+</script>
+<script>
+/* news-scrollfix-js-20260922 */
+(function(){
+  if(window.__newsScrollFixJS) return;
+  window.__newsScrollFixJS = true;
+  function sync(){
+    var fs = document.getElementById("toolFullscreen");
+    if(!fs) return;
+    var visible = fs.style.display !== "none" && getComputedStyle(fs).display !== "none";
+    if(visible) document.body.classList.add("tool-fs-open");
+    else document.body.classList.remove("tool-fs-open");
+  }
+  var _o = window.openToolFullscreen;
+  if(typeof _o === "function"){
+    window.openToolFullscreen = function(){ var r=_o.apply(this,arguments); setTimeout(sync,0); return r; };
+  }
+  var _c = window.closeToolFullscreen;
+  if(typeof _c === "function"){
+    window.closeToolFullscreen = function(){ var r=_c.apply(this,arguments); setTimeout(sync,0); return r; };
+  }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", sync);
+  else sync();
 })();
 </script>
 </body>
