@@ -2,5 +2,7 @@ node_modules/
 .DS_Store
 My project.code-workspace
 辅助工具/
-.DS_Store
-node_modules/
+
+# 本地回退备份（保留在磁盘，不纳入版本控制）
+*.bak-*
+index.html.bak*
