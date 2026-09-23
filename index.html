@@ -3131,11 +3131,19 @@ function renderProgressPanel(){
 // ============================================================
 function detectZone(name){
   const n=name.toLowerCase();
+  // 顺序即优先级，命中即返回。改这条链前先想清楚「谁该盖过谁」。
+  // 综应/申论/面试放最前：这三类是**主观题格式**（走 _essay 试卷壳渲染），
+  //   一旦被判成别的分区就拿不到对应的渲染路径，会显示不出题。
   if(/综应|综合应用|zongying/.test(n)) return 'zy';
   if(/申论|shenlun/.test(n)) return 'sl';
   if(/面试/.test(n)) return 'ms';
-  if(/国考|省考|行测|xingce/.test(n)) return 'gk';
+  // [FIX 20260923-v6] 「模拟题/模考」提到「国考/省考/行测」之前。
+  //   原顺序下 `国考模拟题` 会被 /国考|省考|行测/ 先截住 → 进 gk，
+  //   而 `事业单位模拟题` 因为「事业单位」排在「模拟」之后才进 mk ——
+  //   同一个「模拟题」落点却由正则顺序决定，不合理。
+  //   现在规则统一为：**模拟卷一律进模考(mk)；真题仍按科目进各自分区**。
   if(/模考|模拟/.test(n)) return 'mk';
+  if(/国考|省考|行测|xingce/.test(n)) return 'gk';
   if(/事业单位|职测|syzc/.test(n)) return 'sy';
   // [FIX 20260923-v3] 粉笔按年份拆分文件：粉笔_2023年_6850题.json（无'模考'字样）
   if(/粉笔.*\d{4}年|粉笔[_-]?\d{4}/.test(name)) return 'mk';
