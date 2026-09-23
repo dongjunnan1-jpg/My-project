@@ -5050,6 +5050,61 @@ function fixProtocols(s){
   return s.replace(/src=["']file:\/\/+\/?([^"']*)["']/g, 'src="https://$1"')
           .replace(/src=["']\/\/([^"']*)["']/g, 'src="https://$1"');
 }
+// ============================================================
+// 材料兜底：原始导出（如粉笔 CDN 直出）里题目只有整卷材料 _materials，没有单题 material。
+// 这里用「6字连续短语重合 + 多位数/小数重合」选出与本题最匹配的那一段材料，
+// 避免整卷材料里第一段被误当成该题材料（那是旧版转换脚本的老毛病）。
+// 注意：证据不足时宁可不显示，也不显示错误材料。
+function materialFeature(text){
+  var t=String(text||'').replace(/<[^>]+>/g,' ');
+  var grams={};
+  var chunks=t.match(/[\u4e00-\u9fff]+/g)||[];
+  for(var i=0;i<chunks.length;i++){
+    var c=chunks[i];
+    for(var j=0;j+6<=c.length;j++){ var g=c.substr(j,6); grams[g]=(grams[g]||0)+1; }
+  }
+  // 数字证据：按「有效位数」赋权。'0.5' '1.2' 这类极短小数在任何报表材料里都随处可见，
+  // 若一律按「小数=高分」处理，单靠一个 0.5 就能把无关材料贴到数量关系题上。
+  var nums={};
+  var ns=t.match(/\d+(?:\.\d+)?/g)||[];
+  for(var k=0;k<ns.length;k++){
+    var n=ns[k], w;
+    if(n.indexOf('.')>=0){ var d=n.length-1; w = d>=3 ? 20 : (d===2 ? 4 : 1); }
+    else if(n.length>=5) w=8;
+    else if(n.length===4) w=2;
+    else w=0;
+    if(w) nums[n]=Math.max(nums[n]||0,w);
+  }
+  return {grams:grams, nums:nums};
+}
+function pickMaterialForQuestion(item){
+  try{
+    if(item.material && item.material.content) return item.material;
+    var list=Array.isArray(item._materials)?item._materials:[];
+    if(!list.length) return null;
+    if(list.length===1) return list[0];
+    var qf=materialFeature((item.content||'')+' '+(item.solution||'')+' '+JSON.stringify(item.accessories||[]));
+    var best=null, bestScore=0, bestGrams=0, bestHeavy=0;
+    for(var i=0;i<list.length;i++){
+      var m=list[i];
+      if(!m || !m.content) continue;
+      var mf=materialFeature(m.content), s=0, g=0, h=0, k;
+      for(k in qf.grams){ if(mf.grams[k]){ s+=Math.min(qf.grams[k], mf.grams[k]); g++; } }
+      for(k in qf.nums){ if(mf.nums[k]!==undefined){ s+=qf.nums[k]; if(qf.nums[k]>=4) h++; } }
+      if(s>bestScore){ bestScore=s; best=m; bestGrams=g; bestHeavy=h; }
+    }
+    if(bestScore<30) return item.material||null;
+    // 证据构成门槛：至少命中 1 个 6 字短语，或 ≥2 个「有分量」的数字，避免单点噪声误配
+    if(bestGrams===0 && bestHeavy<2) return item.material||null;
+    return best;
+  }catch(e){ return item.material||null; }
+}
+// 生成材料区 HTML：优先单题 material；缺失时尝试从 _materials 里挑最匹配的一段
+function materialHtmlOf(item){
+  var m=pickMaterialForQuestion(item);
+  if(!m || !m.content) return '';
+  return '<div class="q-material">'+fixProtocols(m.content)+'</div>';
+}
 // 统一图片处理：normalize 协议 → forceJpegUrl → 代理兜底。__imgFixed 防重复处理。
 function fixImg(im){
   if(!im || im.__imgFixed) return;
@@ -6029,8 +6084,7 @@ function renderReviewQuestions(){
     const correctLetters=normalizeAnswerLetters(correctLetter);
     const contentHtml=fixProtocols(item.content||'');
     const solutionHtml=fixProtocols(item.solution||'');
-    let materialHtml='';
-    if(item.material && item.material.content){ materialHtml='<div class="q-material">'+fixProtocols(item.material.content)+'</div>'; }
+    let materialHtml=materialHtmlOf(item);
     html+='<div class="question visible" id="q-'+key+'"><div class="q-title">第 '+(i+1)+' 题 <span class="q-source">🔄 复盘 · '+escapeHtml(item.source||'')+'</span></div>';
     if(materialHtml) html+=materialHtml;
     html+='<div class="q-content">'+contentHtml+'</div>';
@@ -6262,8 +6316,7 @@ function renderQuestions(){
     // 图片协议字符串级修复 + 资料分析材料
     const contentHtml = fixProtocols(item.content||'');
     const solutionHtml = fixProtocols(solution);
-    let materialHtml = '';
-    if(item.material && item.material.content){ materialHtml = '<div class="q-material">'+fixProtocols(item.material.content)+'</div>'; }
+    let materialHtml = materialHtmlOf(item);
     html+=`<div class="question visible" id="q-${key}"><div class="q-title">第 ${i+1} 题 <button type="button" class="q-speak-btn" data-key="${key}" onclick="speakQuestion('${key}', this);event.stopPropagation();" title="朗读题目" aria-label="朗读题目">🔊</button> 📊 ${ratio.toFixed(2)}% ${badge} <span class="q-source">${source}</span> <span class="q-fav" data-key="${key}" onclick="event.stopPropagation();toggleFavorite('${key}')" title="收藏/取消收藏">${favStar}</span></div>`;
     if(materialHtml) html+=materialHtml;
     html+=`<div class="q-content">${contentHtml}</div>`;
