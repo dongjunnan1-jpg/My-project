@@ -3137,6 +3137,8 @@ function detectZone(name){
   if(/国考|省考|行测|xingce/.test(n)) return 'gk';
   if(/模考|模拟/.test(n)) return 'mk';
   if(/事业单位|职测|syzc/.test(n)) return 'sy';
+  // [FIX 20260923-v3] 粉笔按年份拆分文件：粉笔_2023年_6850题.json（无'模考'字样）
+  if(/粉笔.*\d{4}年|粉笔[_-]?\d{4}/.test(name)) return 'mk';
   return '';
 }
 const ESSAY_PROVINCES = ['国考','安徽','北京','福建','甘肃','广东','广西','贵州','海南','河北','河南','黑龙江','湖北','湖南','吉林','江苏','江西','辽宁','内蒙古','宁夏','青海','山东','山西','陕西','上海','四川','天津','新疆','云南','浙江','重庆','广州','深圳','联考'];
@@ -3779,7 +3781,13 @@ function handleFiles(fileListArr){
 
         // ★ 综应原生格式：{ part, questions:[...], materialsByPaper:{...} }
         //   每题自带 _paperName / _paperId / _materials，直接把每题当一套"试卷"
-        if(!essayPapers && raw && typeof raw === 'object' && Array.isArray(raw.questions)){
+        var __mzPre = (typeof zoneSelect !== 'undefined' && zoneSelect && zoneSelect.value) ? zoneSelect.value : '';
+        var __zoneChosenExplicitly = (__mzPre && __mzPre !== 'auto');
+        // [FIX 20260923-v2] 用户显式选分区(如mk)时不走综应启发式识别
+        // [FIX 20260923-v4] auto 时：仅当 detectZone 判定为 zy(综应) 才走综应改写；
+        //   否则（mk/gk/sl 等）保持原始题目结构，避免把行测模考包装成综应试卷壳导致渲染不出题目
+        var __dz4 = detectZone(file.name);
+        if(__dz4==='zy' && !__zoneChosenExplicitly && !essayPapers && raw && typeof raw === 'object' && Array.isArray(raw.questions)){
           const looksLikeZy = raw.questions.some(function(q){
             return q && typeof q === 'object' &&
               (q._paperName !== undefined || q._paperId !== undefined || Array.isArray(q._materials));
@@ -3817,11 +3825,23 @@ function handleFiles(fileListArr){
         }
         const mz=zoneSelect.value, mm=moduleSelect.value;
         // 申论/综应：显式选 zy 走综应；选 auto 时按文件名识别（综应/综合应用 → zy，否则 sl）
-        let zone = isEssay ? (mz==='zy' ? 'zy' : (mz==='auto' ? (detectZone(file.name)==='zy' ? 'zy' : 'sl') : 'sl')) : (mz==='auto' ? detectZone(file.name) : mz);
+        // [FIX 20260923] 显式选择的分区优先于启发式判定；仅 auto 时走自动识别
+        //   原逻辑：isEssay 时选 mk/sl/ms 等非 zy 非 auto 一律强制成 sl（申论），导致选 mk 也进申论
+        const zoneExplicit = (mz && mz !== 'auto');
+        // [FIX 20260923-v3] auto 时：先让 detectZone 识别；识别不到再按 isEssay 兜底
+        let zone = zoneExplicit ? mz
+          : (function(){
+              var dz = detectZone(file.name);
+              if(dz) return dz;
+              return isEssay ? (detectZone(file.name)==='zy' ? 'zy' : 'sl') : dz;
+            })();
         if(!zone) zone = activeZone;
         const isMianShi = zone === 'ms';
         if(isMianShi) questions.forEach(function(q){ if(q && typeof q==='object') q._interview=true; });
-        let module = isEssay ? (zone==='zy' ? '综应' : '申论') : (isMianShi ? '面试' : (mm==='auto' ? detectModule(file.name, questions) : mm));
+        // [FIX 20260923-v2] isEssay 仅在 zone 真为 zy/sl 时决定模块名
+        let module = (isEssay && zone==='zy') ? '综应'
+                   : (isEssay && zone==='sl') ? '申论'
+                   : (isMianShi ? '面试' : (mm==='auto' ? detectModule(file.name, questions) : mm));
         if(!module) module = '常识判断';
         const id=genId();
         const exist=index[zone].find(x=>x.fileName===file.name);
