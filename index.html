@@ -3818,7 +3818,8 @@ function handleFiles(fileListArr){
 
         const isEssay=Array.isArray(essayPapers);
         // 兼容多种题库 JSON 结构：纯数组 / {questions:[...]} / {categories:[...]}
-        const questions=isEssay ? essayPapers : normalizeQuestions(raw);
+        // 注：用 let 是因为 addNew() 内会按 _qid 做题级去重后重新赋值
+        let questions=isEssay ? essayPapers : normalizeQuestions(raw);
         if(!questions || !Array.isArray(questions) || questions.length===0){
           alert('数据格式错误：无法识别的 JSON 结构（'+file.name+'）。\n\n支持的格式：\n· 含 questions 数组的对象：{ "questions": [...] }\n· 含 categories 数组的对象：{ "categories": [...] }\n· 纯题目数组：[ ... ]');
           return;
@@ -3881,6 +3882,92 @@ function handleFiles(fileListArr){
                   q._qid = generateQuestionId(q);
               }
           });
+
+          // ============================================================
+          // ★ 题级去重（2026-09-23）：同一道题在本分区内只保留一份
+          //   判据是「题目身份键」= _qid + 材料指纹（见 questionIdentityKey），
+          //   **与文件名无关**。
+          //   为什么不只用 _qid：_qid 只取「题干前100字 + 前4选项 + 答案」，不含材料。
+          //   资料分析/篇章阅读的题干高度雷同（如"根据上述材料，以下说法正确的是："），
+          //   仅凭 _qid 会把不同卷的不同题误判成同一道（实测 585 题里就有 14 处）。
+          //   加上材料指纹后即可正确区分。
+          //   · 身份键相同、内容完全一致   → 跳过，不再重复写入
+          //   · 身份键相同、内容有更新     → 用新内容刷新已有记录，**做题进度原样保留**
+          //     （进度 key = 'f'+文件ID+'_q'+序号；刷新只改题对象、不换文件与序号，
+          //       所以 answered / 收藏 / 错题 / 心得都不受影响）
+          //   · _essay（综应/申论整卷）不参与去重：保护试卷与材料的关联结构
+          //   · 只在同一分区内去重：模考/公考等分区仍各自独立保留
+          //   · 覆盖同名文件时旧记录已先行删除，不会命中自己，覆盖后即为最新内容
+          // ============================================================
+          var dedupSkipped = 0, dedupRefreshed = 0;
+          if(!isEssay){
+            // 1) 扫一遍本分区已有题目，建立 身份键 → [{文件id, 序号}] 索引
+            var idKeyMap = {};
+            Object.keys(db[zone]||{}).forEach(function(fid){
+              var f = db[zone][fid];
+              if(!f || !Array.isArray(f.questions)) return;
+              for(var i=0;i<f.questions.length;i++){
+                var oq = f.questions[i];
+                var ikey = questionIdentityKey(oq);
+                if(!ikey) continue;
+                if(!idKeyMap[ikey]) idKeyMap[ikey] = [];
+                idKeyMap[ikey].push({ fid:fid, oi:i });
+              }
+            });
+            // 2) 过滤本次导入的题目：与库中重复的不再写入（内容有变则刷新旧记录）
+            var touchedFiles = {}, seenKey = {}, keptQuestions = [];
+            questions.forEach(function(q){
+              if(!q || q._essay){ keptQuestions.push(q); return; }
+              var k = questionIdentityKey(q);
+              if(!k){ keptQuestions.push(q); return; }         // 身份不明 → 不参与去重
+              var hits = idKeyMap[k];
+              if(!hits){
+                if(seenKey[k]){ dedupSkipped++; return; }      // 同一批文件内部重复
+                seenKey[k] = true;
+                keptQuestions.push(q);
+                return;
+              }
+              var sigNew = questionContentSig(q);
+              hits.forEach(function(h){
+                var f = db[zone][h.fid]; if(!f) return;
+                var oq = f.questions[h.oi]; if(!oq) return;
+                if(questionContentSig(oq) === sigNew) return;   // 完全相同，无需刷新
+                var merged = {};
+                Object.keys(q).forEach(function(kk){ merged[kk] = q[kk]; });
+                Object.keys(oq).forEach(function(kk){ if(kk.charAt(0)==='_') merged[kk] = oq[kk]; });
+                merged._qid = q._qid;
+                f.questions[h.oi] = merged;
+                touchedFiles[h.fid] = true;
+                dedupRefreshed++;
+              });
+              seenKey[k] = true;
+              dedupSkipped++;
+            });
+            // 3) 刷新过的旧文件落盘（题目数量没变，index 里的 count 无需改动）
+            if(dedupRefreshed){
+              Object.keys(touchedFiles).forEach(function(fid){ saveFile(zone, fid); });
+            }
+            // 4) 结果反馈：全部重复时不建空壳文件，部分重复时给出明细
+            if(dedupSkipped || dedupRefreshed){
+              var __dupTail = dedupRefreshed
+                ? ('\n· 其中 '+dedupRefreshed+' 条已有记录已用本次的新内容刷新（做题进度保留）')
+                : '';
+              if(keptQuestions.length === 0){
+                // 注意：若本次是「覆盖同名文件」，旧记录已在进入 addNew 前从 db/index 中删除，
+                //   这里必须把 index 落盘，否则刷新页面后会出现「已删文件的幽灵记录」
+                //   （idx 里还留着它、但 file:zone:id 已被 idbDel 清掉）。
+                try{ saveIndex(); }catch(e){}
+                alert('「'+file.name+'」中的 '+dedupSkipped+' 道题已存在于分区「'+zoneName(zone)+'」中，'
+                  + (dedupRefreshed ? ('其中 '+dedupRefreshed+' 条已用本次的新内容刷新。') : '内容与库中完全一致。')
+                  + '\n\n为避免重复，本次未新增文件。');
+                return;
+              }
+              var __dupMsg = '「'+file.name+'」导入完成：\n\n· 新增 '+keptQuestions.length+' 题'
+                + '\n· 已存在 '+dedupSkipped+' 题（未重复写入，题库内仍只有一份）' + __dupTail;
+              setTimeout(function(){ alert(__dupMsg); }, 600);
+            }
+            questions = keptQuestions;
+          }
           
           const obj={ id, fileName:file.name, zone, module, uploadTime:Date.now(), size:file.size, questions:questions, answered:{} };
           db[zone][id]=obj;
@@ -7158,6 +7245,62 @@ function generateQuestionId(q){
   }
   
   return 'q_' + Math.abs(hash).toString(36);
+}
+
+// ============================================================
+// 题目「身份键」（供导入去重判断"是不是同一道题"）
+// ------------------------------------------------------------
+// 优先级：
+//   1) 粉笔官方题目 id（q.id）—— 全局唯一，同一道题在任何版本/任何文件里都一致
+//      实测用户 52,991 题全部有 id 且互不重复，用它去重不会误删；
+//      而换用 _qid 会误删 475 题（题干雷同导致哈希撞车），所以必须优先用 id。
+//   2) 回退：_qid + 材料指纹
+//      · _qid 只含「题干前100字 + 前4选项 + 答案」，**不含材料**
+//      · 资料分析/篇章阅读题题干高度雷同（如「根据上述材料，以下说法正确的是：」），
+//        不同卷的不同题会得到同一个 _qid（实测某个 585 题的模考文件里有 14 处）
+//      · 因此回退时必须把材料（material.id + material.content）并入，避免误合并
+// 返回空串表示"身份不明"（该题不参与去重，原样保留）。
+// ============================================================
+function questionIdentityKey(q){
+  if(!q || typeof q!=='object') return '';
+  if(q.id!==undefined && q.id!==null && q.id!=='') return 'i' + q.id;
+  if(!q._qid) return '';
+  var m = q.material;
+  return 'q' + q._qid + '\u0001' + (m ? (String(m.id||'') + '\u0002' + String(m.content||'')) : '');
+}
+
+// ============================================================
+// 题目「可见内容」指纹（供导入去重时判断新题是否带来了内容变化）
+// ------------------------------------------------------------
+// 背景：_qid 只由「题干前100字 + 前4选项 + 答案」哈希而来，
+//   材料(material)、解析、正确率、难度、分类等字段**不参与**，
+//   所以同一道题的"修复版/权威版/分类修正版" _qid 完全相同。
+//   若仅凭 _qid 就跳过，修正过的内容将永远进不来。
+// 做法：把展示给用户、影响作答的字段序列化成指纹做比对：
+//   · 指纹相同 → 视作完全重复，跳过
+//   · 指纹不同 → 用新内容刷新已有记录（做题进度不动）
+// 注意：只取内容字段，**不含 _ 开头的运行时字段**（缓存/标记等）。
+// ============================================================
+function questionContentSig(q){
+  if(!q || typeof q!=='object') return '';
+  try{
+    return JSON.stringify([
+      q.content || q.question || '',
+      q.material || null,
+      q.materials || null,
+      getOptions(q),
+      getCorrectLetter(q),
+      q.answer || '', q.correctAnswer || '',
+      q.analysis || q.solution || '',
+      q.bigCategory || '', q.subCategory || '', q.leafCategory || '', q.category || '',
+      q.keypoints || null,
+      q.questionMeta || null,
+      q.correctRatio || '', q.difficulty || ''
+    ]);
+  }catch(e){
+    // 遇到无法序列化的结构时，返回唯一值 → 按"有更新"处理（宁可刷新，不可漏更新）
+    return '__sig_error__' + Math.random();
+  }
 }
 
 // ============================================================
