@@ -3783,10 +3783,17 @@ function handleFiles(fileListArr){
         //   每题自带 _paperName / _paperId / _materials，直接把每题当一套"试卷"
         var __mzPre = (typeof zoneSelect !== 'undefined' && zoneSelect && zoneSelect.value) ? zoneSelect.value : '';
         var __zoneChosenExplicitly = (__mzPre && __mzPre !== 'auto');
+        // [NEW 20260923-v5] JSON 可自带分区意图：顶层 _zone（如 "mk"）。
+        //   只在「自动识别」时生效；用户在下方下拉框显式选的分区**优先于**它。
+        //   用途：导出脚本明确指定这批题归哪个分区，不必依赖文件名命中的正则顺序。
+        //   老文件没有 _zone → 取值 ''，行为与改动前完全一致。
+        var __hintZone = (raw && typeof raw==='object' && !Array.isArray(raw)
+                          && typeof raw._zone==='string'
+                          && ZONE_IDS.indexOf(raw._zone)!==-1) ? raw._zone : '';
         // [FIX 20260923-v2] 用户显式选分区(如mk)时不走综应启发式识别
         // [FIX 20260923-v4] auto 时：仅当 detectZone 判定为 zy(综应) 才走综应改写；
         //   否则（mk/gk/sl 等）保持原始题目结构，避免把行测模考包装成综应试卷壳导致渲染不出题目
-        var __dz4 = detectZone(file.name);
+        var __dz4 = __hintZone || detectZone(file.name);
         if(__dz4==='zy' && !__zoneChosenExplicitly && !essayPapers && raw && typeof raw === 'object' && Array.isArray(raw.questions)){
           const looksLikeZy = raw.questions.some(function(q){
             return q && typeof q === 'object' &&
@@ -3830,12 +3837,13 @@ function handleFiles(fileListArr){
         //   原逻辑：isEssay 时选 mk/sl/ms 等非 zy 非 auto 一律强制成 sl（申论），导致选 mk 也进申论
         const zoneExplicit = (mz && mz !== 'auto');
         // [FIX 20260923-v3] auto 时：先让 detectZone 识别；识别不到再按 isEssay 兜底
+        // [NEW 20260923-v5] JSON 自带的 _zone 提示（__hintZone）优先于文件名识别
         let zone = zoneExplicit ? mz
-          : (function(){
+          : (__hintZone || (function(){
               var dz = detectZone(file.name);
               if(dz) return dz;
               return isEssay ? (detectZone(file.name)==='zy' ? 'zy' : 'sl') : dz;
-            })();
+            })());
         if(!zone) zone = activeZone;
         const isMianShi = zone === 'ms';
         if(isMianShi) questions.forEach(function(q){ if(q && typeof q==='object') q._interview=true; });
