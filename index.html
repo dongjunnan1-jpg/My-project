@@ -2297,6 +2297,10 @@ body.skin-dark .new-chat-detail-note-title { color:#fbbf24; }
             <option value="default">🔀 默认顺序</option>
             <option value="ratioDesc">正确率从高到低</option>
             <option value="ratioAsc">正确率从低到高</option>
+            <option value="range0_40">📉 正确率 0-40%</option>
+            <option value="range41_60">📊 正确率 41-60%</option>
+            <option value="range61_80">📈 正确率 61-80%</option>
+            <option value="range81_100">🏆 正确率 81-100%</option>
         </select> <select id="moduleFilter"><option value="all">📂 全部模块</option></select> <select id="subTypeFilter"><option value="all">🏷️ 全部话题</option></select> <select id="leafTypeFilter"><option value="all">📋 全部细分题型</option></select> <button class="btn btn-outline" onclick="clearFilters()">✕ 清除筛选</button>
         <label class="ratio-label">正确率
             <input type="number" id="minRatioInput" min="0" max="100" placeholder="0" class="ratio-input"> ~
@@ -2407,6 +2411,54 @@ let filterState = {
   module:'all', year:'all', province:'all', source:'all', subType:'all', leafType:'all', search:'',
   status:'all', sortBy:'default', minRatio:'', maxRatio:''
 };
+
+// ============================================================
+// 正确率区间筛选
+// 区间值同样是复用 filterState.sortBy 承载（即 sortBy 既可以是 default/ratioDesc/ratioAsc，
+// 也可以是 range*），因此不新增任何筛选状态字段。
+// 区间为左开右闭，避免边界重复：0-40 含 0 与 40；41-60 为 (40,60]；61-80 为 (60,80]；81-100 为 (80,100]
+// ============================================================
+var RATIO_RANGE_DEFS = [
+  { value:'range0_40',   label:'📉 正确率 0-40%',   min:0,  max:40,  test:function(r){ return r>=0  && r<=40;  } },
+  { value:'range41_60',  label:'📊 正确率 41-60%',  min:40, max:60,  test:function(r){ return r>40 && r<=60;  } },
+  { value:'range61_80',  label:'📈 正确率 61-80%',  min:60, max:80,  test:function(r){ return r>60 && r<=80;  } },
+  { value:'range81_100', label:'🏆 正确率 81-100%', min:80, max:100, test:function(r){ return r>80 && r<=100; } }
+];
+// 取区间定义；非区间值（default / ratioDesc / ratioAsc）返回 null
+function getRatioRangeDef(sortBy){
+  if(!sortBy) return null;
+  for(var i=0;i<RATIO_RANGE_DEFS.length;i++){ if(RATIO_RANGE_DEFS[i].value===sortBy) return RATIO_RANGE_DEFS[i]; }
+  return null;
+}
+function isRatioRangeMode(sortBy){ return !!getRatioRangeDef(sortBy); }
+// 题目正确率：缺失 / undefined / null / 非数字统一按 0 处理（与原手动范围筛选口径保持一致）；
+// 越界值钳到 [0,100]，保证任何题目都恰好落在其中一个区间里（四个区间的题数合计恒等于题目总数）。
+function getRatioValue(q){
+  var n=q ? Number(q.correctRatio||0) : 0;
+  if(isNaN(n)) return 0;
+  if(n<0) return 0;
+  if(n>100) return 100;
+  return n;
+}
+// mk 分区切换模块 / 话题 / 细分题型时会重置排序为「默认顺序」；
+// 但正确率区间属于【筛选条件】而非排序方式，应保留下来与模块取交集，
+// 因此这里只在「非区间模式」时重置，并把下拉框显示同步成 filterState 的当前值。
+function resetSortByOnScopeChange(){
+  if(activeZone === 'mk' && !isRatioRangeMode(filterState.sortBy)){
+    filterState.sortBy = 'default';
+  }
+  syncSortFilterValue();
+}
+// 让 #sortFilter 的选中值与 filterState.sortBy 始终一致；该值已不在选项中时回落到默认顺序
+function syncSortFilterValue(){
+  if(!sortFilter) return;
+  var target = filterState.sortBy || 'default';
+  var exists = false;
+  for(var i=0;i<sortFilter.options.length;i++){ if(sortFilter.options[i].value===target){ exists=true; break; } }
+  if(!exists) target = 'default';
+  sortFilter.value = target;
+  filterState.sortBy = target;
+}
 
 // 错题集 / 收藏 / 每日任务 / 考试日期（均持久化到 IndexedDB）
 let wrongSet = { gk:{}, mk:{}, sy:{}, sl:{}, zy:{}, ms:{} };
@@ -4373,7 +4425,7 @@ function renderModuleBar(){
       filterState.module = this.dataset.module;
       filterState.subType = 'all';
       filterState.leafType = 'all';
-      if (activeZone === 'mk') filterState.sortBy = 'default';
+      resetSortByOnScopeChange();
       currentPage = 1;
       saveView();
       window.updateSubTypeFilter();
@@ -4480,6 +4532,8 @@ function updateFilterOptions() {
   }
     var years = new Set();
     var sourceCount = {};
+    // 正确率区间题数：统一由 refreshRatioRangeOptions() 按「除正确率区间自身以外的全部筛选」统计
+    // （函数末尾调用，保证与三级题型的联动计数口径一致）
 
     getZoneQuestions(activeZone, '__all__').forEach(function(q) {
         var src = q.source || '';
@@ -4569,6 +4623,50 @@ function updateFilterOptions() {
     window._sourceCount = sourceCount;
 
     renderSourceSuggestions();
+    refreshRatioRangeOptions();
+}
+
+// 刷新 #sortFilter 的区间选项文字（追加各区间题数），并保持/修复当前选中值
+function renderRatioRangeOptions(counts){
+  if(!sortFilter) return;
+  var html = '<option value="default">🔀 默认顺序</option>' +
+             '<option value="ratioDesc">正确率从高到低</option>' +
+             '<option value="ratioAsc">正确率从低到高</option>';
+  for(var i=0;i<RATIO_RANGE_DEFS.length;i++){
+    var n=(counts && counts[i]) || 0;
+    html += '<option value="'+RATIO_RANGE_DEFS[i].value+'">' + RATIO_RANGE_DEFS[i].label + ' (' + n + '题)</option>';
+  }
+  sortFilter.innerHTML = html;
+  // 重建 option 会丢失选中值：统一同步（该值已不存在时自动回落到默认顺序）
+  syncSortFilterValue();
+}
+
+// 统计一组题目在 4 个正确率区间上的分布：[0-40, 41-60, 61-80, 81-100]
+function countRatioRanges(qs){
+  var counts=[0,0,0,0];
+  if(!qs || !qs.length) return counts;
+  for(var i=0;i<qs.length;i++){
+    var r=getRatioValue(qs[i]);
+    for(var j=0;j<RATIO_RANGE_DEFS.length;j++){
+      if(RATIO_RANGE_DEFS[j].test(r)){ counts[j]++; break; }
+    }
+  }
+  return counts;
+}
+
+// 重新统计并刷新 #sortFilter 各区间选项后面的题数。
+// 口径：当前分区内、应用【除「正确率区间」自身以外的全部筛选】后的正确率分布 ——
+// 与三级题型（模块/话题/细分题型）的联动计数保持一致，
+// 保证「选中某区间后，列表题数 == 该区间标注的题数」。
+// 未叠加任何其它筛选时，结果等于整个分区的正确率分布。
+function refreshRatioRangeOptions(){
+  if(!sortFilter) return;
+  if(activeZone!=='gk' && activeZone!=='mk' && activeZone!=='sy') return;   // 仅这三个分区显示该下拉框
+  var savedSortBy = filterState.sortBy;
+  filterState.sortBy = 'default';        // 只排除「正确率区间」这一维，其余筛选全部保留
+  var base = getFiltered(true);          // true = 只统计集合，跳过无用的排序
+  filterState.sortBy = savedSortBy;
+  renderRatioRangeOptions(countRatioRanges(base));
 }
 function sourceMatchesProvince(source, province){
   if(!province || province==='all') return true;
@@ -4841,7 +4939,8 @@ function getSpecialQuestionType(question){
   if(Array.isArray(question.keypoints) && question.keypoints[0]) return question.keypoints[0].name||'';
   return '未分类';
 }
-function getFiltered(){
+// skipSort=true 时只做筛选不做排序（供「统计题数」这类只关心集合、不关心顺序的场景使用）
+function getFiltered(skipSort){
   let qs=getZoneQuestions(activeZone, '__all__');
   const kw=normalizeSearchText(filterState.search);
 
@@ -4860,6 +4959,7 @@ function getFiltered(){
       });
     }
     if(filterState.status==='favorite') qs=qs.filter(function(q){ return isFavorite(q._key); });
+    if(skipSort) return qs;
     return qs.sort(function(a,b){ return Number(b._paperYear||0)-Number(a._paperYear||0) || String(b._paperName||'').localeCompare(String(a._paperName||'')); });
   }
 
@@ -4870,6 +4970,7 @@ function getFiltered(){
     if(filterState.module!=='all') qs=qs.filter(function(q){ return getSpecialQuestionType(q)===filterState.module; });
     if(filterState.status==='note') qs=qs.filter(function(q){ return getQuestionNoteCount(q._key) > 0; });
     if(filterState.status==='favorite') qs=qs.filter(function(q){ return isFavorite(q._key); });
+    if(skipSort) return qs;
     return qs.sort(function(a,b){ return extractYear(b.paperName||b.source||'')-extractYear(a.paperName||a.source||''); });
   }
 
@@ -4919,16 +5020,23 @@ function getFiltered(){
   if(min>max){ const t=min; min=max; max=t; }
   if(min>0||max<100) qs=qs.filter(q=>{ const r=Number(q.correctRatio||0); return r>=min&&r<=max; });
 
+  // 正确率区间筛选：与上面的手动输入范围【叠加生效】（取交集）
+  const ratioRangeDef=getRatioRangeDef(filterState.sortBy);
+  if(ratioRangeDef) qs=qs.filter(function(q){ return ratioRangeDef.test(getRatioValue(q)); });
+
   // ====== 排序逻辑 ======
+  // 注意：sortBy 为区间值（range*）时既不等于 ratioDesc 也不等于 ratioAsc，
+  // 会自然落入下面的「默认顺序」分支 —— 即区间筛选模式下排序回退为默认顺序。
+  if (skipSort) return qs;   // 只统计集合大小、不关心顺序时跳过排序（省掉一次全量排序开销）
   if (activeZone === 'mk') {
     // ====== 只改模考分区：年份降序 → 下半年优先 → 季数降序 ======
     if (filterState.sortBy === 'ratioDesc') {
       qs.sort(function(a, b) {
-        return Number(b.correctRatio || 0) - Number(a.correctRatio || 0);
+        return getRatioValue(b) - getRatioValue(a);
       });
     } else if (filterState.sortBy === 'ratioAsc') {
       qs.sort(function(a, b) {
-        return Number(a.correctRatio || 0) - Number(b.correctRatio || 0);
+        return getRatioValue(a) - getRatioValue(b);
       });
     } else {
       qs.sort(function(a, b) {
@@ -4955,11 +5063,11 @@ function getFiltered(){
     // ====== 其他分区（gk、sy）保持不变 ======
     if (filterState.sortBy === 'ratioDesc') {
       qs.sort(function(a, b) {
-        return Number(b.correctRatio || 0) - Number(a.correctRatio || 0);
+        return getRatioValue(b) - getRatioValue(a);
       });
     } else if (filterState.sortBy === 'ratioAsc') {
       qs.sort(function(a, b) {
-        return Number(a.correctRatio || 0) - Number(b.correctRatio || 0);
+        return getRatioValue(a) - getRatioValue(b);
       });
     } else {
       qs.sort(function(a, b) {
@@ -7582,7 +7690,10 @@ function buildExportName(tag){
   const sm={unanswered:'未做',answered:'已做',wrong:'错题',correct:'做对'};
   if(filterState.status!=='all') parts.push(sm[filterState.status]);
   if(filterState.minRatio!==''||filterState.maxRatio!=='') parts.push('正确率'+(filterState.minRatio||0)+'-'+(filterState.maxRatio||100));
-  if(filterState.sortBy!=='default') parts.push(filterState.sortBy==='ratioDesc'?'正确率降序':'正确率升序');
+  if(filterState.sortBy!=='default'){
+    var rangeDef=getRatioRangeDef(filterState.sortBy);
+    parts.push(rangeDef ? ('正确率'+rangeDef.min+'-'+rangeDef.max) : (filterState.sortBy==='ratioDesc'?'正确率降序':'正确率升序'));
+  }
   if(filterState.search) parts.push('搜索_'+filterState.search);
   return parts.filter(Boolean).join('_')+'.json';
 }
@@ -8784,8 +8895,16 @@ sourceFilter.addEventListener('change', function() {
   refreshFilterCounters();
   renderQuestions();
 });
-statusFilter.addEventListener('change', ()=>{ filterState.status=statusFilter.value; currentPage=1; saveView(); renderQuestions(); });
-sortFilter.addEventListener('change', ()=>{ filterState.sortBy=sortFilter.value; currentPage=1; saveView(); renderQuestions(); });
+statusFilter.addEventListener('change', ()=>{ filterState.status=statusFilter.value; currentPage=1; saveView(); refreshFilterCounters(); renderQuestions(); });
+sortFilter.addEventListener('change', ()=>{
+  filterState.sortBy=sortFilter.value;
+  // 区间筛选与「手动输入的正确率范围」语义冲突 → 互斥：切到区间时清空手动输入框
+  if(isRatioRangeMode(filterState.sortBy)){
+    minRatioInput.value=''; maxRatioInput.value='';
+    filterState.minRatio=''; filterState.maxRatio='';
+  }
+  currentPage=1; saveView(); renderQuestions();
+});
 function onRatioInput(){
   let mn=minRatioInput.value.trim(), mx=maxRatioInput.value.trim();
   if(mn!==''&&!isNaN(parseFloat(mn))) mn=Math.max(0,Math.min(100,parseFloat(mn)));
@@ -10204,13 +10323,14 @@ window.updateSubTypeFilter = function() {
     leafTypeFilter.value = filterState.leafType;
   }
 
+  // 三级题型统计完成后，同步刷新 #sortFilter 的正确率区间题数（口径一致，含模块/话题/细分题型）
+  refreshRatioRangeOptions();
+
   moduleFilter.onchange = function() {
     filterState.module = this.value;
     filterState.subType = 'all';
     filterState.leafType = 'all';
-    if (activeZone === 'mk') {
-      filterState.sortBy = 'default';
-    }
+    resetSortByOnScopeChange();
     currentPage = 1;
     saveView();
     renderModuleBar();
@@ -10221,9 +10341,7 @@ window.updateSubTypeFilter = function() {
   subTypeFilter.onchange = function() {
     filterState.subType = this.value;
     filterState.leafType = 'all';
-    if (activeZone === 'mk') {
-      filterState.sortBy = 'default';
-    }
+    resetSortByOnScopeChange();
     currentPage = 1;
     saveView();
     window.updateSubTypeFilter();
@@ -10232,11 +10350,11 @@ window.updateSubTypeFilter = function() {
 
   leafTypeFilter.onchange = function() {
     filterState.leafType = this.value;
-    if (activeZone === 'mk') {
-      filterState.sortBy = 'default';
-    }
+    resetSortByOnScopeChange();
     currentPage = 1;
     saveView();
+    // 细分题型变化后要联动刷新模块/话题/细分题型与正确率区间的题数
+    refreshFilterCounters();
     renderQuestions();
   };
 
