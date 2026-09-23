@@ -11120,11 +11120,18 @@ function loadSoundState() {
   return null;
 }
 
-function getSoundContext() {
+function getSoundContext(needResume) {
   // 修复(2026-09-22)：AudioContext 生命周期自愈。
   // 手机浏览器(尤其 iOS Safari / 微信)在切后台、锁屏、来电后会把 ctx 置为
   // 'suspended'，有时直接置为 'closed'。closed 状态无法用 resume() 救回，
   // 必须丢弃旧对象并重新 new，否则页面会永久失声（只能靠刷新恢复）。
+  //
+  // 修复(2026-09-23)：新增 needResume 参数。
+  // 移动端 AudioContext.resume() = 申请音频焦点，会抢断后台 App（音乐/画中画）
+  // 的播放。此前本函数无条件 resume，而它被挂在全局 click 的 activateAudio()
+  // 里每次点击都调用，导致用户一操作本页就打断其他 App 的音频。
+  // 现在：只有真正要出声的调用点（playSound / createNoiseBuffer / 番茄钟提示音）
+  // 才传 needResume=true；纯唤醒/状态查询场景不再 resume。
   var AC = window.AudioContext || window.webkitAudioContext;
   if (!soundCtx || soundCtx.state === 'closed') {
     try {
@@ -11135,7 +11142,7 @@ function getSoundContext() {
       return null;
     }
   }
-  if (soundCtx.state === 'suspended' || soundCtx.state === 'interrupted') {
+  if (needResume && (soundCtx.state === 'suspended' || soundCtx.state === 'interrupted')) {
     // resume() 是异步的；正常路径下不 await（保持同步返回 ctx 不变），
     // 但捕获其 Promise rejection，避免未处理的错误中断后续流程。
     try {
@@ -11154,7 +11161,7 @@ try {
 } catch(e) {}
 
 function createNoiseBuffer(type) {
-  var c = getSoundContext();
+  var c = getSoundContext(true);   // 真正要出声，才 resume
   var bufSize = 2 * c.sampleRate;
   var buf = c.createBuffer(1, bufSize, c.sampleRate);
   var data = buf.getChannelData(0);
@@ -11290,7 +11297,7 @@ function stopAllSounds() {
 }
 
 function playSound(type) {
-  var c = getSoundContext();
+  var c = getSoundContext(true);   // 真正要出声，才 resume
   // 修复(2026-09-22)：getSoundContext() 现在可能返回 null（AudioContext 创建失败）。
   // 此时提前退出并在状态栏提示，避免后续 c.createGain() 抛异常导致整个流程静默中断。
   if (!c) {
@@ -11490,7 +11497,7 @@ function playSound(type) {
           (function(idx) {
             setTimeout(function() {
               if (!isSoundPlaying) return;
-              var rc = getSoundContext();
+              var rc = getSoundContext(true);   // 番茄钟提示音，要出声
               var ro = rc.createOscillator(); var rg = rc.createGain();
               ro.type = 'sine'; ro.frequency.value = 1200 + idx * 200; rg.gain.value = soundVolume * 0.4;
               ro.connect(rg); rg.connect(rc.destination);
@@ -11769,13 +11776,12 @@ function initCustomSounds() {
 setTimeout(initCustomSounds, 500);
 
 function activateAudio() {
-  // 修复(2026-09-22)：不再 removeEventListener。
-  // 之前只激活一次；若之后 ctx 被系统挂起，就没有再次唤醒的机会。
-  // 保持监听（幂等，开销极小），每次点击都能尝试唤醒音频上下文。
-  var c = getSoundContext();
-  if (c && c.state === 'suspended') {
-    try { var p = c.resume(); if (p && typeof p.catch === 'function') p.catch(function(){}); } catch(e) {}
-  }
+  // 修复(2026-09-23)：本函数挂在 document 全局 click 上，点任何按钮都会跑。
+  // 原实现在这里无条件 resume AudioContext —— 移动端 resume() 会抢音频焦点，
+  // 打断后台 App 的音乐/画中画。这是「进入本程序点两下就断别人音频」的真凶。
+  // 现在：仅做状态显示，绝不在此处 resume。真正的 resume 推迟到用户主动
+  // 播放音效时（playSound → getSoundContext(true)）。
+  var c = (soundCtx && soundCtx.state !== 'closed') ? soundCtx : null;
   var statusEl = document.getElementById('sidebarStatus');
   if (statusEl && c && c.state === 'running') statusEl.textContent = '✅ 已激活';
 }
@@ -12326,28 +12332,26 @@ document.addEventListener('click', activateAudio);
 // 避免用户看到「点击没声音、要刷新才好」。
 document.addEventListener('visibilitychange', function() {
   if (document.visibilityState !== 'visible') return;
+  // 修复(2026-09-23)：不再在切回前台时无条件 resume()。
+  // 移动端 resume() 会抢音频焦点，打断后台 App 的音乐/画中画。
+  // 仅当「本页本来就在播背景音」时，才恢复播放（此时抢焦点是用户预期的）。
   try {
-    var c = getSoundContext();
-    if (c && c.state === 'suspended') {
-      var p = c.resume();
-      if (p && typeof p.catch === 'function') p.catch(function(){});
-    }
-    // 若回到前台时正处于「应该播放」的状态，但上下文曾被关闭，
-    // 则重新触发当前音效，让自愈后的 ctx 立即出声。
     if (typeof isSoundPlaying !== 'undefined' && isSoundPlaying && currentSoundType) {
       var t = currentSoundType;
       isSoundPlaying = false; currentSoundType = '';
-      playSound(t);
+      playSound(t);   // playSound 内部会 getSoundContext(true) 完成 resume
     }
   } catch(e) {}
 });
 // iOS 从 bfcache 恢复时也可能需要唤醒
 document.addEventListener('pageshow', function() {
+  // 修复(2026-09-23)：不再在 bfcache 恢复时无条件 resume()（会抢后台 App 焦点）。
+  // 仅当本页本来就在播背景音时，才通过 playSound 恢复（内部按需 resume）。
   try {
-    var c = getSoundContext();
-    if (c && c.state === 'suspended') {
-      var p = c.resume();
-      if (p && typeof p.catch === 'function') p.catch(function(){});
+    if (typeof isSoundPlaying !== 'undefined' && isSoundPlaying && currentSoundType) {
+      var t = currentSoundType;
+      isSoundPlaying = false; currentSoundType = '';
+      playSound(t);
     }
   } catch(e) {}
 });
