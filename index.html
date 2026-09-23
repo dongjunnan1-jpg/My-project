@@ -6148,7 +6148,13 @@ function renderReviewStats(){
 }
 
 function renderQuestions(){
-  stopSpeaking();
+  // 修复(2026-09-23)：此处不再调用 stopSpeaking()。
+  // 原因：renderQuestions() 会被大量纯 UI 操作触发（打开侧边栏、
+  // AI 简化解析后刷新统计等），而 stopSpeaking() 内部执行的是
+  // window.speechSynthesis.cancel() —— 全局取消，会误杀正在播放的题目朗读。
+  // 「切换题目/翻页/切分区/进复盘」这些真正需要停止朗读的路径，
+  // 已在 goPage() / switchZone() / renderReviewQuestions() 内各自显式调用
+  // stopSpeaking()，因此删除此处不会造成朗读残留。
   stopAllMianShiRecordings();
   filteredQuestions = getFiltered();
   window.filteredQuestions = filteredQuestions;
