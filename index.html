@@ -847,6 +847,14 @@ body.review-zone .review-only-btn { display: inline-flex !important; }
 body.essay-zone .review-only-btn,
 body.ms-zone .review-only-btn { display: none !important; }
 
+/* ====== 「自动弹出解析」开关（仅 gk / mk / sy，白名单与 REVIEW_ZONES 一致） ====== */
+/* 显隐完全由 body.review-zone 驱动（该 class 只在 applyZoneTheme() 一处切换，
+   分区切换/备份恢复/启动都必经它），与上面的 .review-only-btn 同一套路。
+   ⚠ 这里用的是 display:...!important，优先级高于内联 style，
+   所以 JS 里【不要】再对这个按钮写 style.display，否则会「关不掉/显不出来」。 */
+.auto-solution-btn { display: none !important; }
+body.review-zone .auto-solution-btn { display: inline-flex !important; }
+
 /* 复盘统计卡（Sidebar 内，深色主题，独立 class 不污染现有 Sidebar 样式） */
 .sidebar-review-card {
   margin-bottom: 14px; padding: 10px 12px;
@@ -961,6 +969,10 @@ body.review-mode #content .question { border-left: 4px solid #f59e0b; }
 #aiPanel input { width:100%; box-sizing:border-box; }
 
 /* ====== AI 简化解析按钮与结果 ====== */
+/* 手动展开/收起解析（「自动解析」关掉后使用；仅 gk / mk / sy 渲染此按钮） */
+.q-solution-toggle { display:inline-block; margin:8px 0 0; padding:6px 14px; background:var(--light); color:var(--deep); border:1px solid var(--mid); border-radius:8px; cursor:pointer; font-size:13px; font-weight:bold; transition:.15s; -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
+.q-solution-toggle:hover { background:var(--mid); color:var(--on-main); }
+body.skin-dark .q-solution-toggle { background:var(--surface); color:var(--text); border-color:var(--border); }
 .q-ai-btn { margin-top:8px; padding:6px 14px; background:linear-gradient(135deg,#a78bfa,#7c3aed); color:#fff; border:none; border-radius:8px; font-size:13px; cursor:pointer; transition:.15s; font-weight:bold; }
 .q-ai-btn:hover { transform:translateY(-1px) scale(1.02); box-shadow:0 4px 12px rgba(124,58,237,0.35); }
 .q-ai-btn:disabled { opacity:0.6; cursor:wait; }
@@ -2068,6 +2080,32 @@ body.skin-dark .new-chat-detail-note-title { color:#fbbf24; }
         white-space: nowrap;
         line-height: 1.2;
     }
+    /* 「自动解析」开关：四列网格里只占 1/4 宽，文案压到最短（文案由 JS 按宽度切换） */
+    #toggleAutoSolutionBtn {
+        font-size: 11px;
+        letter-spacing: -0.2px;
+    }
+}
+
+/* ===== 控制栏按钮：电脑端显式网格，保证等宽、排列整齐（含新增的「自动解析」开关） ===== */
+@media (min-width: 769px) {
+    .controls-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 8px;
+        width: 100%;
+    }
+    .controls-grid .btn {
+        width: 100%;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+        font-size: 13px;
+        font-weight: 600;
+        border-radius: 10px;
+    }
 }
 
 /* ===== 顶部进度面板：霞鹜文楷 ===== */
@@ -2326,6 +2364,7 @@ body.skin-dark .new-chat-detail-note-title { color:#fbbf24; }
             <button class="btn btn-outline wrong-only-btn" onclick="exportWrong()">📕 导出错题本</button>
             <button class="btn btn-outline review-only-btn" id="reviewEntryBtn" onclick="startReview()">🔄 今日复盘<span id="reviewDueCount">0</span></button>
             <button class="btn btn-outline review-only-btn" id="reviewExitBtn" onclick="exitReview()" style="display:none;">✕ 退出复盘</button>
+            <button class="btn btn-outline auto-solution-btn" id="toggleAutoSolutionBtn" type="button" onclick="toggleAutoSolution()">📖 自动解析：开</button>
             <button class="btn btn-outline ms-only-btn" id="msNoteFilterBtn" onclick="toggleMsNoteFilter()">📝 只显示心得</button>
             <button class="btn btn-outline ms-only-btn" id="msFavFilterBtn" onclick="toggleMsFavFilter()">⭐ 只显示收藏</button>
             <button class="btn btn-outline sl-only-btn" id="slNoteFilterBtn" onclick="toggleSlNoteFilter()">📝 只显示有笔记</button>
@@ -2379,6 +2418,9 @@ const ZONE_THEMES = {
 function applyZoneTheme(z){
   // 复盘系统仅覆盖 gk / mk / sy（与颜色无关，始终执行）
   document.body.classList.toggle('review-zone', REVIEW_ZONES.indexOf(z)!==-1);
+  // 「自动解析」开关按钮：只刷新文案与样式；显隐由上面的 body class 经 CSS 控制。
+  // 放在皮肤 early-return 之前，保证任何分区切换路径都会执行。
+  updateAutoSolutionBtnState();
   // 单一主题源：若用户已选择非默认皮肤，则皮肤颜色为最终主题，
   // 分区切换不得覆盖皮肤色（否则会出现"默认分区色 + 保存皮肤色"混合）。
   // 仅当皮肤为 default 时，分区色才作为主题生效。
@@ -2459,6 +2501,66 @@ function syncSortFilterValue(){
   sortFilter.value = target;
   filterState.sortBy = target;
 }
+
+// ============================================================
+// 「自动弹出解析」开关（仅 gk / mk / sy 三个分区）
+// 关闭后：对错判定 / 选项变色 / 错题集 / 复盘记录 / 每日计数 / 统计面板全部照常，
+// 只是作答后不再自动展开 .q-solution，改由题目下方的「📖 显示解析」按钮手动展开。
+// 非启用分区（sl / zy / ms）保持原有「作答后自动展开」行为，不受此开关影响。
+// 白名单与 REVIEW_ZONES 一致；按钮显隐由 CSS 的 body.review-zone 驱动（见 <style>）。
+// ============================================================
+let autoShowSolution = true;                    // 作答后是否自动展开解析
+const AUTO_SOLUTION_KEY = 'qz_auto_solution';   // localStorage 持久化键
+const AUTO_SOLUTION_ZONES = ['gk','mk','sy'];   // 分区白名单（新增分区时在此追加）
+const AUTO_SOLUTION_MOBILE_MAX = 768;           // 与 CSS 断点保持一致：≤768 用短文案
+
+function isAutoSolutionZone(zone){
+  return AUTO_SOLUTION_ZONES.indexOf(zone || activeZone) !== -1;
+}
+// 读取持久化设置；任何异常 / 非法值一律回落「开」（与改动前的默认体验一致）
+function loadAutoSolutionSetting(){
+  try{
+    const v = localStorage.getItem(AUTO_SOLUTION_KEY);
+    autoShowSolution = (v === null) ? true : (v === '1');
+  }catch(e){ autoShowSolution = true; }
+  updateAutoSolutionBtnState();
+}
+function saveAutoSolutionSetting(){
+  try{ localStorage.setItem(AUTO_SOLUTION_KEY, autoShowSolution ? '1' : '0'); }catch(e){}
+}
+// 只负责「文案 + 主/次样式」。⚠ 不在这里写 style.display：
+// 按钮显隐靠 CSS 的 display:...!important（压得过内联），写了也没用、只会互相打架。
+function updateAutoSolutionBtnState(){
+  const btn = document.getElementById('toggleAutoSolutionBtn');
+  if(!btn) return;
+  const stateText = autoShowSolution ? '开' : '关';
+  btn.textContent = (window.innerWidth <= AUTO_SOLUTION_MOBILE_MAX)
+    ? '📖 解析：' + stateText       // 手机端：1/4 网格宽，用短文案
+    : '📖 自动解析：' + stateText;  // 电脑端：完整文案
+  btn.classList.toggle('btn-primary', autoShowSolution);
+  btn.classList.toggle('btn-outline', !autoShowSolution);
+}
+function toggleAutoSolution(){
+  if(!isAutoSolutionZone(activeZone)) return;   // 非启用分区不响应（按钮本身也不显示）
+  autoShowSolution = !autoShowSolution;
+  saveAutoSolutionSetting();
+  updateAutoSolutionBtnState();
+}
+// 手动展开 / 收起某题的解析（关闭自动解析后使用；复盘模式的 DOM 结构相同，可复用）
+function toggleSolution(key){
+  const el = document.getElementById('q-' + key);
+  if(!el) return;
+  const sol = el.querySelector('.q-solution');
+  if(!sol) return;
+  const btn = el.querySelector('.q-solution-toggle');
+  const willShow = !sol.classList.contains('show');
+  sol.classList.toggle('show', willShow);
+  if(btn) btn.textContent = willShow ? '📖 隐藏解析' : '📖 显示解析';
+}
+// 声明处立刻读一次：保证【首次渲染】就用上持久化的值（早于任何 renderQuestions）
+loadAutoSolutionSetting();
+// 屏幕宽度跨断点时切换文案（手机短 / 电脑完整）
+window.addEventListener('resize', function(){ updateAutoSolutionBtnState(); });
 
 // 错题集 / 收藏 / 每日任务 / 考试日期（均持久化到 IndexedDB）
 let wrongSet = { gk:{}, mk:{}, sy:{}, sl:{}, zy:{}, ms:{} };
@@ -6323,6 +6425,7 @@ function renderReviewQuestions(){
       html+='<div class="q-verdict"><span class="q-answer show">'+(isCorrect?'✅ 回答正确':'✅ 正确答案：'+answerText)+'</span>'+(isCorrect?'':'<span class="q-user-answer">❌ 你的答案：'+result.selected.join(',')+'</span>')+'</div>';
       html+=renderReviewResultCard(zone,key);
     }
+    // 复盘模式：目的就是「看解析」，因此不受「自动解析」开关控制，作答后始终展开
     if(answered && solutionHtml) html+='<div class="q-solution show"><strong>💡 解析</strong><br>'+solutionHtml+'</div>';
     html+='</div>';
   }
@@ -6562,7 +6665,16 @@ function renderQuestions(){
     } else if(!isMultipleChoice(item)) {
       html+=`<div class="q-answer">✅ 正确答案: ${correctLetter}</div>`;
     }
-    if(solutionHtml) html+=`<div class="q-solution${hasAnswered?' show':''}"><strong>💡 解析</strong><br>${solutionHtml}</div>`;
+    if(solutionHtml){
+      // gk / mk / sy 受「自动解析」开关控制；sl / zy / ms 保持原有「作答后自动展开」
+      const solutionZoneToggle = isAutoSolutionZone(activeZone);
+      const solutionShown = hasAnswered && (solutionZoneToggle ? autoShowSolution : true);
+      html+=`<div class="q-solution${solutionShown?' show':''}"><strong>💡 解析</strong><br>${solutionHtml}</div>`;
+      // 手动展开入口：仅在启用分区提供（非启用分区本来就自动展开，不需要）
+      if(solutionZoneToggle){
+        html+=`<button type="button" class="q-solution-toggle" onclick="toggleSolution('${key}');event.stopPropagation();">${solutionShown?'📖 隐藏解析':'📖 显示解析'}</button>`;
+      }
+    }
     if(solutionHtml) html+=`<button type="button" class="q-ai-btn" onclick="simplifySolution('${key}', this)">🤖 AI 简化解析</button><button type="button" class="q-chat-btn" onclick="toggleChat('${key}', this)">💬 AI 答疑</button><button type="button" class="q-note-btn${getQuestionNoteCount(key)>0?' has-notes':''}" id="note-btn-${key}" onclick="toggleQuestionNote('${key}')">📝 心得${getQuestionNoteCount(key)>0?' ('+getQuestionNoteCount(key)+')':''}</button><div class="q-ai-result" id="ai-${key}"></div><div class="q-chat-box" id="chat-${key}"></div><div class="q-note-box" id="note-${key}"><textarea class="q-note-input" id="note-input-${key}" placeholder="写下这道题的心得、易错点、思路…（可多次添加，不会覆盖）"></textarea><button type="button" class="q-note-add-btn" id="note-add-${key}" onclick="submitQuestionNote('${key}')">💾 添加心得</button><div class="q-note-list" id="note-list-${key}"></div></div>`;
     html+='</div>';
   }
@@ -7010,8 +7122,13 @@ function selectOption(key, letter, event){
       if(oldUser) oldUser.remove();
       if(!isCorrect){ const user=document.createElement('span'); user.className='q-user-answer'; user.textContent='❌ 你的答案：'+letter; verdict.appendChild(user); }
     }
-    const solution=questionEl.querySelector('.q-solution');
-    if(solution) solution.classList.add('show');
+    // gk / mk / sy 受「自动解析」开关控制；其余分区保持原有自动展开
+    if(isAutoSolutionZone(activeZone) ? autoShowSolution : true){
+      const solution=questionEl.querySelector('.q-solution');
+      if(solution) solution.classList.add('show');
+      const solutionToggleBtn=questionEl.querySelector('.q-solution-toggle');
+      if(solutionToggleBtn) solutionToggleBtn.textContent='📖 隐藏解析';
+    }
   }
   renderProgressPanel();
   renderZoneStats();
@@ -7081,8 +7198,13 @@ function submitMultipleChoice(key){
       user.style.color = isCorrect ? '#4ade80' : '#f87171';
       verdict.appendChild(user);
     }
-    const solution = questionEl.querySelector('.q-solution');
-    if(solution) solution.classList.add('show');
+    // gk / mk / sy 受「自动解析」开关控制；其余分区保持原有自动展开
+    if(isAutoSolutionZone(activeZone) ? autoShowSolution : true){
+      const solution = questionEl.querySelector('.q-solution');
+      if(solution) solution.classList.add('show');
+      const solutionToggleBtn = questionEl.querySelector('.q-solution-toggle');
+      if(solutionToggleBtn) solutionToggleBtn.textContent = '📖 隐藏解析';
+    }
     const submitBtn = questionEl.querySelector('.q-multi-submit');
     if(submitBtn) submitBtn.style.display = 'none';
     const statusEl = questionEl.querySelector('.q-multi-status');
