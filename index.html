@@ -1920,6 +1920,23 @@ body.skin-shenburen .mian-shi-answer > div { background:#fef9e7 !important; colo
 /* 面试题：心得按钮单独一行，紧贴录音区左边缘，仅保留 8px 上间距 */
 .mian-shi-question .q-note-btn { margin-left:0; }
 
+/* [FIX 20260924] question bottom button row: keep 4 buttons on one line on mobile */
+.q-btn-row { display:block; }
+@media (max-width: 768px) {
+  .q-btn-row { display:flex !important; flex-wrap:nowrap !important; gap:6px !important; align-items:stretch !important; width:100% !important; box-sizing:border-box !important; }
+  .q-btn-row > .q-solution-toggle,
+  .q-btn-row > .q-ai-btn,
+  .q-btn-row > .q-chat-btn,
+  .q-btn-row > .q-note-btn { flex:1 1 0 !important; min-width:0 !important; margin:8px 0 0 0 !important; padding:6px 4px !important; font-size:11px !important; font-weight:600 !important; white-space:nowrap !important; text-align:center !important; justify-content:center !important; align-items:center !important; display:inline-flex !important; overflow:hidden !important; box-sizing:border-box !important; }
+}
+@media (max-width: 400px) {
+  .q-btn-row { gap:4px !important; }
+  .q-btn-row > .q-solution-toggle,
+  .q-btn-row > .q-ai-btn,
+  .q-btn-row > .q-chat-btn,
+  .q-btn-row > .q-note-btn { font-size:10.5px !important; padding:6px 2px !important; }
+}
+
 .q-note-box { display:none; margin:10px 0 0; padding:14px; border-radius:10px; background:#fffbeb; border:1px solid #fde68a; }
 .q-note-box.show { display:block; }
 .q-note-input {
@@ -6671,12 +6688,16 @@ function renderQuestions(){
       const solutionZoneToggle = isAutoSolutionZone(activeZone);
       const solutionShown = hasAnswered && (solutionZoneToggle ? autoShowSolution : true);
       html+=`<div class="q-solution${solutionShown?' show':''}"><strong>💡 解析</strong><br>${solutionHtml}</div>`;
+      // [FIX 20260924] 4 buttons go into .q-btn-row so mobile keeps one row
+      let btnRowHtml='';
       // 手动展开入口：仅在启用分区提供（非启用分区本来就自动展开，不需要）
       if(solutionZoneToggle){
-        html+=`<button type="button" class="q-solution-toggle" onclick="toggleSolution('${key}');event.stopPropagation();">${solutionShown?'📖 隐藏解析':'📖 显示解析'}</button>`;
+        btnRowHtml+=`<button type="button" class="q-solution-toggle" onclick="toggleSolution('${key}');event.stopPropagation();">${solutionShown?'📖 隐藏解析':'📖 显示解析'}</button>`;
       }
+      btnRowHtml+=`<button type="button" class="q-ai-btn" onclick="simplifySolution('${key}', this)">🤖 AI 简化解析</button><button type="button" class="q-chat-btn" onclick="toggleChat('${key}', this)">💬 AI 答疑</button><button type="button" class="q-note-btn${getQuestionNoteCount(key)>0?' has-notes':''}" id="note-btn-${key}" onclick="toggleQuestionNote('${key}')">📝 心得${getQuestionNoteCount(key)>0?' ('+getQuestionNoteCount(key)+')':''}</button>`;
+      html+=`<div class="q-btn-row">${btnRowHtml}</div>`;
+      html+=`<div class="q-ai-result" id="ai-${key}"></div><div class="q-chat-box" id="chat-${key}"></div><div class="q-note-box" id="note-${key}"><textarea class="q-note-input" id="note-input-${key}" placeholder="写下这道题的心得、易错点、思路…（可多次添加，不会覆盖）"></textarea><button type="button" class="q-note-add-btn" id="note-add-${key}" onclick="submitQuestionNote('${key}')">💾 添加心得</button><div class="q-note-list" id="note-list-${key}"></div></div>`;
     }
-    if(solutionHtml) html+=`<button type="button" class="q-ai-btn" onclick="simplifySolution('${key}', this)">🤖 AI 简化解析</button><button type="button" class="q-chat-btn" onclick="toggleChat('${key}', this)">💬 AI 答疑</button><button type="button" class="q-note-btn${getQuestionNoteCount(key)>0?' has-notes':''}" id="note-btn-${key}" onclick="toggleQuestionNote('${key}')">📝 心得${getQuestionNoteCount(key)>0?' ('+getQuestionNoteCount(key)+')':''}</button><div class="q-ai-result" id="ai-${key}"></div><div class="q-chat-box" id="chat-${key}"></div><div class="q-note-box" id="note-${key}"><textarea class="q-note-input" id="note-input-${key}" placeholder="写下这道题的心得、易错点、思路…（可多次添加，不会覆盖）"></textarea><button type="button" class="q-note-add-btn" id="note-add-${key}" onclick="submitQuestionNote('${key}')">💾 添加心得</button><div class="q-note-list" id="note-list-${key}"></div></div>`;
     html+='</div>';
   }
   content.innerHTML=html;
