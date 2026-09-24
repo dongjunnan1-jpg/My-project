@@ -970,7 +970,7 @@ body.review-mode #content .question { border-left: 4px solid #f59e0b; }
 
 /* ====== AI 简化解析按钮与结果 ====== */
 /* 手动展开/收起解析（「自动解析」关掉后使用；仅 gk / mk / sy 渲染此按钮） */
-.q-solution-toggle { display:inline-block; margin:8px 0 0; padding:6px 14px; background:var(--light); color:var(--deep); border:1px solid var(--mid); border-radius:8px; cursor:pointer; font-size:13px; font-weight:bold; transition:.15s; -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
+.q-solution-toggle { display:inline-block; margin:8px 8px 0 0; padding:6px 14px; background:var(--light); color:var(--deep); border:1px solid var(--mid); border-radius:8px; cursor:pointer; font-size:13px; font-weight:bold; transition:.15s; -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
 .q-solution-toggle:hover { background:var(--mid); color:var(--on-main); }
 body.skin-dark .q-solution-toggle { background:var(--surface); color:var(--text); border-color:var(--border); }
 .q-ai-btn { margin-top:8px; padding:6px 14px; background:linear-gradient(135deg,#a78bfa,#7c3aed); color:#fff; border:none; border-radius:8px; font-size:13px; cursor:pointer; transition:.15s; font-weight:bold; }
@@ -1911,9 +1911,10 @@ body.skin-shenburen .mian-shi-answer > div { background:#fef9e7 !important; colo
 .q-note-btn:active { transform:translateY(0); }
 .q-note-btn.has-notes { background:linear-gradient(135deg,#fbbf24,#f59e0b); }
 
-/* 三个按钮间距统一：AI 简化解析 / AI 答疑 / 心得 两两间距一致（8px），
-   首个按钮（AI 简化解析）不缩进，紧贴解析框左边缘。
-   用 :first-of-type 而非相邻选择器，避免中间动态插入元素导致失效。 */
+/* 按钮行间距统一（8px）：「📖 显示解析」→「AI 简化解析」→「AI 答疑」→「心得」两两间距一致。
+   显示解析在最前（margin-right:8px 提供它与 AI 简化解析的间距，其余靠 margin-left:8px），
+   行首按钮不缩进，紧贴解析框左边缘。
+   用类选择器而非相邻选择器，避免中间动态插入元素导致失效。 */
 .q-ai-btn { margin-left:0; }
 .q-chat-btn, .q-note-btn { margin-left:8px; }
 /* 面试题：心得按钮单独一行，紧贴录音区左边缘，仅保留 8px 上间距 */
