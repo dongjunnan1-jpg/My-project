@@ -4875,7 +4875,11 @@ function applyFilterStateToUI(){
 
 function renderFileList(){
   const list=index[activeZone]||[];
-  if(!list.length){ fileListContainer.classList.add('hidden'); return; }
+  if(!list.length){
+    fileListContainer.classList.add('hidden');
+    fileTabs.innerHTML = '';
+    return;
+  }
   fileListContainer.classList.remove('hidden');
   // “全部文件” 标签
   // 注意：外层不要用 <button>，否则内层删除按钮（<button>）会形成“按钮套按钮”的非法嵌套，
@@ -7249,20 +7253,14 @@ function removeFile(id){
     index[activeZone]=index[activeZone].filter(m=>m.id!==id);
     try{ idbDel('file:'+activeZone+':'+id); }catch(e){}
     saveIndex(); if(!index[activeZone].length){ searchBox.value=''; filterState.module='all'; filterState.subType='all'; filterState.leafType='all'; }
-    renderAll();setTimeout(function() {
-    var ft = document.querySelector('.file-tabs');
-    if (ft) ft.innerHTML = '<div class="file-tab active" data-file="__all__"><span>📂 全部文件（' + index[activeZone].length + '）</span></div>';
-}, 100);
+    renderAll();
   });
 }
 function clearAllFiles(){
   showConfirm('清空本分区「'+zoneName(activeZone)+'」的全部文件？此操作不可撤销。', ()=>{
     index[activeZone].forEach(function(m){ try{ idbDel('file:'+activeZone+':'+m.id); }catch(e){} });
     index[activeZone]=[]; db[activeZone]={}; activeFile='__all__';
-    saveIndex(); searchBox.value=''; filterState.module='all'; filterState.subType='all'; filterState.leafType='all'; renderAll();setTimeout(function() {
-    var ft = document.querySelector('.file-tabs');
-    if (ft) ft.innerHTML = '<div class="file-tab active" data-file="__all__"><span>📂 全部文件（0）</span></div>';
-}, 100);
+    saveIndex(); searchBox.value=''; filterState.module='all'; filterState.subType='all'; filterState.leafType='all'; renderAll();
   });
 }
 function resetProgress(){
