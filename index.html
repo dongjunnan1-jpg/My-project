@@ -2323,7 +2323,7 @@ body.skin-dark .new-chat-detail-note-title { color:#fbbf24; }
             <option value="资料分析">资料分析</option>
         </select>
         <input type="file" id="fileInput" accept=".json" multiple style="display:none;">
-        <button type="button" id="uploadButton" class="btn btn-primary">📁 选择文件</button>
+        <button type="button" id="uploadButton" class="btn btn-outline">📁 选择文件</button>
     </div>
 
     <!-- 文件列表（标签页形式） -->
@@ -2555,8 +2555,10 @@ function updateAutoSolutionBtnState(){
   btn.textContent = (window.innerWidth <= AUTO_SOLUTION_MOBILE_MAX)
     ? '📖 解析：' + stateText       // 手机端：1/4 网格宽，用短文案
     : '📖 自动解析：' + stateText;  // 电脑端：完整文案
-  btn.classList.toggle('btn-primary', autoShowSolution);
-  btn.classList.toggle('btn-outline', !autoShowSolution);
+  // 按用户要求：始终 btn-outline（浅色底、主题色描边），只有 hover/点击才加深
+  // 视觉状态由按钮文案「开 / 关」表达，不用持久深色
+  btn.classList.remove('btn-primary');
+  btn.classList.add('btn-outline');
 }
 function toggleAutoSolution(){
   if(!isAutoSolutionZone(activeZone)) return;   // 非启用分区不响应（按钮本身也不显示）
@@ -10526,7 +10528,7 @@ window.updateSubTypeFilter();
 })();
 // 手机端按钮文字缩短
 if (window.innerWidth <= 768) {
-    var btnF = document.querySelector('.upload-zone .btn-primary');
+    var btnF = document.getElementById('uploadButton');
     var btnU = document.querySelector('.upload-zone button:last-child');
     if (btnF) btnF.textContent = '📁 上传';
     if (btnU && btnU.textContent.includes('已上传')) btnU.textContent = '📄 文件';
