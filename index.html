@@ -2864,9 +2864,12 @@ async function loadAll(){
       if(f) db[z][m.id]=f;
     }
   }
+  // db 是整体重建的，必须作废分区快照/展开缓存：
+  // 否则启动阶段（此时 db 还是空的）建出来的空快照会被后续调用一直命中。
+  bumpDbEpoch();
 }
 function saveIndex(){ return idbSet('idx', index); }                       // fire-and-forget
-function saveFile(z,id){ return idbSet('file:'+z+':'+id, db[z][id]); }    // fire-and-forget
+function saveFile(z,id){ markAnswersDirty(); return idbSet('file:'+z+':'+id, db[z][id]); }    // fire-and-forget
 function saveView(){ return idbSet('view', {activeZone, activeFile, filterState}); }
 async function loadView(){
   const v=await idbGet('view');
@@ -3258,6 +3261,7 @@ async function migrateFromLocalStorage(){
           if(f){ try{ db[z][m.id]=JSON.parse(f); await saveFile(z,m.id); }catch(e){} }
         }
       }
+      bumpDbEpoch();
       const ov=localStorage.getItem(VIEW_KEY); if(ov){ try{ const v=JSON.parse(ov); if(v.activeZone) activeZone=v.activeZone; if(v.activeFile) activeFile=v.activeFile; if(v.filterState) filterState=Object.assign(filterState, v.filterState); await saveView(); }catch(e){} }
       const ow=localStorage.getItem(WRONG_KEY); if(ow){ try{ wrongSet=JSON.parse(ow); ZONE_IDS.forEach(function(z){ if(!wrongSet[z]) wrongSet[z]={}; }); await saveWrong(); }catch(e){} }
       const ofav=localStorage.getItem(FAV_KEY); if(ofav){ try{ favorites=JSON.parse(ofav); ZONE_IDS.forEach(function(z){ if(!favorites[z]) favorites[z]={}; }); await saveFav(); }catch(e){} }
@@ -3667,11 +3671,16 @@ function buildSearchText(q){
 }
 
 // 获取一道题的搜索文本（优先使用缓存 q._searchText）
+// ⚠ gk / mk / sy 不缓存这里的「含解析全文」：
+//   实测 mk 全文合计 3555 万字符 ≈ 68MB、sy 2755 万字符 ≈ 52MB，而这份全文只在
+//   getFilterBaseQuestions() 统计模块题数时被临时用到。永久缓存会让常驻内存凭空
+//   多出 50~70MB（老 iPad 最怕的正是这个），因此这三个分区保持「即用即弃」，
+//   列表搜索走的是下面的受限文本缓存。
 function getQuestionSearchText(q){
   if(!q || typeof q!=='object') return '';
   if(typeof q._searchText==='string') return q._searchText;
   var text=buildSearchText(q);
-  try{ q._searchText=text; }catch(e){}
+  if(!RESTRICTED_SEARCH_ZONES[activeZone]){ try{ q._searchText=text; }catch(e){} }
   return text;
 }
 
@@ -3687,6 +3696,23 @@ function getZoneSearchText(q){
     return text;
   }
   return getQuestionSearchText(q);
+}
+
+// 释放某分区的搜索文本缓存。
+// 受限文本合计约 230~240 字符/题（实测 mk 1417 万字符 ≈ 27MB、sy 1464 万 ≈ 28MB），
+// 搜索清空 / 切换分区 / 题库变更时立刻释放，避免它长期占着内存。
+function releaseSearchTextCache(zone){
+  var cache=_prepFiles[zone];
+  if(!cache) return;
+  for(var fid in cache){
+    var list=cache[fid];
+    if(!list) continue;
+    for(var i=0;i<list.length;i++){
+      var p=list[i];
+      if(p._restrictedSearchText!==undefined) p._restrictedSearchText=undefined;
+      if(p._searchText!==undefined) p._searchText=undefined;
+    }
+  }
 }
 
 // 兼容旧调用：申论/面试/普通题库统一走 getQuestionSearchText
@@ -4135,6 +4161,7 @@ function handleFiles(fileListArr){
             });
             // 3) 刷新过的旧文件落盘（题目数量没变，index 里的 count 无需改动）
             if(dedupRefreshed){
+              bumpDbEpoch();     // 已有记录的题体被就地刷新，作废展开缓存
               Object.keys(touchedFiles).forEach(function(fid){ saveFile(zone, fid); });
             }
             // 4) 结果反馈：全部重复时不建空壳文件，部分重复时给出明细
@@ -4162,6 +4189,7 @@ function handleFiles(fileListArr){
           const obj={ id, fileName:file.name, zone, module, uploadTime:Date.now(), size:file.size, questions:questions, answered:{} };
           db[zone][id]=obj;
           index[zone].push({id, fileName:file.name, zone, module, uploadTime:obj.uploadTime, size:file.size, count:questions.length});
+          bumpDbEpoch();               // 题库内容变了：作废分区快照与展开缓存
           saveIndex(); saveFile(zone,id);
           // 上传完成后自动切换到新文件（并切到对应分区、重置筛选、回到第1页）
           activeZone=zone; activeFile=id;
@@ -4174,6 +4202,7 @@ function handleFiles(fileListArr){
           const ef=exist; // 闭包快照，供确认回调使用
           showConfirm('分区「'+zoneName(zone)+'」中已存在同名文件「'+file.name+'」，是否覆盖？', ()=>{
             delete db[zone][ef.id];
+            bumpDbEpoch();
             index[zone]=index[zone].filter(x=>x.id!==ef.id);
             try{ idbDel('file:'+zone+':'+ef.id); }catch(e){}
             addNew(); // 覆盖：先删旧，再写入新文件
@@ -4228,9 +4257,28 @@ function renderAll(){
   renderQuestions();
 }
 
+// 分区题数：只计数、不展开题目。
+// 原实现对 sl/zy 调用 getZoneQuestions(id,'__all__').length，仅仅为了拿一个数字，
+// 却要把申论/综应整卷（含材料展开、真实题号推断）全部构造一遍 —— 纯浪费。
+function countZoneQuestions(zone){
+  if(zone==='sl'||zone==='zy'){
+    var files=db[zone]||{}, n=0;
+    Object.keys(files).forEach(function(id){
+      var list=files[id]&&files[id].questions;
+      if(!Array.isArray(list)) return;
+      for(var i=0;i<list.length;i++){
+        var paper=list[i];
+        if(paper && paper._essay && Array.isArray(paper.essayQuestions)) n+=paper.essayQuestions.length;
+      }
+    });
+    return n;
+  }
+  return (index[zone]||[]).reduce(function(s,m){ return s+(m.count||0); }, 0);
+}
+
 function renderZoneTabs(){
   zoneTabs.innerHTML = ZONES.map(z=>{
-    const total=(z.id==='sl'||z.id==='zy') ? getZoneQuestions(z.id,'__all__').length : index[z.id].reduce((s,m)=>s+(m.count||0),0);
+    const total=countZoneQuestions(z.id);
     return `<button class="zone-tab ${z.id===activeZone?'active':''}" data-zone="${z.id}" onclick="switchZone('${z.id}')">${z.icon||'📂'} ${z.name}<span class="z-count">${total} 题</span></button>`;
   }).join('');
 }
@@ -4242,48 +4290,209 @@ function getQuestionCorrectRatio(q){
   return 0;
 }
 
-function getZoneQuestions(zone, fileId){
-  let arr=[];
-  let files;
-  if(fileId && fileId!=='__all__' && db[zone][fileId]) files=[db[zone][fileId]];
-  else files=Object.values(db[zone]);
-  files.forEach(f=>{
-    if(!f) return;
-    if(zone==='sl'||zone==='zy'){
-      (f.questions||[]).forEach((paper,paperIndex)=>{
-        if(!paper || !paper._essay || !Array.isArray(paper.essayQuestions)) return;
-        const paperMaterials=Array.isArray(paper.materials)?paper.materials:[];
-        // 先按「题目 ↔ 材料」关系推断真实试卷题号（写入 _paperQuestionNo），再按题号排序。
-        // 注意：fullData / questionIds 的数组顺序不代表试卷题号，不能直接用下标当题号。
-        const orderedQuestions=computeEssayPaperQuestionNos(paper.essayQuestions.slice(), paperMaterials);
-        orderedQuestions.sort(function(a,b){
-          return (a._paperQuestionNo||0)-(b._paperQuestionNo||0);
-        });
-        orderedQuestions.forEach((question,questionIndex)=>{
-          const key='f'+f.id+'_p'+paperIndex+'_q'+questionIndex;
-          arr.push(Object.assign({},question,{
-            _fileId:f.id,
-            _paperIndex:paperIndex,
-            _qi:questionIndex,
-            _key:key,
-            _zone:zone,
-            _paperName:paper.paperName||'',
-            _paperYear:paper.year||paper._year||getYear(paper.paperDate)||'',
-            _paperTopic:paper.topic||'',
-            _paperProvince:(paper.province&&paper.province!==paper._year)?paper.province:(extractProvince(paper.paperName)||paper._region||''),
-            _paperId:paper.paperId||'',
-            _materials:paperMaterials,
-            _isEssayQuestion:true,
-            leafCategory:question.leafCategory||(Array.isArray(question.keypoints)&&question.keypoints[0]&&question.keypoints[0].name)||'其他',
-            _answered:(f.answered&&f.answered[key]!==undefined)?f.answered[key]:undefined
-          }));
-        });
-      });
-      return;
+// ============================================================
+// 【性能架构】分区快照 + 题目派生字段缓存（2026-09-26）
+// ------------------------------------------------------------
+// 只读基准暴露的问题：
+//   旧 getZoneQuestions() 每次调用都把整个分区重新展开成一批新对象
+//   （`{...q}` 浅拷贝 + getQuestionCorrectRatio）。gk 61,288 题 => 每次 6.1 万次拷贝。
+//   而一次「翻页」内部会调 2 次、一次「筛选/搜索」5~8 次、一次「切分区」8~19 次，
+//   即单次交互要产生 12 万~60 万个临时对象 —— 这正是老 iPad 卡顿与 GC 压力的主因。
+//   同时排序比较器每次都跑 extractYear()/extractSeasonNum()（字符串正则），
+//   导致 gk 一次 sort 333ms、mk 533ms。
+//
+// 改造要点（严格等价重构，不改变任何对外可见行为）：
+//   ① 展开副本按 (zone, fileId) 缓存 —— 一道题整个会话只展开一次；
+//   ② 展开时把热门派生值一次算好挂在副本上（_yearSrc/_seasonSrc/_halfSrc/
+//      _provSrc/_yearsInSrc/_correctRaw/_ratioVal），后续筛选与排序不再重算；
+//   ③ 分区级快照按 (zone, dbEpoch) 缓存，重复调用直接返回同一数组（O(1)）；
+//   ④ db[zone][fileId].questions 里的「原始题目对象」全程只读、绝不写入，
+//      被缓存的只有展开副本，因此 saveFile / 磁盘 JSON 格式完全不变。
+//      （_answered 属于做题进度、必然变化，每次取快照时按 file.answered 刷新。）
+// ============================================================
+var _dbEpoch = 0;                          // 题库内容版本号：导入/删除/清空后 +1
+var _prepFiles = { gk:{}, mk:{}, sy:{}, sl:{}, zy:{}, ms:{} };   // zone -> fileId -> 展开副本数组
+var _snap = { zone:null, epoch:-1, arr:null, fileCount:-1 };                   // 分区级快照
+function countFileEntries(obj){ var n=0; for(var k in obj) n++; return n; }
+function dropSnapshot(){ _snap.zone = null; _snap.epoch = -1; _snap.arr = null; _snap.fileCount = -1; }
+
+function bumpDbEpoch(){
+  _dbEpoch++;
+  dropSnapshot();
+  // 题库内容变了 ⇒ 展开副本本身也必须整批作废，不能只丢快照。
+  // 之前只丢 _snap、不动 _prepFiles，会留下两类问题：
+  //   ① 去重刷新（handleFiles 的 dedupRefreshed 分支）是**就地替换** f.questions[i]，
+  //      展开副本数组里仍指着旧对象 ⇒ 界面会继续显示旧题干（要刷新页面才恢复）；
+  //   ② delete db[zone][id]（删除文件 / 同名覆盖 / 清空分区）之后，
+  //      _prepFiles[zone][id] 变成孤儿，长期占内存不释放。
+  // 展开副本的重建成本很低（mk 61180 题 ≈ 40ms），而导入/删除/覆盖本身都是低频操作，
+  // 因此这里统一整批作废，换取「缓存绝不可能是旧的」这一强不变式。
+  for(var z=0; z<ZONE_IDS.length; z++){ if(_prepFiles[ZONE_IDS[z]]) _prepFiles[ZONE_IDS[z]] = {}; }
+  // 展开副本都没了，挂在它上面的搜索文本缓存自然也就没了，无需再逐个释放。
+}
+// 单文件级失效：重新导入/覆盖某个文件时用，避免整库重算
+function invalidatePreparedFile(zone, fileId){
+  if(_prepFiles[zone]) delete _prepFiles[zone][String(fileId)];
+  if(_snap.zone === zone) dropSnapshot();
+}
+
+// —— 派生标量：全部「首次用到才算、算完挂在副本上」，既不做无谓的提前计算，
+//    也不会像旧代码那样每次筛选/排序都重算一遍（旧实现的搜索文本缓存
+//    因为每次 {...q} 建新对象而 100% 失效，实测同一关键词连续搜索耗时完全不下降）。
+
+// 排序/年份筛选用：source 里出现的年份集合，编码成 '|2024年|2025年' 形式。
+// 与 (source||'').includes(year+'年') 完全等价，但不再重复跑正则。
+function qzYears(p){
+  if(p._qzYears===undefined){
+    var s=String(p.source||''), out='', m, re=/(\d{4})年/g;
+    while((m=re.exec(s))) out += '|' + m[1] + '年';
+    p._qzYears = out;
+  }
+  return p._qzYears;
+}
+function qzYear(p){
+  if(p._qzYear===undefined) p._qzYear = extractYear(String(p.source||''));
+  return p._qzYear;
+}
+function qzSeason(p){
+  if(p._qzSeason===undefined) p._qzSeason = extractSeasonNum(String(p.source||''));
+  return p._qzSeason;
+}
+function qzHalf(p){
+  if(p._qzHalf===undefined) p._qzHalf = String(p.source||'').indexOf('下半年')>=0 ? 1 : 0;
+  return p._qzHalf;
+}
+function qzProv(p){
+  if(p._qzProv===undefined) p._qzProv = testProvince(String(p.source||''));
+  return p._qzProv;
+}
+function qzRatioVal(p){
+  if(p._qzRatioVal===undefined) p._qzRatioVal = getRatioValue(p);
+  return p._qzRatioVal;
+}
+// 一级模块名（模块下拉框统计与筛选都要用）。
+//   mk 分支口径：normalizeModuleName(q.bigCategory||'') || '未分类'
+//   其他分支口径：normalizeModuleName(getQuestionBigCategory(q))
+// 输入只来自题目自身的分类字段（以及文件名派生的 file.module），与筛选条件无关，
+// 所以可以像年份一样挂在展开副本上只算一次。题库一变 bumpDbEpoch() 会整批换掉副本，
+// 因此不存在「改完分类还读到旧值」的情况。
+function qzModule(p){
+  if(p._qzModule===undefined) p._qzModule = normalizeModuleName(p.bigCategory||'') || '未分类';
+  return p._qzModule;
+}
+function qzModuleOfBar(p){
+  if(p._qzModuleBar===undefined) p._qzModuleBar = normalizeModuleName(getQuestionBigCategory(p));
+  return p._qzModuleBar;
+}
+
+// 展开一道普通题（gk/mk/sy/ms）。产出与原 getZoneQuestions 的 `{...q,...}` 完全一致，
+// 额外只是把「以后会反复用到的派生值」惰性缓存到同一个副本上。
+function prepareQuestion(zone, f, q, qi){
+  var key = 'f'+f.id+'_q'+qi;
+  var p = {...q};
+  p.correctRatio = getQuestionCorrectRatio(q);
+  p._fileId = f.id;
+  p._qi = qi;
+  p._key = key;
+  p._zone = zone;
+  p._answered = (f.answered && f.answered[key]!==undefined) ? f.answered[key] : undefined;
+  return p;
+}
+
+// 取（并缓存）某个文件的展开副本数组
+function preparedFile(zone, f){
+  var cache = _prepFiles[zone] || (_prepFiles[zone] = {});
+  var hit = cache[f.id];
+  if(hit) return hit;
+  var out = [];
+  if(zone==='sl' || zone==='zy'){
+    out = buildEssayPreparedFile(zone, f);      // 申论/综应：结构特殊，走原逻辑
+  } else {
+    var raw = f.questions || [];
+    for(var qi=0; qi<raw.length; qi++){
+      var q = raw[qi];
+      if(!q || typeof q!=='object') continue;
+      out.push(prepareQuestion(zone, f, q, qi));
     }
-    (f.questions||[]).forEach((q,qi)=>{
-      const key='f'+f.id+'_q'+qi;
-      arr.push({...q, correctRatio:getQuestionCorrectRatio(q), _fileId:f.id, _qi:qi, _key:key, _zone:zone, _answered: (f.answered&&f.answered[key]!==undefined)?f.answered[key]:undefined});
+  }
+  cache[f.id] = out;
+  return out;
+}
+
+// 刷新展开副本上的做题进度（_answered 会做题而变，其余派生值不变）
+// 用「作答版本号」做闸门：只有真正写过进度之后才扫一遍，避免每次取快照都空跑整个分区。
+var _ansStamp = 0;
+var _ansStampByZone = { gk:-1, mk:-1, sy:-1, sl:-1, zy:-1, ms:-1 };
+function markAnswersDirty(){ _ansStamp = (_ansStamp || 0) + 1; }
+function refreshAnsweredCache(zone, arr){
+  if(_ansStampByZone[zone] === _ansStamp) return;
+  var zoneDb = db[zone];
+  if(zoneDb){
+    for(var i=0;i<arr.length;i++){
+      var p = arr[i];
+      var f = zoneDb[p._fileId];
+      var a = (f && f.answered) ? f.answered[p._key] : undefined;
+      if(a === undefined) a = undefined;
+      if(p._answered !== a) p._answered = a;
+    }
+  }
+  _ansStampByZone[zone] = _ansStamp;
+}
+
+function getZoneQuestions(zone, fileId){
+  zone = zone || activeZone;
+  if(!db[zone]) return [];
+  if(fileId && fileId!=='__all__'){
+    var single = db[zone][fileId];
+    return single ? preparedFile(zone, single) : [];
+  }
+  var fileCount = countFileEntries(db[zone]);
+  if(_snap.arr && _snap.zone===zone && _snap.epoch===_dbEpoch && _snap.fileCount===fileCount){
+    refreshAnsweredCache(zone, _snap.arr);
+    return _snap.arr;
+  }
+  var arr=[];
+  var ids = Object.keys(db[zone]);
+  for(var i=0;i<ids.length;i++){
+    var f = db[zone][ids[i]];
+    if(!f) continue;
+    var list = preparedFile(zone, f);
+    for(var j=0;j<list.length;j++) arr.push(list[j]);
+  }
+  _snap.zone = zone; _snap.epoch = _dbEpoch; _snap.arr = arr; _snap.fileCount = fileCount;
+  return arr;
+}
+
+// 申论/综应展开：保持原有逐题 Object.assign 逻辑（试卷壳 + 材料 + 真实题号）
+function buildEssayPreparedFile(zone, f){
+  var arr=[];
+  (f.questions||[]).forEach((paper,paperIndex)=>{
+    if(!paper || !paper._essay || !Array.isArray(paper.essayQuestions)) return;
+    const paperMaterials=Array.isArray(paper.materials)?paper.materials:[];
+    // 先按「题目 ↔ 材料」关系推断真实试卷题号（写入 _paperQuestionNo），再按题号排序。
+    // 注意：fullData / questionIds 的数组顺序不代表试卷题号，不能直接用下标当题号。
+    const orderedQuestions=computeEssayPaperQuestionNos(paper.essayQuestions.slice(), paperMaterials);
+    orderedQuestions.sort(function(a,b){
+      return (a._paperQuestionNo||0)-(b._paperQuestionNo||0);
+    });
+    orderedQuestions.forEach((question,questionIndex)=>{
+      const key='f'+f.id+'_p'+paperIndex+'_q'+questionIndex;
+      arr.push(Object.assign({},question,{
+        _fileId:f.id,
+        _paperIndex:paperIndex,
+        _qi:questionIndex,
+        _key:key,
+        _zone:zone,
+        _paperName:paper.paperName||'',
+        _paperYear:paper.year||paper._year||getYear(paper.paperDate)||'',
+        _paperTopic:paper.topic||'',
+        _paperProvince:(paper.province&&paper.province!==paper._year)?paper.province:(extractProvince(paper.paperName)||paper._region||''),
+        _paperId:paper.paperId||'',
+        _materials:paperMaterials,
+        _isEssayQuestion:true,
+        leafCategory:question.leafCategory||(Array.isArray(question.keypoints)&&question.keypoints[0]&&question.keypoints[0].name)||'其他',
+        _answered:(f.answered&&f.answered[key]!==undefined)?f.answered[key]:undefined
+      }));
     });
   });
   return arr;
@@ -4450,22 +4659,69 @@ function showPrompt(message, defaultValue, onSubmit){
   noBtn.onclick=cleanup;
 }
 
+// 记忆化（签名级）：
+//   一次「搜索 / 切筛选」会连续调用本函数两次（renderModuleBar + updateSubTypeFilter
+//   各自要一次模块计数），而每次都要把整个分区扫一遍、对每道题现算全文搜索文本 ——
+//   mk 实测 61180 题一次全文扫描 ≈ 34MB 字符串，连做两遍纯属白干。
+//   签名 = 分区 + 题库版本号 + 搜索词 + 年份 + 省份 + 来源：
+//   这六项就是本函数的**全部输入**（作答进度 / 收藏 / 笔记都不参与），
+//   因此签名相同 ⇒ 输出必然逐元素相同（差分测试 39 组用例已覆盖）。
+//   命中时返回副本，调用方即使就地改动也污染不到缓存。
+//   返回副本同时也修掉了旧行为的一个隐患：旧实现在无任何筛选时返回的是
+//   分区快照数组本身，调用方一旦就地 sort 会把快照带歪。
+var _gfbMemo = { sig: null, arr: null };
+function filterBaseSignature(){
+  // getFilterBaseQuestions 的全部输入 = 分区 + 题库版本 + 搜索词 + 年份 + 省份 + 来源
+  return activeZone + '\u0001' + _dbEpoch + '\u0001' + (filterState.search||'') + '\u0001'
+       + (filterState.year||'all') + '\u0001' + (filterState.province||'all') + '\u0001' + (filterState.source||'all');
+}
+// 一级模块统计（模块下拉框的「(N题)」计数）缓存。
+//   · mk 分支的模块统计**只用 q.bigCategory**，与任何筛选条件都无关 ⇒ 只需 (分区 + 题库版本)；
+//   · gk/sy 分支的模块统计基于 getFilterBaseQuestions() 的结果 ⇒ 用同一套签名。
+//   旧实现每次 updateSubTypeFilter 都要对整分区跑一遍 normalizeModuleName
+//   （采样实测 mk 61180 题一次 ≈ 18ms，且 refreshFilterCounters 与 renderModuleBar
+//    会各触发一次，同一次操作里白白算两遍）。
+var _moduleStatsMemo = { sig: null, stats: null };
+function getModuleStatsForBar(){
+  var isMk = (activeZone === 'mk');
+  var sig = (isMk ? 'mk\u0001' + _dbEpoch : 'z\u0001' + filterBaseSignature());
+  if(_moduleStatsMemo.sig === sig && _moduleStatsMemo.stats) return Object.assign({}, _moduleStatsMemo.stats);
+  var stats = {};
+  if(isMk){
+    var all = getZoneQuestions(activeZone, '__all__');
+    for(var i=0;i<all.length;i++){
+      var normalized = qzModule(all[i]);
+      stats[normalized] = (stats[normalized] || 0) + 1;
+    }
+  } else {
+    var qs0 = getFilterBaseQuestions();
+    for(var j=0;j<qs0.length;j++){
+      var module = qzModuleOfBar(qs0[j]);
+      if(module) stats[module] = (stats[module] || 0) + 1;
+    }
+  }
+  _moduleStatsMemo.sig = sig; _moduleStatsMemo.stats = stats;
+  return Object.assign({}, stats);
+}
 function getFilterBaseQuestions(){
+  var sig = filterBaseSignature();
+  if(_gfbMemo.sig === sig && _gfbMemo.arr) return _gfbMemo.arr.slice();
   let qs=getZoneQuestions(activeZone, '__all__');
   const kw=normalizeSearchText(filterState.search);
   if(kw) qs=qs.filter(function(q){ return getQuestionSearchText(q).indexOf(kw)>=0; });
   if(filterState.year && filterState.year!=='all'){
-    qs=qs.filter(function(q){ return (activeZone==='sl'||activeZone==='zy') ? (q._paperYear||q.year)===filterState.year : (q.source||'').includes(filterState.year+'年'); });
+    qs=qs.filter(function(q){ return (activeZone==='sl'||activeZone==='zy') ? (q._paperYear||q.year)===filterState.year : qzYears(q).indexOf('|'+filterState.year+'年')>=0; });
   }
   if(filterState.province && filterState.province!=='all'){
-    qs=qs.filter(function(q){ return (activeZone==='sl'||activeZone==='zy') ? (q._paperProvince||q.province||'其他')===filterState.province : testProvince(q.source||'')===filterState.province; });
+    qs=qs.filter(function(q){ return (activeZone==='sl'||activeZone==='zy') ? (q._paperProvince||q.province||'其他')===filterState.province : qzProv(q)===filterState.province; });
   }
   // 来源（改为包含匹配，所有分区生效）
   if(filterState.source && filterState.source!=='all'){
     var sourceValue = filterState.source;
     qs=qs.filter(function(q){ return (q.source || '').includes(sourceValue); });
   }
-  return qs;
+  _gfbMemo.sig = sig; _gfbMemo.arr = qs;
+  return qs.slice();
 }
 
 function renderModuleBar(){
@@ -4521,8 +4777,7 @@ function renderModuleBar(){
     moduleBar.innerHTML = html;
   } else {
     qs.forEach(function(q) {
-      var m = getQuestionBigCategory(q);
-      m = normalizeModuleName(m) || '未分类';
+      var m = qzModuleOfBar(q) || '未分类';
       if (!counts[m]) counts[m] = 0;
       counts[m]++;
     });
@@ -5112,14 +5367,14 @@ function getFiltered(skipSort){
   if(kw)
     qs=qs.filter(q=>getZoneSearchText(q).indexOf(kw)>=0);
 
-  // 年份
+  // 年份（口径：source 中含 '<year>年'；改用预先摘出的年份集合，等价且不再跑正则）
   if(filterState.year!=='all'){
-    qs=qs.filter(q=>(q.source||'').includes(filterState.year+'年'));
+    qs=qs.filter(q=>qzYears(q).indexOf('|'+filterState.year+'年')>=0);
   }
 
   // 省份
   if(filterState.province && filterState.province!=='all'){
-    qs=qs.filter(q=>testProvince(q.source||'')===filterState.province);
+    qs=qs.filter(q=>qzProv(q)===filterState.province);
   }
 
   // 来源（改为包含匹配，所有分区生效）
@@ -5148,38 +5403,38 @@ function getFiltered(skipSort){
 
   // 正确率区间筛选：与上面的手动输入范围【叠加生效】（取交集）
   const ratioRangeDef=getRatioRangeDef(filterState.sortBy);
-  if(ratioRangeDef) qs=qs.filter(function(q){ return ratioRangeDef.test(getRatioValue(q)); });
+  if(ratioRangeDef) qs=qs.filter(function(q){ return ratioRangeDef.test(qzRatioVal(q)); });
 
   // ====== 排序逻辑 ======
   // 注意：sortBy 为区间值（range*）时既不等于 ratioDesc 也不等于 ratioAsc，
   // 会自然落入下面的「默认顺序」分支 —— 即区间筛选模式下排序回退为默认顺序。
   if (skipSort) return qs;   // 只统计集合大小、不关心顺序时跳过排序（省掉一次全量排序开销）
+  // 排序是原地操作：无任何筛选条件时 qs 就是分区快照本身，必须先复制一份，
+  // 否则会把快照数组按当前排序方式改写，污染后续所有调用。
+  if (qs === _snap.arr) qs = qs.slice();
   if (activeZone === 'mk') {
     // ====== 只改模考分区：年份降序 → 下半年优先 → 季数降序 ======
     if (filterState.sortBy === 'ratioDesc') {
       qs.sort(function(a, b) {
-        return getRatioValue(b) - getRatioValue(a);
+        return qzRatioVal(b) - qzRatioVal(a);
       });
     } else if (filterState.sortBy === 'ratioAsc') {
       qs.sort(function(a, b) {
-        return getRatioValue(a) - getRatioValue(b);
+        return qzRatioVal(a) - qzRatioVal(b);
       });
     } else {
       qs.sort(function(a, b) {
-        var sourceA = a.source || '';
-        var sourceB = b.source || '';
-
-        var yearA = extractYear(sourceA);
-        var yearB = extractYear(sourceB);
-        var seasonA = extractSeasonNum(sourceA);
-        var seasonB = extractSeasonNum(sourceB);
-
-        var isSecondHalfA = sourceA.includes('下半年');
-        var isSecondHalfB = sourceB.includes('下半年');
-
+        var yearA = qzYear(a);
+        var yearB = qzYear(b);
         if (yearA !== yearB) return yearB - yearA;
+
+        var isSecondHalfA = qzHalf(a);
+        var isSecondHalfB = qzHalf(b);
         if (isSecondHalfA && !isSecondHalfB) return -1;
         if (!isSecondHalfA && isSecondHalfB) return 1;
+
+        var seasonA = qzSeason(a);
+        var seasonB = qzSeason(b);
         if (seasonA !== seasonB) return seasonB - seasonA;
 
         return 0;
@@ -5189,17 +5444,15 @@ function getFiltered(skipSort){
     // ====== 其他分区（gk、sy）保持不变 ======
     if (filterState.sortBy === 'ratioDesc') {
       qs.sort(function(a, b) {
-        return getRatioValue(b) - getRatioValue(a);
+        return qzRatioVal(b) - qzRatioVal(a);
       });
     } else if (filterState.sortBy === 'ratioAsc') {
       qs.sort(function(a, b) {
-        return getRatioValue(a) - getRatioValue(b);
+        return qzRatioVal(a) - qzRatioVal(b);
       });
     } else {
       qs.sort(function(a, b) {
-        var yearA = extractYear(a.source || '');
-        var yearB = extractYear(b.source || '');
-        return yearB - yearA;
+        return qzYear(b) - qzYear(a);
       });
     }
   }
@@ -5341,7 +5594,13 @@ function getSelectedLetters(item){
 function isAnsweredCorrect(item){
   const a=item._answered;
   if(a===undefined||a===null) return null;
-  const correctLetters = normalizeAnswerLetters(getCorrectLetter(item));
+  // getCorrectLetter() 内部会走 getOptions() + 6 条正则，属于热点函数；
+  // 它只取决于题目本身，因此缓存一次即可（原先在 renderZoneStats / 状态筛选里
+  // 会对整个分区的每道已答题重复调用）。语义不变。
+  let correctRaw;
+  if(item._qzCorrectRaw!==undefined) correctRaw=item._qzCorrectRaw;
+  else { correctRaw=getCorrectLetter(item); try{ item._qzCorrectRaw=correctRaw; }catch(e){} }
+  const correctLetters = normalizeAnswerLetters(correctRaw);
   const submittedLetters = normalizeAnswerLetters(a);
   if(Array.isArray(a) || correctLetters.length>1 || submittedLetters.length>1){
     const normalizedCorrect = correctLetters.slice().sort();
@@ -5349,7 +5608,7 @@ function isAnsweredCorrect(item){
     if(normalizedCorrect.length !== normalizedSubmitted.length) return false;
     return normalizedCorrect.every(function(letter, index){ return letter === normalizedSubmitted[index]; });
   }
-  if(typeof a==='string') return getCorrectLetter(item)===a.toUpperCase();
+  if(typeof a==='string') return correctRaw===a.toUpperCase();
   if(typeof a==='boolean') return !!a;
   return false;
 }
@@ -5546,7 +5805,43 @@ function addLog(type, message, detail, isError, level){
   renderLog();
 }
 function scrollDiagWrite(type, message, isError){ addLog(type==='jump'?'scroll':type,message,'',isError||type==='jump'); }
-function renderLog(){
+// ============================================================
+// 【性能架构】故障日志面板：把「隐藏面板的整块重建」从热路径上摘掉
+// ------------------------------------------------------------
+// 只读基准 + CPU 采样暴露的问题（实测数据）：
+//   renderQuestions() 每次结束时都会走 finishRenderDiagnostics() → renderLog()。
+//   而 renderLog() 会把**最多 200 条**日志的 HTML 整块重建（每条含 <div>×2 +
+//   <pre>JSON</pre>），再用 querySelectorAll('.diag-entry') 给每条挂一遍 onclick。
+//   但 #scrollDiagPanel 在 CSS 里是 `display:none !important`（只有 .show 才显示），
+//   也就是说：**用户看不见这块内容，程序却为它每次翻页重建上千个 DOM 节点。**
+//   CDP 采样实测：mk 单次 renderQuestions() 167.9ms 里有 125ms 花在 renderLog()，
+//   占 67%（renderLog 自身 998.9ms/8 次 + 其 map 回调 106ms/8 次）。
+//   同时这些短命 DOM/字符串对象是 GC 抖动（老 iPad 卡顿）的重要来源。
+//
+// 改造（严格等价，不改任何可见行为）：
+//   · 面板关着时：只更新「侧边栏按钮上仍然看得见的部分」——红点 has-error 与计数
+//     （#scrollDiagBtn / #scrollDiagCount 都在侧边栏，不在面板里），日志正文标记脏。
+//   · 面板打开时（toggleScrollDiagnostics / setDiagFilter / 清空日志）→ 强制整块重建，
+//     于是用户看到的内容与旧版**逐字节一致**。
+//   · 日志数据本身（scrollDiagState.logs，上限 200 条）与全部副作用完全不变，
+//     导出/复制/完整诊断读的都是 scrollDiagState.logs，不受影响。
+// ============================================================
+var _diagBodyDirty = false;
+function diagPanelVisible(){
+  var panel=document.getElementById('scrollDiagPanel');
+  return !!(panel && panel.classList.contains('show'));
+}
+// 侧边栏上「面板关着也能看见」的两个信号，必须每次都刷
+function renderDiagBadge(){
+  var count=document.getElementById('scrollDiagCount');
+  if(count) count.textContent=scrollDiagState.logs.filter(function(entry){return entry.level==='fatal'||entry.level==='warning';}).length;
+  var button=document.getElementById('scrollDiagBtn');
+  if(button) button.classList.toggle('has-error',scrollDiagState.hasError);
+}
+function renderLog(force){
+  renderDiagBadge();
+  if(!force && !diagPanelVisible()){ _diagBodyDirty=true; return; }
+  _diagBodyDirty=false;
   const log=document.getElementById('scrollDiagLog');
   if(!log) return;
   const list=scrollDiagState.logs.filter(function(entry){return scrollDiagState.filter==='all'||entry.type===scrollDiagState.filter;});
@@ -5555,10 +5850,6 @@ function renderLog(){
     return '<article class="diag-entry '+entry.level+'" data-diag-id="'+entry.id+'"><div class="diag-summary"><span>'+escapeHtml(entry.time.slice(11,23))+' '+meta.icon+' '+meta.label+'</span><span class="diag-level">'+(entry.level==='fatal'?'🔴':entry.level==='warning'?'🟡':'🔵')+'</span></div><div class="diag-message">'+escapeHtml(entry.message)+'</div><pre class="diag-detail">'+escapeHtml(entry.detail)+'</pre></article>';
   }).join(''):'<div class="diag-empty">暂无匹配日志</div>';
   log.querySelectorAll('.diag-entry').forEach(function(item){ item.onclick=function(){item.classList.toggle('expanded');}; });
-  const count=document.getElementById('scrollDiagCount');
-  if(count) count.textContent=scrollDiagState.logs.filter(function(entry){return entry.level==='fatal'||entry.level==='warning';}).length;
-  const button=document.getElementById('scrollDiagBtn');
-  if(button) button.classList.toggle('has-error',scrollDiagState.hasError);
   document.querySelectorAll('#scrollDiagFilters [data-filter]').forEach(function(item){item.classList.toggle('active',item.dataset.filter===scrollDiagState.filter);});
   const stats=document.getElementById('scrollDiagStats');
   if(stats){
@@ -5567,7 +5858,7 @@ function renderLog(){
     stats.textContent='破损图片 '+diagnosticStats.brokenImages+' · 最近渲染 '+diagnosticStats.lastRenderMs.toFixed(1)+'ms · 内存 '+memoryText+' · 滚动偏差 '+diagnosticStats.scrollDeviationCount+' 次';
   }
 }
-function setDiagFilter(type){ scrollDiagState.filter=type||'all'; renderLog(); }
+function setDiagFilter(type){ scrollDiagState.filter=type||'all'; renderLog(true); }
 function formatDiagArgs(args){ return Array.prototype.map.call(args,diagText).join(' '); }
 function snapScrollPosition(label){
   const actual=Number(window.scrollY)||0;
@@ -5725,7 +6016,7 @@ function toggleScrollDiagnostics(){
   const willShow=!panel.classList.contains('show');
   panel.classList.toggle('show',willShow);
   if(willShow&&!scrollDiagState.logs.length) addLog('info','✅ 故障检测中心已启动','监听运行时、Promise、Console、网络、DOM和答题滚动');
-  renderLog();
+  renderLog(true);   // 面板刚显示：强制整块重建，保证打开瞬间内容就是最新的
 }
 function closeScrollDiagnostics(){
   const panel=document.getElementById('scrollDiagPanel');
@@ -5745,7 +6036,7 @@ document.addEventListener('keydown',function(event){
 function clearScrollDiagnostics(){
   const panel=document.getElementById('scrollDiagPanel');
   showInlineConfirm(panel,'确定要清空全部故障日志吗？此操作不可撤销！',function(){
-    scrollDiagState.logs=[]; scrollDiagState.hasError=false; renderLog();
+    scrollDiagState.logs=[]; scrollDiagState.hasError=false; renderLog(true);
   });
 }
 function exportFaultReport(){
@@ -7252,6 +7543,7 @@ function removeFile(id){
   showConfirm('确定移除该文件？此操作会删除该文件及其做题进度。', ()=>{
     if(activeFile===id) activeFile='__all__';
     delete db[activeZone][id];
+    bumpDbEpoch();
     index[activeZone]=index[activeZone].filter(m=>m.id!==id);
     try{ idbDel('file:'+activeZone+':'+id); }catch(e){}
     saveIndex(); if(!index[activeZone].length){ searchBox.value=''; filterState.module='all'; filterState.subType='all'; filterState.leafType='all'; }
@@ -7262,6 +7554,7 @@ function clearAllFiles(){
   showConfirm('清空本分区「'+zoneName(activeZone)+'」的全部文件？此操作不可撤销。', ()=>{
     index[activeZone].forEach(function(m){ try{ idbDel('file:'+activeZone+':'+m.id); }catch(e){} });
     index[activeZone]=[]; db[activeZone]={}; activeFile='__all__';
+    bumpDbEpoch();
     saveIndex(); searchBox.value=''; filterState.module='all'; filterState.subType='all'; filterState.leafType='all'; renderAll();
   });
 }
@@ -7304,6 +7597,7 @@ function switchZone(z){
   const exitBtn=document.getElementById('reviewExitBtn'); if(exitBtn) exitBtn.style.display='none';
   const entryBtn=document.getElementById('reviewEntryBtn'); if(entryBtn) entryBtn.style.display='';
   saveStudyPosition();   // 切换前先保存当前分区的位置
+  releaseSearchTextCache(activeZone);   // 离开该分区：立刻释放它的搜索文本缓存（约 27MB/分区）
   activeZone=z; activeFile='__all__';
   document.body.classList.toggle('essay-zone', z==='sl'||z==='zy');
   document.body.classList.toggle('zy-zone', z==='zy');
@@ -8132,6 +8426,7 @@ async function importBackupFromObject(data){
         });
       });
     });
+    markAnswersDirty();   // 进度恢复直接改了 f.answered（此路径不落盘），必须让快照重算 _answered
     
     // 第三步：恢复错题集标记（用 qid 匹配），写入 IndexedDB 的 wrongSet
     let wrongSetRestored = 0;
@@ -8446,6 +8741,8 @@ async function importBackupFromObject(data){
   showConfirm('导入「'+fromLabel+'」将覆盖当前所有分区的数据与做题进度，确定继续？', ()=>{
   index=newIndex; db=newDb;
   ZONE_IDS.forEach(z=>{ if(!Array.isArray(index[z])) index[z]=[]; if(typeof db[z]!=='object'||!db[z]) db[z]={}; });
+  ZONE_IDS.forEach(z=>{ if(_prepFiles[z]) _prepFiles[z]={}; });
+  bumpDbEpoch();
   ZONE_IDS.forEach(z=>{ (index[z]||[]).forEach(m=>{ saveFile(z,m.id); }); });
   saveIndex();
   const v=data.view||null;
@@ -8871,6 +9168,7 @@ searchBox.addEventListener('input', function(){
     filterState.search = '';
     currentPage = 1;
     saveView();
+    releaseSearchTextCache(activeZone);   // 搜索结束：释放搜索文本缓存
     refreshFilterCounters();
     renderQuestions();
     clearSearchHighlights();
@@ -8903,6 +9201,7 @@ searchBox.addEventListener('compositionend', function(){
     filterState.search = '';
     currentPage = 1;
     saveView();
+    releaseSearchTextCache(activeZone);   // 搜索结束：释放搜索文本缓存
     refreshFilterCounters();
     renderQuestions();
     clearSearchHighlights();
@@ -9470,17 +9769,24 @@ function saveAIHistoryMessage(key, message){
   }).catch(function(){ return false; });
 }
 function restoreAIHistoryForVisibleQuestions(){
-  filteredQuestions.forEach(function(item){
-    const result=document.getElementById('ai-'+item._key);
-    if(!result) return;
-    getAIHistory(item._key).then(function(messages){
+  // 只恢复「本次已渲染出来」的题目的 AI 历史。
+  // 原实现遍历整个 filteredQuestions 去 getElementById('ai-'+key)：
+  // gk 一页 20 题却要跑 61,288 次必然失败的 DOM 查询（切分区时更夸张）。
+  // 结果集最多只有一页，直接按 DOM 查即可（与 10998 行 #content .q-ai-result 口径一致）。
+  const scope = (typeof content!=='undefined' && content) ? content : document;
+  const nodes = scope.querySelectorAll('.q-ai-result[id^="ai-"]');
+  for(let i=0;i<nodes.length;i++){
+    const result=nodes[i];
+    const key=result.id.slice(3);
+    if(!key) continue;
+    getAIHistory(key).then(function(messages){
       const last=messages.slice().reverse().find(function(message){ return message.type==='simplify'; });
       if(last && result.isConnected){
         result.className='q-ai-result show';
         result.innerHTML='<strong>🤖 AI 简化解析</strong><br>'+escapeHtml(formatAIResponse(last.content)).replace(/\n/g,'<br>');
       }
     });
-  });
+  }
 }
 function toggleAIPanel(){ const p=document.getElementById('aiPanel'); if(p) p.classList.toggle('show'); }
 function saveAISettings(){
@@ -10096,6 +10402,10 @@ async function openChatHistory() {
         });
     }
   }
+  // 上面这轮就地补全了 q.category / q.subType，而模块统计缓存正是依赖这两个字段
+  // （q.bigCategory || q.category || q.module || file.module）。此处作废一次缓存，
+  // 保证「补全前建过的统计」绝不会被后续读到。
+  bumpDbEpoch();
   try{ await loadView(); }catch(e){}
   loadStudyPosition(activeZone);
   if(restoredStudyPosition){
@@ -10315,14 +10625,8 @@ window.updateSubTypeFilter = function() {
     leafTypeFilter.value = filterState.leafType;
   } else if (activeZone === 'mk') {
     // 动态统计所有 bigCategory（含“未分类”），不再使用固定分类白名单
-    var moduleStats = {};
-    var allModuleQuestions = getZoneQuestions(activeZone, '__all__');
-    allModuleQuestions.forEach(function(q) {
-      var normalized = normalizeModuleName(q.bigCategory || '') || '未分类';
-      if (!moduleStats[normalized]) moduleStats[normalized] = 0;
-      moduleStats[normalized]++;
-    });
-
+    // 统计结果只与「分区 + 题库版本」有关，交给 getModuleStatsForBar() 记忆化
+    var moduleStats = getModuleStatsForBar();
     if (filterState.module !== 'all' && !moduleStats[filterState.module]) {
       filterState.module = 'all';
       filterState.subType = 'all';
@@ -10349,8 +10653,7 @@ window.updateSubTypeFilter = function() {
 
     var selectedModule = moduleFilter.value;
     var moduleQuestions = selectedModule === 'all' ? qs : qs.filter(function(q) {
-      var normalized = normalizeModuleName(q.bigCategory || '') || '未分类';
-      return normalized === selectedModule;
+      return qzModule(q) === selectedModule;
     });
 
     var subTypeStats = {};
@@ -10401,11 +10704,8 @@ window.updateSubTypeFilter = function() {
     });
     leafTypeFilter.value = filterState.leafType;
   } else {
-    var moduleStats = {};
-    qs.forEach(function(q) {
-      var module = normalizeModuleName(getQuestionBigCategory(q));
-      if (module) moduleStats[module] = (moduleStats[module] || 0) + 1;
-    });
+    // 与 mk 分支同理：一级模块统计交给记忆化（签名 = 过滤基础签名）
+    var moduleStats = getModuleStatsForBar();
     var modules = Object.keys(moduleStats);
 
     if (filterState.module !== 'all' && !moduleStats[normalizeModuleName(filterState.module)]) {
@@ -10424,7 +10724,7 @@ window.updateSubTypeFilter = function() {
 
     var selectedModule = moduleFilter.value;
     var moduleQuestions = selectedModule === 'all' ? qs : qs.filter(function(q) {
-      return normalizeModuleName(getQuestionBigCategory(q)) === selectedModule;
+      return qzModuleOfBar(q) === selectedModule;
     });
     var subTypeStats = {};
     moduleQuestions.forEach(function(q) {
