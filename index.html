@@ -754,7 +754,32 @@ body.skin-dark .search-float-counter { color:#a0aec0; }
 
 /* ============ PC / 手机 模式 ============ */
 /* PC模式：选项横向两列 */
-.pc-mode .q-options .option { display: inline-block; width: 48%; vertical-align: top; margin: 1%; box-sizing: border-box; }
+/* 选项容器：改为 grid，两列，所有行等高 */
+.pc-mode .q-options {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  grid-auto-rows: 1fr !important;      /* 关键：让所有行共用同一行高基准 */
+  gap: 2% !important;                   /* 2% 相对容器宽度，等价于原来 margin:1% 的间距 */
+  align-items: stretch !important;
+}
+
+/* 选项本身：交给 grid 排布，去掉旧的百分比宽 + margin 布局 */
+.pc-mode .q-options .option {
+  display: block !important;
+  width: auto !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* 3 个选项：三个排成一行（3 列） */
+.pc-mode .q-options:has(.option:nth-child(3)):not(:has(.option:nth-child(4))) {
+  grid-template-columns: 1fr 1fr 1fr !important;
+}
+
+/* 1 个选项：只占一列，不拉伸 */
+.pc-mode .q-options:not(:has(.option:nth-child(2))) {
+  grid-template-columns: 1fr !important;
+}
 /* 手机模式:纵向堆叠、放大字号与点击区域(适配 iPhone 6.1–6.3") */
 /* ===== 字体缩放（A+/A− 按钮，通过 --fs 变量联动 calc）===== */
 /* PC 模式：覆盖有显式 font-size 的目标元素，默认 --fs:16px 时还原图原始大小 */
