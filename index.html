@@ -11,10 +11,12 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
 /* 主题预初始化：在页面首次绘制前确定最终主题，避免"默认色 → 保存色"闪烁与混合。
-   仅读取 localStorage 中的皮肤 key，写入 CSS 变量；不依赖任何后续脚本。 */
+   读取 localStorage 中的皮肤 key 与分区 key，写入 CSS 变量；不依赖任何后续脚本。
+   优先级：皮肤非 default 时皮肤色优先；皮肤为 default 时使用分区色。 */
 (function(){
   try{
     var SKIN_KEY='qz_skin_v4';
+    var ZONE_KEY='qz_active_zone';
     var SKIN_THEMES={
       default:{main:'#3a7ab0',mid:'#8fc1ed',deep:'#2c5f8a',bg:'#f0f7ff',light:'#eef4fc',onMain:'#ffffff'},
       dark:{main:'#1f2937',mid:'#334155',deep:'#0f172a',bg:'#0b1220',light:'#dbeafe',onMain:'#e2e8f0'},
@@ -30,8 +32,18 @@
       tiffany:{main:'#06807a',mid:'#40d4cf',deep:'#045f5a',bg:'#e8f5f4',light:'#d6e8e6',onMain:'#ffffff'},
       vandyke:{main:'#664228',mid:'#8a5a3a',deep:'#3a2416',bg:'#f0ece8',light:'#e3ded6',onMain:'#ffffff'}
     };
+    var ZONE_THEMES={
+      gk:{main:'#4a90d9',mid:'#7fb0e8',deep:'#2c6b9e',bg:'#e8f0fe',light:'#e8f0fe',onMain:'#ffffff'},
+      mk:{main:'#f5a623',mid:'#f8c560',deep:'#b97312',bg:'#fef3e2',light:'#fef3e2',onMain:'#2d3748'},
+      sy:{main:'#f7c948',mid:'#fae08a',deep:'#8a6d12',bg:'#fef9e0',light:'#fef9e0',onMain:'#2d3748'},
+      sl:{main:'#8b5cf6',mid:'#c4b5fd',deep:'#6d28d9',bg:'#f5f3ff',light:'#f5f3ff',onMain:'#ffffff'},
+      zy:{main:'#06b6d4',mid:'#7dd3e8',deep:'#0e7490',bg:'#ecfeff',light:'#ecfeff',onMain:'#ffffff'},
+      ms:{main:'#10b981',mid:'#34d399',deep:'#059669',bg:'#ecfdf5',light:'#ecfdf5',onMain:'#ffffff'}
+    };
     var skin=localStorage.getItem(SKIN_KEY)||'default';
-    var t=SKIN_THEMES[skin]||SKIN_THEMES.default;
+    var zone=localStorage.getItem(ZONE_KEY)||'gk';
+    // 皮肤非 default 时皮肤色优先；default 时用分区色
+    var t=(skin==='default')?(ZONE_THEMES[zone]||ZONE_THEMES.gk):(SKIN_THEMES[skin]||SKIN_THEMES.default);
     var r=document.documentElement.style;
     r.setProperty('--main',t.main);
     r.setProperty('--mid',t.mid);
@@ -39,6 +51,8 @@
     r.setProperty('--bg',t.bg);
     r.setProperty('--light',t.light);
     r.setProperty('--on-main',t.onMain);
+    r.setProperty('--grad-a',t.main);
+    r.setProperty('--grad-b',t.deep);
     document.documentElement.setAttribute('data-skin',skin);
   }catch(e){}
 })();
@@ -8693,6 +8707,7 @@ function switchZone(z){
   saveStudyPosition();   // 切换前先保存当前分区的位置
   releaseSearchTextCache(activeZone);   // 离开该分区：立刻释放它的搜索文本缓存（约 27MB/分区）
   activeZone=z; activeFile='__all__';
+  try { localStorage.setItem('qz_active_zone', z); } catch(e){}   // 同步持久化分区，供 head 预初始化脚本首屏读取
   document.body.classList.toggle('essay-zone', z==='sl'||z==='zy');
   document.body.classList.toggle('zy-zone', z==='zy');
   document.body.classList.toggle('ms-zone', z==='ms');
@@ -10687,6 +10702,12 @@ function updateSkinPanelUI() {
     el.style.background = isActive ? '#1e3a5f' : '#0f172a';
     el.style.boxShadow = isActive ? '0 0 20px rgba(96,165,250,0.2)' : 'none';
   });
+  // 「默认」皮肤色块：跟随当前分区色
+  var defaultSwatch = document.querySelector('.skin-swatch-default');
+  if (defaultSwatch) {
+    var zoneTheme = (typeof ZONE_THEMES !== 'undefined' && ZONE_THEMES[activeZone]) ? ZONE_THEMES[activeZone] : {main:'#5b9bd5', deep:'#3a7ab0'};
+    defaultSwatch.style.background = 'linear-gradient(135deg, ' + zoneTheme.main + ', ' + zoneTheme.deep + ')';
+  }
 }
 
 function toggleSkinPanel() {
@@ -10699,6 +10720,10 @@ function toggleSkinPanel() {
 
 function selectSkin(s) {
   applySkin(s);
+  // 切回默认皮肤时，重新应用当前分区色（否则会停留在默认蓝，与分区标签颜色混杂）
+  if (s === 'default' && typeof applyZoneTheme === 'function' && typeof activeZone !== 'undefined') {
+    applyZoneTheme(activeZone);
+  }
   setTimeout(function() {
     const panel = document.getElementById('skinPanel');
     if (panel) panel.style.display = 'none';
@@ -11510,6 +11535,7 @@ async function openChatHistory() {
   // 保证「补全前建过的统计」绝不会被后续读到。
   bumpDbEpoch();
   try{ await loadView(); }catch(e){}
+  try { localStorage.setItem('qz_active_zone', activeZone); } catch(e){}   // 同步持久化分区，供 head 预初始化脚本首屏读取
   loadStudyPosition(activeZone);
   if(restoredStudyPosition){
     currentPage=Math.max(1, Number(restoredStudyPosition.page)||1);
@@ -12733,8 +12759,8 @@ if (window.renderQuestions) window.renderQuestions();
   </div>
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
     <div class="skin-opt" data-skin="default" onclick="selectSkin('default')" style="padding:10px 8px;border-radius:8px;border:2px solid #334155;background:#0f172a;color:#e2e8f0;cursor:pointer;font-size:12px;text-align:center;transition:all 0.2s;font-weight:600;">
-      <div style="width:100%;height:24px;border-radius:4px;margin-bottom:4px;background:linear-gradient(135deg,#5b9bd5,#3a7ab0);"></div>
-      默认蓝
+      <div class="skin-swatch-default" style="width:100%;height:24px;border-radius:4px;margin-bottom:4px;background:linear-gradient(135deg,#5b9bd5,#3a7ab0);"></div>
+      默认
     </div>
     <div class="skin-opt" data-skin="dark" onclick="selectSkin('dark')" style="padding:10px 8px;border-radius:8px;border:2px solid #334155;background:#0f172a;color:#e2e8f0;cursor:pointer;font-size:12px;text-align:center;transition:all 0.2s;font-weight:600;">
       <div style="width:100%;height:24px;border-radius:4px;margin-bottom:4px;background:linear-gradient(135deg,#1f2937,#0f172a);"></div>
