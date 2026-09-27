@@ -15459,7 +15459,7 @@ document.addEventListener('pageshow', function() {
   function examLoadHistory(mode){var history=examStorage(examHistoryKey(mode));return Array.isArray(history)?history:[];}
   function examSaveHistory(mode,keys){var history=examLoadHistory(mode).concat(keys);var unique=[];history.forEach(function(key){if(unique.indexOf(key)<0)unique.push(key);});examStorage(examHistoryKey(mode),unique.slice(-500));}
   function examExtractYear(q,file){var value=[q&&q.year,q&&q.source,file&&file.fileName].filter(Boolean).join(' '),match=value.match(/(20\d{2})/g);return match?Number(match[match.length-1]):0;}
-  function examQuestionModule(q){return String(q.category||q.bigCategory||q.subCategory||q.module||'').replace(/与表达$/,'').trim();}
+  function examQuestionModule(q){return String(q.bigCategory||q.category||q.subCategory||q.module||'').replace(/与表达$/,'').trim();}
   function examQuestionSubType(q){return String(q.subType||q.subCategory||q.leafCategory||'');}
   function examAllQuestions(zone){var result=[];Object.keys(db[zone]||{}).forEach(function(fileId){var file=db[zone][fileId];if(!file)return;(file.questions||[]).forEach(function(raw,index){var q=Object.assign({},raw,{_fileId:fileId,_qi:index,_key:'f'+fileId+'_q'+index,_zone:zone,_fileName:file.fileName,_examYear:examExtractYear(raw,file)});result.push(q);});});return result;}
   function examMatchModule(q,module){var value=examQuestionModule(q);if(value===module)return true;if(module==='判断推理'){var subType=examQuestionSubType(q);return subType.length>0;}return false;}
