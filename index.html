@@ -10912,6 +10912,16 @@ function saveAIHistoryMessage(key, message){
     });
   }).catch(function(){ return false; });
 }
+// AI 简化解析结果的统一渲染函数（实时渲染与刷新恢复共用，避免两处样式不一致）。
+// 顺序固定：先 escapeHtml 转义（防 XSS），再【标题】→ **关键词** → \n 换 <br> → 合并连续 <br>。
+function renderAISimplifyHtml(rawText){
+  return '<strong>🤖 AI 简化解析</strong><br>'
+    + escapeHtml(formatAIResponse(rawText))
+        .replace(/【([^】]+)】/g, '<strong style="color:var(--main);display:inline-block;margin-top:6px;">【$1】</strong>')
+        .replace(/\*\*([^*]+)\*\*/g, '<strong style="background:rgba(124,58,237,0.15);background:color-mix(in srgb, var(--main) 15%, transparent);color:var(--deep);padding:1px 5px;border-radius:4px;border-bottom:2px solid var(--main);font-weight:700;display:inline-block;line-height:1.25;">$1</strong>')
+        .replace(/\n/g,'<br>')
+        .replace(/(<br>\s*){2,}/g,'<br>');
+}
 function restoreAIHistoryForVisibleQuestions(){
   // 只恢复「本次已渲染出来」的题目的 AI 历史。
   // 原实现遍历整个 filteredQuestions 去 getElementById('ai-'+key)：
@@ -10927,7 +10937,7 @@ function restoreAIHistoryForVisibleQuestions(){
       const last=messages.slice().reverse().find(function(message){ return message.type==='simplify'; });
       if(last && result.isConnected){
         result.className='q-ai-result show';
-        result.innerHTML='<strong>🤖 AI 简化解析</strong><br>'+escapeHtml(formatAIResponse(last.content)).replace(/\n/g,'<br>');
+        result.innerHTML=renderAISimplifyHtml(last.content);
       }
     });
   }
@@ -11158,13 +11168,7 @@ async function simplifySolution(key, btn){
       const loadingEl=result.querySelector('.q-ai-loading');
       if(loadingEl) loadingEl.remove();
 
-      const formattedText=formatAIResponse(fullText);
-      result.innerHTML='<strong>🤖 AI 简化解析</strong><br>'
-        + escapeHtml(formattedText)
-            .replace(/【([^】]+)】/g, '<strong style="color:var(--main);display:inline-block;margin-top:6px;">【$1】</strong>')
-            .replace(/\*\*([^*]+)\*\*/g, '<strong style="background:rgba(124,58,237,0.15);background:color-mix(in srgb, var(--main) 15%, transparent);color:var(--deep);padding:1px 5px;border-radius:4px;border-bottom:2px solid var(--main);font-weight:700;display:inline-block;line-height:1.25;">$1</strong>')
-            .replace(/\n/g,'<br>')
-            .replace(/(<br>\s*){2,}/g,'<br>');
+      result.innerHTML=renderAISimplifyHtml(fullText);
 
       try{
         await saveAIHistoryMessage(key, {
