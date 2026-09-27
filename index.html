@@ -268,8 +268,9 @@
 }
 /* AI简化解析每句话一行 */
 .q-ai-result {
-    white-space: pre-line !important;
-    line-height: 1.8 !important;
+    white-space: normal !important;
+    line-height: 1.35 !important;
+    padding-top: 4px;
     max-height: 400px;
     overflow-y: auto;
 }
@@ -1016,7 +1017,7 @@ body.skin-dark .q-solution-toggle { background:var(--surface); color:var(--text)
 .q-ai-btn { margin-top:8px; padding:6px 14px; background:linear-gradient(135deg,#a78bfa,#7c3aed); color:#fff; border:none; border-radius:8px; font-size:13px; cursor:pointer; transition:.15s; font-weight:bold; }
 .q-ai-btn:hover { transform:translateY(-1px) scale(1.02); box-shadow:0 4px 12px rgba(124,58,237,0.35); }
 .q-ai-btn:disabled { opacity:0.6; cursor:wait; }
-.q-ai-result { margin-top:10px; padding:12px; background:linear-gradient(135deg,#faf5ff,#f3e8ff); border-left:4px solid #7c3aed; border-radius:8px; font-size:14px; line-height:1.7; display:none; }
+.q-ai-result { margin-top:10px; padding:12px; background:linear-gradient(135deg,#faf5ff,#f3e8ff); border-left:4px solid #7c3aed; border-radius:8px; font-size:14px; line-height:1.6; display:none; }
 .q-ai-result.show { display:block; }
 .q-chat-btn { margin-top:8px; margin-left:8px; padding:6px 14px; background:linear-gradient(135deg,#60a5fa,#3b82f6); color:#fff; border:none; border-radius:8px; font-size:13px; cursor:pointer; transition:.15s; font-weight:bold; }
 .q-chat-btn:hover { transform:translateY(-1px) scale(1.02); box-shadow:0 4px 12px rgba(59,130,246,0.35); }
@@ -11071,7 +11072,7 @@ async function simplifySolution(key, btn){
   const body={
     model: aiConfig.model || ep.model,
     messages:[
-      {role:'system', content:'你是公考辅导老师。请用简洁的大白话解释这道题，突出关键推理步骤，控制在200到300字之间，但必须把话说完，结尾要有句号，不能中途断掉。'},
+      {role:'system', content:'你是公考辅导老师。请用"分点+缩进"的纯文本格式解释这道题，禁止使用 Markdown 表格。\n\n第一步：先判断题型，分三种：\n· 普通选择题：题干 + A/B/C/D 四个选项，答案是字母\n· 纯判断题：无选项，答案是"对/错"或"全部正确/第N项错误"\n· 判断项数量题：题干里含 ①②③④ 等表述，问"有几项正确"，选项是 A.1项 B.2项 C.3项 D.4项，答案是字母\n\n第二步：按对应格式输出，顺序固定，标题必须原样保留：\n\n【正确答案】\n· 普通选择题、判断项数量题：只写字母，如 B、C\n· 纯判断题：写"对"或"错"，或"全部正确/第N项错误"\n\n【逐项分析】\n· 普通选择题：每个选项单独一行，格式为：字母 ✅/❌ 一句话理由\n· 纯判断题：每个判断句单独一行，格式为：序号 ✅/❌ 一句话理由，序号用 ①②③④…\n· 判断项数量题：先逐项判断 ①②③④（每项一行，格式为：序号 ✅/❌ 一句话理由），最后一行总结："综上，正确的有 N 项，选 X"\n\n【题型】一句话说明这是哪种题型\n【关键】一句话点破破题点\n【易错提醒】一句话（没有就不写这一行）\n\n加粗规则（非常重要）：\n关键概念、地区名、政策名、文件名、会议名、时间节点、易错词，必须用 **双星号** 包住，例如 **压舱石**、**东北**、**绿色低碳高质量发展先行区**。每道题加粗 3-8 处，不要整句加粗。\n\n硬性要求：\n1. 不写客套话，不重复题干，不写"这道题考查的是"之类的开场白；\n2. 逐项分析必须覆盖每一项，不能漏项、不能合并；\n3. 总字数控制在 150-250 字，必须写完整，结尾要有句号，不能中途断掉；\n4. 只输出上述结构内容，不要额外加标题、总结段或分隔线。'},
       {role:'user', content:'题目：'+(item.content||'').substring(0,500)+'\n\n原解析：'+(item.solution||'').substring(0,2000)}
     ],
     temperature:0.5, max_tokens:maxTok,
@@ -11144,7 +11145,12 @@ async function simplifySolution(key, btn){
       if(loadingEl) loadingEl.remove();
 
       const formattedText=formatAIResponse(fullText);
-      result.innerHTML='<strong>🤖 AI 简化解析</strong><br>'+escapeHtml(formattedText).replace(/\n/g,'<br>');
+      result.innerHTML='<strong>🤖 AI 简化解析</strong><br>'
+        + escapeHtml(formattedText)
+            .replace(/【([^】]+)】/g, '<strong style="color:var(--main);display:inline-block;margin-top:6px;">【$1】</strong>')
+            .replace(/\*\*([^*]+)\*\*/g, '<strong style="background:rgba(124,58,237,0.15);background:color-mix(in srgb, var(--main) 15%, transparent);color:var(--deep);padding:1px 5px;border-radius:4px;border-bottom:2px solid var(--main);font-weight:700;display:inline-block;line-height:1.25;">$1</strong>')
+            .replace(/\n/g,'<br>')
+            .replace(/(<br>\s*){2,}/g,'<br>');
 
       try{
         await saveAIHistoryMessage(key, {
