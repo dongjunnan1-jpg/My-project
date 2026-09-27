@@ -7878,7 +7878,7 @@ function renderReviewQuestions(){
 function goReviewPage(p){
   const total=Math.ceil(reviewSession.keys.length/PAGE_SIZE);
   if(p<1||p>total) return;
-  currentPage=p; renderReviewQuestions(); window.scrollTo(0,0);
+  currentPage=p; renderReviewQuestions(); scrollToFirstQuestion();
 }
 // 复盘结果卡片
 function renderReviewResultCard(zone,key){
@@ -8598,13 +8598,16 @@ function submitMultipleChoice(key){
   const questionEl = document.getElementById('q-'+key);
   if(questionEl){
     const correctLetters = normalizeAnswerLetters(getCorrectLetter(item));
+    const isCorrectOverall = isCorrect;
     questionEl.querySelectorAll('.q-options .option').forEach(function(opt){
       const optLetter = opt.dataset.letter;
       const isSelected = selectedSet.indexOf(optLetter) >= 0;
       const isCorrect = correctLetters.indexOf(optLetter) >= 0;
       opt.classList.add('disabled');
       opt.style.cursor = 'default';
-      if(isSelected && isCorrect){
+      // 多选题：只有完全选对（isCorrectOverall 为真）时，已选且正确的选项才标绿；
+      // 少选/错选时，已选选项一律标红，避免绿色误导用户以为做对了。
+      if(isSelected && isCorrect && isCorrectOverall){
         opt.classList.add('correct','selected-correct');
         opt.style.borderColor = '#4ade80';
         opt.style.background = 'rgba(74,222,128,0.2)';
@@ -8653,7 +8656,18 @@ function submitMultipleChoice(key){
   updateWrongCount();
 }
 
-function goPage(p){ const total=Math.ceil(filteredQuestions.length/PAGE_SIZE); if(p<1||p>total) return; stopSpeaking(); currentPage=p; renderQuestions(); window.scrollTo(0,0); }
+function goPage(p){ const total=Math.ceil(filteredQuestions.length/PAGE_SIZE); if(p<1||p>total) return; stopSpeaking(); currentPage=p; renderQuestions(); scrollToFirstQuestion(); }
+
+// 翻页后滚动到本页第一道题（而不是页面最顶部），让用户直接看到题目。
+// 用 requestAnimationFrame 等一帧，确保 renderQuestions() 的 DOM 已就绪。
+function scrollToFirstQuestion(){
+  requestAnimationFrame(function(){
+    const first=document.querySelector('#content .question.visible');
+    if(!first) return;
+    const top=first.getBoundingClientRect().top + window.pageYOffset - 12;
+    window.scrollTo(0, Math.max(0, top));
+  });
+}
 
 // ============================================================
 // 文件管理
