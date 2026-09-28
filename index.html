@@ -1058,6 +1058,12 @@ body.skin-dark .q-solution-toggle { background:var(--surface); color:var(--text)
 .chat-history-item:hover { background:#eff6ff; border-color:#60a5fa; }
 .chat-history-item-title { font-weight:bold; font-size:13px; margin-bottom:4px; color:#1e40af; }
 .chat-history-item-preview { font-size:12px; color:#64748b; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+/* 从对话记录跳转过来时，短暂高亮目标题，便于用户定位 */
+.chat-jump-highlight { animation: chatJumpFlash 1.6s ease-out; }
+@keyframes chatJumpFlash {
+    0%   { box-shadow: 0 0 0 3px rgba(59,130,246,.85); background-color: rgba(59,130,246,.12); }
+    100% { box-shadow: 0 0 0 3px rgba(59,130,246,0); background-color: transparent; }
+}
 .chat-history-empty { text-align:center; padding:40px; color:#94a3b8; }
 .chat-history-export-btn {
     padding:6px 12px; background:rgba(255,255,255,0.2); color:var(--on-main);
@@ -8822,6 +8828,190 @@ function findQuestionByKey(key){
   }
   return null;
 }
+
+// ============================================================
+// 对话记录 → 题目 跳转
+// ------------------------------------------------------------
+// 背景：对话记录里的 key 形如 'f<fileId>_q<qi>'（普通题）或
+//   'f<fileId>_p<paperIndex>_q<qi>'（申论/综应）。
+//   旧实现只做 location.hash='q-'+key，既不切分区、也不清筛选、
+//   更不翻页，所以只有当目标题恰好落在「当前分区 + 当前筛选 +
+//   当前页」时才跳得动 —— 这就是"有时跳得动有时跳不动"的根因。
+// 做法：解析 key → 定位题目所在分区 → 切分区/清筛选 → 算出页码 →
+//   翻页 → 滚动并高亮；任一步找不到就提示"暂不在题库"。
+// ============================================================
+
+// 解析题目 key，返回 {fileId, paperIndex, qi}；无法解析返回 null
+function parseQuestionKey(key){
+  const raw = String(key || '');
+  let m = raw.match(/^f([^_]+)_p(\d+)_q(\d+)$/);
+  if (m) return { fileId: m[1], paperIndex: Number(m[2]), qi: Number(m[3]) };
+  m = raw.match(/^f([^_]+)_q(\d+)$/);
+  if (m) return { fileId: m[1], paperIndex: null, qi: Number(m[2]) };
+  return null;
+}
+
+// 按 key 在全部分区/文件中定位题目，返回 {question, zone, fileId, qi, key}
+// 三级匹配（换题库/删文件重传后，老对话记录仍能命中）：
+//   ① 精确：从 key 反解 fileId+qi，查 db[zone][fileId].questions[qi]
+//   ② 身份：用消息里的 identityKey（或 qid）扫全库，比对 questionIdentityKey(q)
+//   ③ 内容：用消息里的 questionContent 做归一化模糊匹配
+// 三级都失败返回 null。
+// hint 可传 {identityKey, qid, questionContent}（来自对话消息），用于 ②③ 兜底。
+function locateQuestionByKey(key, hint){
+  hint = hint || {};
+
+  // ① 精确匹配：key → fileId + qi
+  const parsed = parseQuestionKey(key);
+  if (parsed) {
+    for (const zone of ZONE_IDS) {
+      const zoneData = db[zone] || {};
+      const fileData = zoneData[parsed.fileId];
+      if (!fileData || !Array.isArray(fileData.questions)) continue;
+      if (parsed.paperIndex === null) {
+        const q = fileData.questions[parsed.qi];
+        if (q && typeof q === 'object') {
+          return { question: q, zone: zone, fileId: parsed.fileId, qi: parsed.qi, key: key, matchedBy: 'exact' };
+        }
+        continue;
+      }
+      const paper = fileData.questions[parsed.paperIndex];
+      const essayQuestions = paper && paper.essayQuestions;
+      if (!Array.isArray(essayQuestions)) continue;
+      const q = essayQuestions[parsed.qi];
+      if (q && typeof q === 'object') {
+        return { question: q, zone: zone, fileId: parsed.fileId, qi: parsed.qi, key: key, matchedBy: 'exact' };
+      }
+    }
+  }
+
+  // ② 身份匹配：identityKey 优先，其次 qid
+  const wantIdentity = String(hint.identityKey || '');
+  const wantQid = String(hint.qid || '');
+  if (wantIdentity || wantQid) {
+    for (const zone of ZONE_IDS) {
+      const zoneData = db[zone] || {};
+      for (const fileId of Object.keys(zoneData)) {
+        const fileData = zoneData[fileId];
+        if (!fileData || !Array.isArray(fileData.questions)) continue;
+        for (let qi = 0; qi < fileData.questions.length; qi++) {
+          const q = fileData.questions[qi];
+          if (!q || typeof q !== 'object') continue;
+          if (wantIdentity && questionIdentityKey(q) === wantIdentity) {
+            return { question: q, zone: zone, fileId: fileId, qi: qi, key: 'f' + fileId + '_q' + qi, matchedBy: 'identity' };
+          }
+          if (!wantIdentity && wantQid && String(q._qid || '') === wantQid) {
+            return { question: q, zone: zone, fileId: fileId, qi: qi, key: 'f' + fileId + '_q' + qi, matchedBy: 'identity' };
+          }
+        }
+      }
+    }
+  }
+
+  // ③ 内容兜底：归一化题干模糊匹配
+  const wantContent = normalizeQuestionText(hint.questionContent || '');
+  if (wantContent) {
+    const probe = wantContent.slice(0, 60);
+    let partial = null;
+    for (const zone of ZONE_IDS) {
+      const zoneData = db[zone] || {};
+      for (const fileId of Object.keys(zoneData)) {
+        const fileData = zoneData[fileId];
+        if (!fileData || !Array.isArray(fileData.questions)) continue;
+        for (let qi = 0; qi < fileData.questions.length; qi++) {
+          const q = fileData.questions[qi];
+          if (!q || typeof q !== 'object') continue;
+          const current = normalizeQuestionText(q.content);
+          if (!current) continue;
+          const hit = { question: q, zone: zone, fileId: fileId, qi: qi, key: 'f' + fileId + '_q' + qi, matchedBy: 'content' };
+          if (current === wantContent) return hit;
+          if (!partial && (current.indexOf(probe) >= 0 || probe.indexOf(current.slice(0, 60)) >= 0)) partial = hit;
+        }
+      }
+    }
+    if (partial) return partial;
+  }
+
+  return null;
+}
+
+// 从对话记录里取出可用于兜底匹配的线索（identityKey / qid / questionContent）
+function chatHintFromMessages(messages){
+  const list = Array.isArray(messages) ? messages : [];
+  for (let i = 0; i < list.length; i++) {
+    const m = list[i];
+    if (!m || typeof m !== 'object') continue;
+    if (m.identityKey || m.qid || m.questionContent) {
+      return { identityKey: m.identityKey || '', qid: m.qid || '', questionContent: m.questionContent || '' };
+    }
+  }
+  return {};
+}
+
+// 跳转到某条对话记录对应的题目。找不到时提示"暂不在题库"。
+function jumpToChatKey(key){
+  // 先同步读一次缓存里的消息，拿 identityKey / questionContent 做兜底
+  let hint = {};
+  try {
+    const cached = window.__allChatsCache && window.__allChatsCache[key];
+    if (Array.isArray(cached)) hint = chatHintFromMessages(cached);
+  } catch (e) {}
+
+  const target = locateQuestionByKey(key, hint);
+  if (!target) {
+    showConfirm('该题暂不在题库；导入含该题的题库后可继续跳转。', function(){});
+    return false;
+  }
+  const zone = target.zone;
+  const question = target.question;
+  const realKey = target.key || key;
+
+  // 1) 切分区（switchZone 内部会重置筛选、回到第 1 页并重新渲染）
+  if (activeZone !== zone) {
+    switchZone(zone);
+  } else {
+    // 同分区：仍需清掉可能把目标题过滤掉的筛选条件
+    clearFilters();
+  }
+
+  // 2) 在渲染后的列表里定位目标题，算出所在页码
+  const list = filteredQuestions || [];
+  let index = -1;
+  for (let i = 0; i < list.length; i++) {
+    const item = list[i];
+    if (!item) continue;
+    if (item._key === realKey) { index = i; break; }
+    if (item === question) { index = i; break; }
+  }
+  if (index < 0) {
+    // 题目在库里，但被当前筛选条件挡住了（例如按年份/来源筛选）
+    showConfirm('该题暂不在题库（当前筛选条件下不可见，请先清除筛选）。', function(){});
+    return false;
+  }
+
+  // 3) 翻到目标页并滚动高亮
+  const page = Math.floor(index / PAGE_SIZE) + 1;
+  if (currentPage !== page) {
+    goPage(page);
+  } else {
+    renderQuestions();
+  }
+  highlightChatJumpTarget(realKey);
+  return true;
+}
+
+// 滚动到目标题并做一次短暂高亮，让用户一眼看到跳到了哪里
+function highlightChatJumpTarget(key){
+  const scrollAndFlash = function(){
+    const el = document.getElementById('q-' + key);
+    if (!el) return;
+    const top = el.getBoundingClientRect().top + window.pageYOffset - 12;
+    window.scrollTo(0, Math.max(0, top));
+    el.classList.add('chat-jump-highlight');
+    setTimeout(function(){ el.classList.remove('chat-jump-highlight'); }, 1600);
+  };
+  requestAnimationFrame(function(){ requestAnimationFrame(scrollAndFlash); });
+}
 function normalizeQuestionText(value){
   return String(value||'').replace(/<[^>]*>/g,'').replace(/\s+/g,'').trim();
 }
@@ -9182,6 +9372,8 @@ async function syncNoteToChatHistory(key, note){
     type: 'note',
     noteId: note.id,
     content: note.content,
+    qid: item ? item._qid : undefined,
+    identityKey: item ? questionIdentityKey(item) : '',
     questionContent: questionContent,
     questionOptions: questionOptions,
     at: note.at || Date.now()
@@ -11174,6 +11366,8 @@ async function simplifySolution(key, btn){
         await saveAIHistoryMessage(key, {
           role:'assistant', type:'simplify', content:fullText,
           reasoning_content:reasoningText,
+          qid:item._qid,
+          identityKey:questionIdentityKey(item),
           questionContent:item.content||'', questionOptions:getOptions(item), at:Date.now()
         });
       }catch(e){ console.warn('保存简化解析历史失败:', e); }
@@ -11203,7 +11397,10 @@ const CHAT_DB_KEY = 'qz_ai_chats';
 async function loadAllChats() {
   try {
     const r = await idbGet(CHAT_DB_KEY);
-    return (r && typeof r === 'object') ? r : {};
+    const all = (r && typeof r === 'object') ? r : {};
+    // 同步缓存一份，供 jumpToChatKey 等同步路径读取消息里的 identityKey/questionContent
+    window.__allChatsCache = all;
+    return all;
   } catch(e) { return {}; }
 }
 
@@ -11217,6 +11414,7 @@ async function saveChat(key, messages) {
       seen.add(k); return true;
     });
     await idbSet(CHAT_DB_KEY, allChats);
+    window.__allChatsCache = allChats;
   } catch(e) { console.error('保存对话失败:', e); }
 }
 
@@ -11278,7 +11476,13 @@ async function sendChatMessage(key) {
   input.value = '';
   const allChats = await loadAllChats();
   const messages = allChats[key] || [];
-  messages.push({role: 'user', content: question});
+  messages.push({
+    role: 'user', content: question,
+    qid: item._qid,
+    identityKey: questionIdentityKey(item),
+    questionContent: item.content || '',
+    questionOptions: getOptions(item)
+  });
   renderChatBox(key, messages);
   scrollChatToBottom(key);
   const aiMessages = [
@@ -11327,7 +11531,13 @@ async function sendChatMessage(key) {
     const reasoning = msg && msg.reasoning_content ? msg.reasoning_content : '';
     const loadingEl = document.getElementById('loading-' + key);
     if (loadingEl) loadingEl.remove();
-    messages.push({role: 'assistant', content: text, reasoning_content: reasoning});
+    messages.push({
+      role: 'assistant', content: text, reasoning_content: reasoning,
+      qid: item._qid,
+      identityKey: questionIdentityKey(item),
+      questionContent: item.content || '',
+      questionOptions: getOptions(item)
+    });
     await saveChat(key, messages);
     renderChatBox(key, messages);
     scrollChatToBottom(key);
@@ -11431,6 +11641,26 @@ function safeHistoryText(value, maxLength) {
   return text.substring(0, maxLength || 50);
 }
 
+// 显示层去重：只影响渲染，不改存储。
+//   · type==='note'  → 按 noteId 去重（同一条心得只显示一次）
+//   · 其余消息       → 按 (type|role|content) 去重
+function dedupeMessagesForDisplay(messages){
+  const list = Array.isArray(messages) ? messages : [];
+  const seen = new Set();
+  const out = [];
+  for (let i = 0; i < list.length; i++) {
+    const m = list[i];
+    if (!m || typeof m !== 'object') continue;
+    const k = (m.type === 'note' && m.noteId)
+      ? 'note|' + m.noteId
+      : (m.type || '') + '|' + (m.role || '') + '|' + (m.content || '');
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(m);
+  }
+  return out;
+}
+
 async function refreshChatHistoryPanel() {
   const panel=document.querySelector('.chat-history-panel');
   if(!panel) return;
@@ -11442,7 +11672,7 @@ async function refreshChatHistoryPanel() {
   if(!list) return;
   if(!keys.length){ list.innerHTML='<div class="chat-history-empty">暂无对话记录</div>'; delete panel.dataset.newHistoryEnhanced; return; }
   list.innerHTML=keys.map(function(key){
-    const messages=Array.isArray(allChats[key])?allChats[key]:[];
+    const messages=dedupeMessagesForDisplay(Array.isArray(allChats[key])?allChats[key]:[]);
     const noteMessages=messages.filter(function(message){ return message && message.type==='note'; });
     let preview;
     if(noteMessages.length){
@@ -11464,7 +11694,7 @@ async function refreshChatHistoryPanel() {
         ? safeHistoryText(firstWithContent.questionContent,30)
         : key;
     }
-    return '<div class="chat-history-item" onclick="location.hash=\'q-'+key+'\'; this.closest(\'.chat-history-panel\').remove();"><div class="chat-history-item-title">'+title+'...</div><div class="chat-history-item-preview">'+preview+'... ('+messages.length+'条消息)</div></div>';
+    return '<div class="chat-history-item" data-chat-key="'+key+'" onclick="jumpToChatKey(\''+key+'\'); this.closest(\'.chat-history-panel\').remove();"><div class="chat-history-item-title">'+title+'...</div><div class="chat-history-item-preview">'+preview+'... ('+messages.length+'条消息)</div></div>';
   }).join('');
   delete panel.dataset.newHistoryEnhanced;
   try{
@@ -11491,7 +11721,7 @@ async function openChatHistory() {
     listHtml += '<div class="chat-history-empty">暂无对话记录</div>';
   } else {
     keys.forEach(function(key) {
-      const messages = allChats[key];
+      const messages = dedupeMessagesForDisplay(allChats[key]);
       const firstUserMsg = messages.find(function(m) { return m.role === 'user'; });
       // const preview = firstUserMsg ? firstUserMsg.content.substring(0, 50) : '对话记录';
       const preview = firstUserMsg ? safeHistoryText(firstUserMsg.content || '', 50) : '对话记录';
@@ -11507,7 +11737,7 @@ async function openChatHistory() {
           ? safeHistoryText(firstWithContent.questionContent, 30)
           : key;
       }
-      listHtml += '<div class="chat-history-item" onclick="location.hash=\'q-' + key + '\'; this.closest(\'.chat-history-panel\').remove();">';
+      listHtml += '<div class="chat-history-item" data-chat-key="' + key + '" onclick="jumpToChatKey(\'' + key + '\'); this.closest(\'.chat-history-panel\').remove();">';
       listHtml += '<div class="chat-history-item-title">' + title + '...</div>';
       listHtml += '<div class="chat-history-item-preview">' + preview + '... (' + count + '条消息)</div>';
       listHtml += '</div>';
@@ -12353,9 +12583,14 @@ if (window.renderQuestions) window.renderQuestions();
     panel.querySelectorAll('.chat-history-item').forEach(function(item){
       if(item.dataset.detailEnhanced==='1') return;
       item.dataset.detailEnhanced='1';
-      const match=(item.getAttribute('onclick')||'').match(/q-([^'\\]+)/);
-      if(!match) return;
-      const key=match[1]; item.setAttribute('data-new-chat-key',key);
+      // 优先读 data-chat-key（新写法）；旧面板没有该属性时，回退到从 onclick 里解析
+      let key=item.getAttribute('data-chat-key')||'';
+      if(!key){
+        const match=(item.getAttribute('onclick')||'').match(/q-([^'\\]+)/);
+        if(!match) return;
+        key=match[1];
+      }
+      item.setAttribute('data-new-chat-key',key);
       const detail=document.createElement('button');
       detail.type='button'; detail.className=newClasses.detailButton; detail.textContent='查看详情';
       detail.addEventListener('click',function(e){ e.stopPropagation(); openChatDetail(key); });
