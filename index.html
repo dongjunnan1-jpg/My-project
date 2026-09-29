@@ -8061,6 +8061,10 @@ function renderQuestions(){
     const isCorrect=isAnsweredCorrect(item)||false;
     const correctLetter=getCorrectLetter(item);
     const ratio=item.correctRatio||0;
+    // 无有效正确率（缺字段 或 totalCount=0 无人作答）→ 不显示 0.00，显示「正确率未收录」
+    // 只要没有正确率（缺失 / 0 / 非正数）就显示「正确率未收录」
+    const _hasRatio = Number(ratio)>0;
+    const ratioText = _hasRatio ? (ratio.toFixed(2)+'%') : '正确率未收录';
     const source=item.source||'';
     const options=getOptions(item);
     const solution=item.solution||'';
@@ -8075,7 +8079,7 @@ function renderQuestions(){
     const contentHtml = fixProtocols(item.content||'');
     const solutionHtml = fixProtocols(solution);
     let materialHtml = materialHtmlOf(item);
-    html+=`<div class="question visible" id="q-${key}"><div class="q-title">第 ${i+1} 题 <button type="button" class="q-speak-btn" data-key="${key}" onclick="speakQuestion('${key}', this);event.stopPropagation();" title="朗读题目" aria-label="朗读题目">🔊</button> 📊 ${ratio.toFixed(2)}% ${badge} <span class="q-source">${source}</span> <span class="q-fav" data-key="${key}" onclick="event.stopPropagation();toggleFavorite('${key}')" title="收藏/取消收藏">${favStar}</span></div>`;
+    html+=`<div class="question visible" id="q-${key}"><div class="q-title">第 ${i+1} 题 <button type="button" class="q-speak-btn" data-key="${key}" onclick="speakQuestion('${key}', this);event.stopPropagation();" title="朗读题目" aria-label="朗读题目">🔊</button> 📊 ${ratioText} ${badge} <span class="q-source">${source}</span> <span class="q-fav" data-key="${key}" onclick="event.stopPropagation();toggleFavorite('${key}')" title="收藏/取消收藏">${favStar}</span></div>`;
     if(materialHtml) html+=materialHtml;
     html+=`<div class="q-content">${contentHtml}</div>`;
     if(options&&options.length){
