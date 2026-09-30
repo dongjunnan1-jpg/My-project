@@ -1,0 +1,146 @@
+################################################################
+# Plan A Stage 1 验证 —— BLOCKED 证据原文
+# 采集时间: 2026-09-29 14:30:13 +0800
+# 采集者: WorkBuddy（全只读命令，零写操作）
+################################################################
+
+########## E1. 工作区状态 ##########
+$ git status --short
+?? .workbuddy/
+?? work/
+
+$ git diff --stat
+[空=工作区无未提交改动]
+
+$ git diff --check
+[无输出=通过]
+
+########## E2. HEAD / 分支 ##########
+$ git rev-parse HEAD
+f6f5e8994d451bdfb57572cea7b3079c1a98c144
+$ git rev-parse --abbrev-ref HEAD
+main
+
+$ git branch -vv
++ fix/historical-question-bugs 7e0487f (/Users/helium/qz-worktrees/fix-historical-question-bugs) fix: unify multiple-choice answer evaluation
+* main                         f6f5e89 [origin/main] AI简化解析：思考模式改用专用提示词；补上 jumpToChatKey 等对话记录跳转函数
+  perf/phase0-prepfiles-audit  91f209e fix(ui): 皮肤面板「默认蓝」改为「默认」，色块跟随当前分区色
++ perf/phaseA-idb2-prepcache   944e187 (/Users/helium/qz-worktrees/perf-phaseA-idb2) perf: decouple search from released question bodies
+  plan-a-meta-index            404bfb5 [origin/plan-a-meta-index] fix 修复选项布局
+  朗读                         1218d06 [origin/朗读] 朗读仅包含题干和选项 选项格式为 A、内容。B、内容。 新增中文语音智能评分选择 设置 zh-CN、语速 1.0、音调 1.02、音量 1 增加语音列表预热及异步加载监听 切题、翻页、切换分区时自动停止 保留按钮脉冲动画、重复点击停止、切换按钮自动停止 覆盖 gk、mk、sy、sl、ms 五个分区
+  英语                         d9c6d97 [origin/英语] 英语分支：重命名为 index.html
+
+$ git tag -l
+before-plan-a-20260926
+v-upload-btn-text
+
+########## E3. 三个目标文件是否存活 ##########
+$ ls -la index.html index.html.plan-a-stage1.bak plan-a-stage1.diff
+-rw-r--r-- 1 helium staff 870421 2026-09-29 02:31 index.html
+ls: index.html.plan-a-stage1.bak: No such file or directory
+ls: plan-a-stage1.diff: No such file or directory
+$ shasum -a 256 index.html
+07d26b134f82db30c0a06af68a0137f6d79c786754fb44ea6b7fd94b01a16e5c  index.html
+$ shasum -a 256 index.html.plan-a-stage1.bak
+shasum: index.html.plan-a-stage1.bak: No such file or directory
+$ shasum -a 256 plan-a-stage1.diff
+shasum: plan-a-stage1.diff: No such file or directory
+
+########## E4. 当前 index.html（main）是否含 Stage 1 代码 ##########
+$ grep -c 'buildMetaForFile|buildMetaIndex|saveMetaIndex|loadMetaIndex|META_STORE|metaIndex' index.html
+0
+[0 = 无任何 meta 代码]
+$ grep -n IDB_VER index.html
+3864:const IDB_NAME='qzdb', IDB_VER=1, IDB_STORE='kv';
+3868:    const req=indexedDB.open(IDB_NAME, IDB_VER);
+
+########## E5. plan-a-meta-index 分支内容 ##########
+$ git rev-parse plan-a-meta-index
+404bfb5156f29911df194af3c53a7eae453c48d4
+$ git log --oneline -3 plan-a-meta-index
+404bfb5 fix 修复选项布局
+0d99091 提交问题
+6115f86 merge: 合并英语分支到 main（保留 main 性能优化 + 英语功能）
+$ git show plan-a-meta-index:index.html | grep -c buildMetaForFile
+0
+[0 = 分支内无 Stage 1 代码]
+
+########## E6. Git 全历史搜索 ##########
+$ git log --all --oneline -S'buildMetaForFile'
+41e9fee perf: add question metadata index
+$ git log --all --oneline -S'loadMetaIndex'
+41e9fee perf: add question metadata index
+$ git log --all --oneline -S'plan-a-stage1'
+[空 = plan-a-stage1 从未出现在任何提交]
+
+########## E7. 实际存在的 metadata index 实现（Phase A 线）##########
+$ git show --stat --oneline 41e9fee
+41e9fee perf: add question metadata index
+ index.html | 390 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 389 insertions(+), 1 deletion(-)
+
+$ git branch -a --contains 41e9fee
++ perf/phaseA-idb2-prepcache
+
+$ git show --no-patch --format=fuller 41e9fee
+commit 41e9fee72f6e21a0785d047a0129142d28beebef
+Author:     helium <dongjunnan1@gmail.com>
+AuthorDate: Sun Sep 27 17:28:15 2026 +0800
+Commit:     helium <dongjunnan1@gmail.com>
+CommitDate: Sun Sep 27 17:28:15 2026 +0800
+
+    perf: add question metadata index
+
+$ git show 41e9fee -- index.html | grep 'function '
+@@ -3929,6 +3929,65 @@ function idbDeleteByPrefix(prefix){
++function idbMetaGet(key){
++function idbMetaSet(key,val){
++function idbMetaDel(key){
++function idbMetaGetAllKeys(){
++function idbMetaDeleteByPrefix(prefix){
+ function migrateCustomSoundsFromLocalStorage(){
+@@ -4482,6 +4541,320 @@ async function assertAnsweredStateReadyForBodyRelease(){
++function metaKey(zone, fileId){ return META_PREFIX + zone + ':' + fileId; }
++function metaNowMs(){ return (typeof performance!=='undefined' && performance.now) ? performance.now() : Date.now(); }
++function metaYearsIn(source){
++function buildMetaItem(zone, key, qi, q, paperInfo){
++function buildMetaForFile(zone, fileId, file){
++function saveMetaIndex(zone, fileId, meta){
++function loadMetaIndex(zone, fileId){ return idbMetaGet(metaKey(zone, fileId)); }
++function deleteMetaIndex(zone, fileId){ return idbMetaDel(metaKey(zone, fileId)); }
++function deleteZoneMetaIndexes(zone){ return idbMetaDeleteByPrefix(META_PREFIX + zone + ':'); }
++function deleteAllMetaIndexes(){ return idbMetaDeleteByPrefix(META_PREFIX); }
++function metaJsonBytes(meta){ try{ return JSON.stringify(meta).length; }catch(e){ return -1; } }
++async function buildAndSaveMetaForFile(zone, fileId){
++async function buildAllMetaIndexes(opts){
++async function auditMetaIndexDisk(opts){
+ function saveView(){ return idbSet('view', {activeZone, activeFile, filterState}); }
+ async function loadView(){
+@@ -5796,6 +6169,8 @@ function handleFiles(fileListArr){
+@@ -5824,6 +6199,9 @@ function handleFiles(fileListArr){
+@@ -5838,6 +6216,9 @@ function handleFiles(fileListArr){
+@@ -9233,13 +9614,15 @@ function removeFile(id){
+ function clearAllFiles(){
+@@ -10440,6 +10823,11 @@ async function importBackupFromObject(data){
+
+########## E8. work/ 目录现状 ##########
+total 144
+drwxr-xr-x 14 helium staff   448 2026-09-29 14:30 .
+drwxr-xr-x 10 helium staff   320 2026-09-29 14:29 ..
+drwxr-xr-x 20 helium staff   640 2026-09-29 13:00 .perf-profile
+-rw-r--r--  1 helium staff 17439 2026-09-27 13:38 PhaseA-性能诊断报告.md
+-rw-r--r--  1 helium staff 50026 2026-09-27 14:52 PhaseA2-诊断报告.md
+-rw-r--r--  1 helium staff  1938 2026-09-26 23:31 p1a-change.diff
+-rw-r--r--  1 helium staff  8554 2026-09-27 13:37 perf-phaseA-evidence.json
+-rw-r--r--  1 helium staff  2359 2026-09-27 13:36 perf-phaseA-import.log
+-rw-r--r--  1 helium staff  1364 2026-09-27 13:37 perf-phaseA-measure.log
+-rw-r--r--  1 helium staff  1271 2026-09-27 13:37 perf-phaseA-timing.log
+-rw-r--r--  1 helium staff 26827 2026-09-27 13:37 perf_phaseA_probe.js
+-rw-r--r--  1 helium staff  6023 2026-09-29 14:30 plan-a-stage1-blocked-evidence.txt
+-rw-r--r--  1 helium staff  1183 2026-09-29 14:29 plan-a-stage1-git-baseline.txt
+-rw-r--r--  1 helium staff  2424 2026-09-27 00:22 qzdb-ver2-change.diff
+
+########## E9. worktree ##########
+/Users/helium/Library/Mobile Documents/com~apple~CloudDocs/我的程序/My project f6f5e89 [main]
+/Users/helium/qz-worktrees/fix-historical-question-bugs                        7e0487f [fix/historical-question-bugs]
+/Users/helium/qz-worktrees/perf-phaseA-idb2                                    944e187 [perf/phaseA-idb2-prepcache]

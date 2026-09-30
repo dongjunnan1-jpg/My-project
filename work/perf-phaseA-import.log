@@ -1,0 +1,48 @@
+index.html sha256 = c29bdbb937935e96adf4f66f820d670f45db4f6e7a5c568debfb2b2ff5cc5417
+代码内 IDB_VER = 1
+phase = import  zones = gk,sy,mk
+server = http://127.0.0.1:47831
+[M0 空库冷启动] jsHeap=1.8MB domNodes=1792 layout=8
+
+=== 导入 gk（国考/省考）7 个文件 ===
+    判断推理.json 34.0MB
+    常识判断.json 14.8MB
+    政治理论.json 7.4MB
+    数量关系.json 10.9MB
+    行测缺失题_已分类.json 16.0MB
+    言语理解与表达.json 27.2MB
+    资料分析.json 20.0MB
+[M1 导入gk后（GC 后）] jsHeap=111.3MB domNodes=5527 layout=1419
+    index: {"gk":7,"mk":0,"sy":0,"sl":0,"zy":0,"ms":0}  db题数: {"gk":51917,"mk":0,"sy":0,"sl":0,"zy":0,"ms":0}
+
+=== 导入 sy（事业单位）4 个文件 ===
+    事业单位_2016及以前_8223道.json 17.1MB
+    事业单位_2017-2019_26601道.json 56.0MB
+    事业单位_2020-2024_24372道.json 48.3MB
+    事业单位_2025-2026_10980道.json 12.9MB
+[M1 导入sy后（GC 后）] jsHeap=219.6MB domNodes=6296 layout=2817
+    index: {"gk":7,"mk":0,"sy":4,"sl":0,"zy":0,"ms":0}  db题数: {"gk":51917,"mk":0,"sy":61288,"sl":0,"zy":0,"ms":0}
+
+=== 导入 mk（粉笔模考）13 个文件 ===
+    粉笔模考_事业单位_2024.json 23.2MB
+    粉笔模考_事业单位_2025.json 18.6MB
+    粉笔模考_事业单位_2026.json 13.3MB
+    粉笔模考_国省考_2023.json 17.0MB
+    粉笔模考_国省考_2024_part1.json 16.1MB
+    粉笔模考_国省考_2024_part2.json 12.1MB
+    粉笔模考_国省考_2025_part1.json 18.2MB
+    粉笔模考_国省考_2025_part2.json 18.3MB
+    粉笔模考_国省考_2025_part3.json 1.9MB
+    粉笔模考_国省考_2026_part1.json 17.6MB
+    粉笔模考_国省考_2026_part2.json 15.4MB
+    粉笔模考_国省考_2027.json 17.0MB
+    粉笔模考_时政_2025-11_2026-08.json 2.1MB
+[M1 导入mk后（GC 后）] jsHeap=393.5MB domNodes=7195 layout=4162
+    index: {"gk":7,"mk":13,"sy":4,"sl":0,"zy":0,"ms":0}  db题数: {"gk":51917,"mk":61180,"sy":61288,"sl":0,"zy":0,"ms":0}
+
+最终 index: {"gk":7,"mk":13,"sy":4,"sl":0,"zy":0,"ms":0}
+最终 db 题数: {"gk":51917,"mk":61180,"sy":61288,"sl":0,"zy":0,"ms":0} 合计 174385
+
+[落盘] /Users/helium/Library/Mobile Documents/com~apple~CloudDocs/我的程序/My project/work/perf-phaseA-evidence.json
+index.html sha256 复核 = c29bdbb937935e96adf4f66f820d670f45db4f6e7a5c568debfb2b2ff5cc5417
+EXIT=0

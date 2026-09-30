@@ -1,0 +1,382 @@
+{
+  "indexHtmlSha256": "c29bdbb937935e96adf4f66f820d670f45db4f6e7a5c568debfb2b2ff5cc5417",
+  "idbVerInCode": "1",
+  "phase": "timing",
+  "zones": [
+    "gk",
+    "sy",
+    "mk"
+  ],
+  "steps": [
+    {
+      "label": "T0 冷启动完成",
+      "jsHeapMB": 409.4,
+      "jsHeapTotalMB": 412.3,
+      "embedderMB": 15.2,
+      "backingMB": 0.7,
+      "domNodes": 5509,
+      "documents": 2,
+      "layoutCount": 53,
+      "recalcStyleCount": 54,
+      "frames": 2,
+      "activeZone": "gk",
+      "activeFile": "__all__",
+      "currentPage": 1,
+      "indexFiles": {
+        "gk": 7,
+        "mk": 13,
+        "sy": 4,
+        "sl": 0,
+        "zy": 0,
+        "ms": 0
+      },
+      "dbQuestions": {
+        "gk": 51917,
+        "mk": 61180,
+        "sy": 61288,
+        "sl": 0,
+        "zy": 0,
+        "ms": 0
+      },
+      "prepQuestions": {
+        "gk": 51917,
+        "mk": 0,
+        "sy": 0,
+        "sl": 0,
+        "zy": 0,
+        "ms": 0
+      },
+      "snap": {
+        "zone": "gk",
+        "epoch": 2,
+        "len": 51917,
+        "fileCount": 7
+      },
+      "dbEpoch": 2,
+      "filteredQuestions": 51917,
+      "domQuestionNodes": 20,
+      "domAllNodes": 1620,
+      "searchTextCached": {
+        "full": 0,
+        "restricted": 0
+      },
+      "wrongKeys": {
+        "gk": 0,
+        "mk": 0,
+        "sy": 0,
+        "sl": 0,
+        "zy": 0,
+        "ms": 0
+      },
+      "ev": {
+        "idbGet": 56,
+        "idbGetKeys": 1,
+        "jsonParse": 12,
+        "jsonParseChars": 1981,
+        "renderQuestions": 1,
+        "getZoneQuestions": 10,
+        "preparedFile": 7,
+        "prepareQuestion": 51917,
+        "getFiltered": 4,
+        "getFilterBaseQuestions": 4,
+        "buildSearchText": 0,
+        "buildRestrictedSearchText": 0,
+        "releaseSearchTextCache": 0,
+        "countZoneQuestions": 6,
+        "switchZone": 0,
+        "exportBackup": 0,
+        "bigFilter": 2,
+        "bigFilterElems": 103834,
+        "bigMap": 0,
+        "bigMapElems": 0,
+        "bigSort": 1,
+        "bigSortElems": 51917,
+        "longtasks": [
+          {
+            "t": 1674,
+            "dur": 93
+          },
+          {
+            "t": 2451,
+            "dur": 63
+          },
+          {
+            "t": 2531,
+            "dur": 111
+          },
+          {
+            "t": 2645,
+            "dur": 161
+          }
+        ],
+        "alerts": [],
+        "errors": [],
+        "wrapped": "renderQuestions:ok getZoneQuestions:ok preparedFile:ok prepareQuestion:ok getFiltered:ok getFilterBaseQuestions:ok buildSearchText:ok buildRestrictedSearchText:ok releaseSearchTextCache:ok countZoneQuestions:ok switchZone:ok exportBackup:ok"
+      }
+    },
+    {
+      "label": "T1 计时阶段结束",
+      "jsHeapMB": 421.1,
+      "jsHeapTotalMB": 426.1,
+      "embedderMB": 17.5,
+      "backingMB": 0.7,
+      "domNodes": 9286,
+      "documents": 2,
+      "layoutCount": 113,
+      "recalcStyleCount": 118,
+      "frames": 2,
+      "activeZone": "gk",
+      "activeFile": "__all__",
+      "currentPage": 6,
+      "indexFiles": {
+        "gk": 7,
+        "mk": 13,
+        "sy": 4,
+        "sl": 0,
+        "zy": 0,
+        "ms": 0
+      },
+      "dbQuestions": {
+        "gk": 51917,
+        "mk": 61180,
+        "sy": 61288,
+        "sl": 0,
+        "zy": 0,
+        "ms": 0
+      },
+      "prepQuestions": {
+        "gk": 51917,
+        "mk": 61180,
+        "sy": 0,
+        "sl": 0,
+        "zy": 0,
+        "ms": 0
+      },
+      "snap": {
+        "zone": "gk",
+        "epoch": 3,
+        "len": 51917,
+        "fileCount": 7
+      },
+      "dbEpoch": 3,
+      "filteredQuestions": 61180,
+      "domQuestionNodes": 20,
+      "domAllNodes": 1745,
+      "searchTextCached": {
+        "full": 0,
+        "restricted": 0
+      },
+      "wrongKeys": {
+        "gk": 0,
+        "mk": 0,
+        "sy": 0,
+        "sl": 0,
+        "zy": 0,
+        "ms": 0
+      },
+      "ev": {
+        "idbGet": 221,
+        "idbGetKeys": 1,
+        "jsonParse": 38,
+        "jsonParseChars": 15523,
+        "renderQuestions": 8,
+        "getZoneQuestions": 55,
+        "preparedFile": 95,
+        "prepareQuestion": 626881,
+        "getFiltered": 22,
+        "getFilterBaseQuestions": 14,
+        "buildSearchText": 0,
+        "buildRestrictedSearchText": 51917,
+        "releaseSearchTextCache": 4,
+        "countZoneQuestions": 18,
+        "switchZone": 2,
+        "exportBackup": 0,
+        "bigFilter": 6,
+        "bigFilterElems": 330136,
+        "bigMap": 0,
+        "bigMapElems": 0,
+        "bigSort": 12,
+        "bigSortElems": 616728,
+        "longtasks": [
+          {
+            "t": 1674,
+            "dur": 93
+          },
+          {
+            "t": 2451,
+            "dur": 63
+          },
+          {
+            "t": 2531,
+            "dur": 111
+          },
+          {
+            "t": 2645,
+            "dur": 161
+          },
+          {
+            "t": 3532,
+            "dur": 62
+          },
+          {
+            "t": 3605,
+            "dur": 1406
+          },
+          {
+            "t": 5023,
+            "dur": 83
+          }
+        ],
+        "alerts": [],
+        "errors": [],
+        "wrapped": "renderQuestions:ok getZoneQuestions:ok preparedFile:ok prepareQuestion:ok getFiltered:ok getFilterBaseQuestions:ok buildSearchText:ok buildRestrictedSearchText:ok releaseSearchTextCache:ok countZoneQuestions:ok switchZone:ok exportBackup:ok"
+      }
+    }
+  ],
+  "timing": {
+    "loadAll_ms": 701.9,
+    "expand_mk_ms": 33.5,
+    "expand_mk_n": 61180,
+    "expand_sy_ms": 61.4,
+    "expand_sy_n": 61288,
+    "expand_gk_ms": 43.5,
+    "expand_gk_n": 51917,
+    "getFiltered_gk_ms": 64.5,
+    "getFiltered_gk_n": 51917,
+    "getFiltered_mk_ms": 163.6,
+    "getFiltered_mk_n": 61180,
+    "searchFirst_gk_ms": 240.5,
+    "searchFirst_gk_hits": 11673,
+    "searchSecond_gk_ms": 22.4,
+    "releaseSearchText_gk_ms": 2.4,
+    "switchZone_gk2sy_ms": 180.9,
+    "switchZone_sy2mk_ms": 220.4,
+    "updateFilterOptions_mk_ms": 83.4,
+    "renderZoneStats_mk_ms": 0.6,
+    "renderModuleBar_mk_ms": 12.9,
+    "pageTurn_ms": [
+      51.1,
+      19.3,
+      18.8,
+      19.8,
+      19.5
+    ],
+    "renderZoneStats_mk_ms_2": 1.1,
+    "dbQuestions": {
+      "gk": 51917,
+      "mk": 61180,
+      "sy": 61288,
+      "sl": 0,
+      "zy": 0,
+      "ms": 0
+    }
+  },
+  "finalState": {
+    "activeZone": "gk",
+    "activeFile": "__all__",
+    "currentPage": 6,
+    "indexFiles": {
+      "gk": 7,
+      "mk": 13,
+      "sy": 4,
+      "sl": 0,
+      "zy": 0,
+      "ms": 0
+    },
+    "dbQuestions": {
+      "gk": 51917,
+      "mk": 61180,
+      "sy": 61288,
+      "sl": 0,
+      "zy": 0,
+      "ms": 0
+    },
+    "prepQuestions": {
+      "gk": 51917,
+      "mk": 61180,
+      "sy": 0,
+      "sl": 0,
+      "zy": 0,
+      "ms": 0
+    },
+    "snap": {
+      "zone": "gk",
+      "epoch": 3,
+      "len": 51917,
+      "fileCount": 7
+    },
+    "dbEpoch": 3,
+    "filteredQuestions": 61180,
+    "domQuestionNodes": 20,
+    "domAllNodes": 1745,
+    "searchTextCached": {
+      "full": 0,
+      "restricted": 0
+    },
+    "wrongKeys": {
+      "gk": 0,
+      "mk": 0,
+      "sy": 0,
+      "sl": 0,
+      "zy": 0,
+      "ms": 0
+    },
+    "ev": {
+      "idbGet": 221,
+      "idbGetKeys": 1,
+      "jsonParse": 38,
+      "jsonParseChars": 15523,
+      "renderQuestions": 8,
+      "getZoneQuestions": 55,
+      "preparedFile": 95,
+      "prepareQuestion": 626881,
+      "getFiltered": 22,
+      "getFilterBaseQuestions": 14,
+      "buildSearchText": 0,
+      "buildRestrictedSearchText": 51917,
+      "releaseSearchTextCache": 4,
+      "countZoneQuestions": 18,
+      "switchZone": 2,
+      "exportBackup": 0,
+      "bigFilter": 6,
+      "bigFilterElems": 330136,
+      "bigMap": 0,
+      "bigMapElems": 0,
+      "bigSort": 12,
+      "bigSortElems": 616728,
+      "longtasks": [
+        {
+          "t": 1674,
+          "dur": 93
+        },
+        {
+          "t": 2451,
+          "dur": 63
+        },
+        {
+          "t": 2531,
+          "dur": 111
+        },
+        {
+          "t": 2645,
+          "dur": 161
+        },
+        {
+          "t": 3532,
+          "dur": 62
+        },
+        {
+          "t": 3605,
+          "dur": 1406
+        },
+        {
+          "t": 5023,
+          "dur": 83
+        }
+      ],
+      "alerts": [],
+      "errors": [],
+      "wrapped": "renderQuestions:ok getZoneQuestions:ok preparedFile:ok prepareQuestion:ok getFiltered:ok getFilterBaseQuestions:ok buildSearchText:ok buildRestrictedSearchText:ok releaseSearchTextCache:ok countZoneQuestions:ok switchZone:ok exportBackup:ok"
+    }
+  }
+}

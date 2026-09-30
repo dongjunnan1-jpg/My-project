@@ -93,13 +93,14 @@
 }
 @media (min-width: 769px) {
     .filter-bar {
-        display: grid !important;
-        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
         gap: 6px !important;
         padding: 8px !important;
+        justify-content: space-between !important;
+        align-items: center !important;
         width: 100% !important;
         margin: 0 0 14px !important;
-        align-items: stretch !important;
     }
     .zone-tab {
     flex: 1 !important;
@@ -2702,13 +2703,9 @@ body.skin-dark .en-pagination button.active {
         </select>
         <select id="sortFilter">
             <option value="default">🔀 默认顺序</option>
-            <option value="ratioDesc">⬆️ 正确率从高到低</option>
-            <option value="ratioAsc">⬇️ 正确率从低到高</option>
-            <option value="range0_40">📉 正确率 0-40%</option>
-            <option value="range41_60">📊 正确率 41-60%</option>
-            <option value="range61_80">📈 正确率 61-80%</option>
-            <option value="range81_100">🏆 正确率 81-100%</option>
-        </select> <select id="moduleFilter"><option value="all">📂 全部模块</option></select> <select id="subTypeFilter"><option value="all">🏷️ 全部话题</option></select> <select id="leafTypeFilter"><option value="all">📋 全部细分题型</option></select> <button class="btn btn-outline" onclick="clearFilters()">✕ 清除筛选</button>
+            <option value="ratioDesc">正确率从高到低</option>
+            <option value="ratioAsc">正确率从低到高</option>
+        </select> <select id="ratioRangeFilter" style="display:none"><option value="all">📊 全部正确率区间</option></select> <select id="moduleFilter"><option value="all">📂 全部模块</option></select> <select id="subTypeFilter"><option value="all">🏷️ 全部话题</option></select> <select id="leafTypeFilter"><option value="all">📋 全部细分题型</option></select> <button class="btn btn-outline" onclick="clearFilters()">✕ 清除筛选</button>
         <label class="ratio-label">正确率
             <input type="number" id="minRatioInput" min="0" max="100" placeholder="0" class="ratio-input"> ~
             <input type="number" id="maxRatioInput" min="0" max="100" placeholder="100" class="ratio-input">%
@@ -5864,7 +5861,7 @@ function renderModuleBar(){
     delete legacyFilterBar.dataset.essayMode;
   }
   moduleBar.style.display='';
-  [yearFilter,provinceFilter,sourceFilter,statusFilter,sortFilter,moduleFilter,subTypeFilter,leafTypeFilter].forEach(function(element){ if(element) element.style.display=''; });
+  [yearFilter,provinceFilter,sourceFilter,statusFilter,sortFilter,document.getElementById('ratioRangeFilter'),moduleFilter,subTypeFilter,leafTypeFilter].forEach(function(element){ if(element) element.style.display=''; });
   if(searchBox) searchBox.style.display='';
   if(activeZone==='ms'){ moduleBar.innerHTML=''; return; }
   const qs = getFilterBaseQuestions();
@@ -6012,7 +6009,10 @@ function updateFilterOptions() {
       '<option value="favorite">⭐ 只显示收藏</option>' +
       '<option value="note">📝 只显示心得</option>';
   }
+  var _rrSel2=document.getElementById('ratioRangeFilter');
+  if(_rrSel2) _rrSel2.style.display='none';
   if(activeZone==='sl' || activeZone==='zy' || activeZone==='ms') return;
+  if(_rrSel2) _rrSel2.style.display='';
   yearFilter.style.display='';
   provinceFilter.style.display='';
   sourceFilter.style.display='';
@@ -6129,26 +6129,20 @@ function updateFilterOptions() {
 
 // 刷新 #sortFilter 的区间选项文字（追加各区间题数），并保持/修复当前选中值
 function renderRatioRangeOptions(counts){
-  // [FIX 20260930 v2] 合并下拉：区间选项直接写进 #sortFilter，替换原有 4 个 range option（带题数）
-  var sel = document.getElementById('sortFilter');
+  var sel = document.getElementById('ratioRangeFilter');
   if(!sel) return;
-  var saved = sortFilter.value;
-  // 移除旧的 range 选项（保留 default/ratioDesc/ratioAsc 3 项）
-  Array.prototype.slice.call(sel.options).forEach(function(opt){
-    if(/^range/.test(opt.value)) sel.removeChild(opt);
-  });
-  // 追加新 range 选项
+  var saved = filterState.ratioRange || 'all';
+  var html = '<option value="all">📊 全部正确率区间</option>';
   for(var i=0;i<RATIO_RANGE_DEFS.length;i++){
     var n=(counts && counts[i]) || 0;
-    var o = document.createElement('option');
-    o.value = RATIO_RANGE_DEFS[i].value;
-    o.textContent = RATIO_RANGE_DEFS[i].label + ' (' + n + '题)';   // label 里已含 📉📊📈🏆 emoji
-    sel.appendChild(o);
+    html += '<option value="'+RATIO_RANGE_DEFS[i].value+'">' + RATIO_RANGE_DEFS[i].label + ' (' + n + '题)</option>';
   }
-  // 保持原选中值
+  sel.innerHTML = html;
   var exists = false;
   for(var j=0;j<sel.options.length;j++){ if(sel.options[j].value===saved){ exists=true; break; } }
-  sel.value = exists ? saved : 'default';
+  if(!exists) saved = 'all';
+  sel.value = saved;
+  filterState.ratioRange = saved;
 }
 
 // 统计一组题目在 4 个正确率区间上的分布：[0-40, 41-60, 61-80, 81-100]
@@ -6254,27 +6248,14 @@ function applyFilterStateToUI(){
   if(provinceFilter) setSelectValue(provinceFilter, filterState.province);
   if(sourceFilter) sourceFilter.value=filterState.source==='all'?'':filterState.source;
   setSelectValue(statusFilter, filterState.status);
-  // [FIX 20260930 v2] 合并下拉：优先显示 ratioRange（如果设了区间），否则显示 sortBy
-  if(sortFilter){
-    if(filterState.ratioRange && filterState.ratioRange !== 'all'){
-      setSelectValue(sortFilter, filterState.ratioRange);
-    }else{
-      setSelectValue(sortFilter, filterState.sortBy || 'default');
-    }
-  }
+  setSelectValue(sortFilter, filterState.sortBy);
+  var _rrSel=document.getElementById('ratioRangeFilter');
+  if(_rrSel){ setSelectValue(_rrSel, filterState.ratioRange); filterState.ratioRange=_rrSel.value; }
   if(searchBox) searchBox.value=filterState.search;
   if(minRatioInput) minRatioInput.value=filterState.minRatio;
   if(maxRatioInput) maxRatioInput.value=filterState.maxRatio;
   if(yearFilter) filterState.year=yearFilter.value; if(provinceFilter) filterState.province=provinceFilter.value; if(sourceFilter) filterState.source=sourceFilter.value;
-  if(statusFilter) filterState.status=statusFilter.value;
-  // [FIX 20260930] 只在 sortFilter.value 是合法排序值时回写 sortBy，
-  // 防止某些边缘场景把区间值写进 sortBy，导致排序失效。
-  // [FIX 20260930 v2] 反写分流：sortFilter 值是 range* → 写 ratioRange；是排序值 → 写 sortBy
-  if(sortFilter){
-    var _v = sortFilter.value;
-    if(isRatioRangeMode(_v)) filterState.ratioRange = _v;
-    else if(_v === 'default' || _v === 'ratioDesc' || _v === 'ratioAsc') filterState.sortBy = _v;
-  }
+  if(statusFilter) filterState.status=statusFilter.value; if(sortFilter) filterState.sortBy=sortFilter.value;
   if(searchBox) filterState.search=searchBox.value; if(minRatioInput) filterState.minRatio=minRatioInput.value; if(maxRatioInput) filterState.maxRatio=maxRatioInput.value;
 }
 
@@ -6554,9 +6535,8 @@ function getFiltered(skipSort){
   if(ratioRangeDef) qs=qs.filter(function(q){ return ratioRangeDef.test(qzRatioVal(q)); });
 
   // ====== 排序逻辑 ======
-  // [FIX 20260930] 排序与区间彻底解耦：sortBy 只承载 default/ratioDesc/ratioAsc；
-  // 区间由独立字段 filterState.ratioRange 承载（读自 getRatioRangeDef），
-  // 二者可同时生效。
+  // 注意：sortBy 为区间值（range*）时既不等于 ratioDesc 也不等于 ratioAsc，
+  // 会自然落入下面的「默认顺序」分支 —— 即区间筛选模式下排序回退为默认顺序。
   if (skipSort) return qs;   // 只统计集合大小、不关心顺序时跳过排序（省掉一次全量排序开销）
   // 排序是原地操作：无任何筛选条件时 qs 就是分区快照本身，必须先复制一份，
   // 否则会把快照数组按当前排序方式改写，污染后续所有调用。
@@ -8751,8 +8731,7 @@ function resetProgress(){
 function clearFilters(){
   filterState.module='all'; filterState.year='all'; filterState.province='all'; filterState.source='all'; filterState.subType='all'; filterState.leafType='all'; filterState.search='';
   filterState.status='all'; filterState.sortBy='default'; filterState.ratioRange='all'; filterState.minRatio=''; filterState.maxRatio='';
-  // [FIX 20260930 v2] 合并下拉重置
-  if(sortFilter) sortFilter.value='default';
+  var _rrC=document.getElementById('ratioRangeFilter'); if(_rrC) _rrC.value='all';
   yearFilter.value='all'; sourceFilter.value=''; searchBox.value='';
   statusFilter.value='all'; sortFilter.value='default';
   if(moduleFilter) moduleFilter.value='all';
@@ -10707,17 +10686,11 @@ sourceFilter.addEventListener('change', function() {
 });
 statusFilter.addEventListener('change', ()=>{ filterState.status=statusFilter.value; currentPage=1; saveView(); refreshFilterCounters(); renderQuestions(); });
 sortFilter.addEventListener('change', ()=>{
-  // [FIX 20260930 v2] 合并下拉：一个框，既能选排序，也能选区间
-  var v = sortFilter.value;
-  if(isRatioRangeMode(v)){
-    // 用户选的是正确率区间 → 只动 ratioRange，排序字段保持用户之前的选择
-    filterState.ratioRange = v;
-    // 区间与「手动输入正确率范围」互斥
+  filterState.sortBy=sortFilter.value;
+  // 区间筛选与「手动输入的正确率范围」语义冲突 → 互斥：切到区间时清空手动输入框
+  if(isRatioRangeMode(filterState.sortBy)){
     minRatioInput.value=''; maxRatioInput.value='';
     filterState.minRatio=''; filterState.maxRatio='';
-  }else{
-    // 用户选的是排序 → 只动 sortBy，区间字段保持
-    filterState.sortBy = v;
   }
   currentPage=1; saveView(); renderQuestions();
 });
@@ -15974,75 +15947,11 @@ document.addEventListener('touchend', function(){
 </script>
 
 <script>
-/* news-return-scrollfix-20260930
-   修复：从「新闻时政简化」等全屏工具返回题库后，做题位置丢失（停在顶部/别处）。
-   根因：body.tool-fs-open 会把 body 设为 position:fixed（无 top），
-        打开工具时页面视觉滚到顶部；关闭工具移除该 class 后，
-        浏览器不会自动恢复原来的滚动位置。
-        新闻阅读页滚动的是 #toolFullscreen（body 保持 fixed），
-        所以只有「新闻」这条路会明显丢位置。
-   方案：打开工具时记录 window.scrollY，关闭工具时恢复。
-        纯增量包装，不改动 openToolFullscreen / closeToolFullscreen 函数体。 */
-(function(){
-  if(window.__toolReturnScrollFix) return;
-  window.__toolReturnScrollFix = true;
-
-  var savedScrollY = null;
-
-  function readScrollY(){
-    var y = Number(window.scrollY);
-    if(!isFinite(y) || y < 0) y = Number(document.documentElement.scrollTop) || 0;
-    return y;
-  }
-  function restore(y){
-    y = Number(y) || 0;
-    if(typeof window.restoreScrollPosition === 'function'){
-      window.restoreScrollPosition(y);
-    }else{
-      try{ window.scrollTo({top:y, left:0, behavior:'instant'}); }
-      catch(e){ window.scrollTo(0, y); }
-    }
-    // 再补两次，覆盖 body 解冻 / 布局重排造成的偏差
-    setTimeout(function(){ try{ window.scrollTo({top:y, left:0, behavior:'instant'}); }catch(e){ window.scrollTo(0, y); } }, 0);
-    setTimeout(function(){ try{ window.scrollTo({top:y, left:0, behavior:'instant'}); }catch(e){ window.scrollTo(0, y); } }, 60);
-  }
-
-  var _open = window.openToolFullscreen;
-  if(typeof _open === 'function'){
-    var wOpen = function(){
-      // 只在「题库 → 工具」时记录；工具内切换（如新闻主视图↔阅读页）不覆盖
-      if(!document.body.classList.contains('tool-fs-open')){
-        savedScrollY = readScrollY();
-      }
-      return _open.apply(this, arguments);
-    };
-    wOpen.__toolReturnScrollFix = true;
-    window.openToolFullscreen = wOpen;
-  }
-
-  var _close = window.closeToolFullscreen;
-  if(typeof _close === 'function'){
-    var wClose = function(){
-      var r = _close.apply(this, arguments);
-      if(savedScrollY !== null){
-        var y = savedScrollY;
-        savedScrollY = null;
-        restore(y);
-      }
-      return r;
-    };
-    wClose.__toolReturnScrollFix = true;
-    window.closeToolFullscreen = wClose;
-  }
-})();
-</script>
-
-<script>
 /* ============================================================
    增量补丁（2026-09-30）
    ① 判断题（无选项）可提交
    ② 素材库（侧边栏入口 / 选中文字加入 / 手动添加 / AI 归类）
-   ③ 正确率区间选项已合并进 #sortFilter（一个下拉同时管排序与区间）
+   ③ 正确率区间下拉的事件绑定（配合 Stage1 拆分的 #ratioRangeFilter）
    全部为「增量安装」，通过包装既有函数实现，不改动业务函数体。
    ============================================================ */
 (function(){
@@ -16128,49 +16037,6 @@ document.addEventListener('touchend', function(){
   + '#mlModalBtns .btn{flex:1;min-height:46px;font-size:15px;}'
   + 'body.skin-dark #toolFullscreen .ml-ai-box{background:rgba(124,58,237,.16);color:#e6edf5;}'
   + 'body.skin-dark #toolFullscreen .ml-ai-box h4{color:#c4b5fd;}'
-  /* ===== 素材库弹窗优化 2026-09-30 ===== */
-  + '#mlModalOverlay{position:fixed;inset:0;z-index:100010;display:none;align-items:center;justify-content:center;'
-  +   'background:rgba(0,0,0,.5);padding:18px;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}'
-  + '#mlModalOverlay.show{display:flex;}'
-  + '#mlModalBox{width:min(560px,100%) !important;max-height:88vh !important;background:var(--surface,#fff) !important;'
-  +   'border-radius:16px !important;box-shadow:0 20px 60px rgba(0,0,0,.35) !important;box-sizing:border-box !important;'
-  +   'display:flex !important;flex-direction:column !important;overflow:hidden !important;padding:0 !important;}'
-  + '#mlModalBox .ml-modal-header{display:flex;justify-content:space-between;align-items:center;'
-  +   'padding:16px 20px;border-bottom:1px solid var(--border,#e5e7eb);flex-shrink:0;background:var(--surface,#fff);}'
-  + '#mlModalBox .ml-modal-header h3{margin:0;color:var(--main,#1e3a5f);font-size:17px;font-weight:700;}'
-  + '#mlModalBox .ml-modal-close{background:transparent;border:0;font-size:20px;color:var(--text-muted,#94a3b8);'
-  +   'cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;'
-  +   'padding:0;line-height:1;transition:background .15s;font-family:inherit;}'
-  + '#mlModalBox .ml-modal-close:hover{background:var(--light,#f1f5f9);color:var(--text,#1f2937);}'
-  + '#mlModalBox .ml-modal-body{padding:16px 20px;overflow-y:auto;flex:1 1 auto;min-height:0;}'
-  + '#mlModalBox .ml-modal-footer{padding:12px 20px;border-top:1px solid var(--border,#e5e7eb);'
-  +   'background:var(--surface-muted,#f8fafc);flex-shrink:0;display:flex;flex-direction:column;gap:8px;}'
-  + '#mlModalBox .ml-modal-src{font-size:12px;color:var(--text-muted,#6b7280);text-align:center;line-height:1.5;}'
-  + '#mlModalBox #mlModalBtns{display:flex;gap:10px;margin-top:0;}'
-  + '#mlModalBox #mlModalBtns .btn{flex:1;min-height:44px;font-size:15px;}'
-  + '#mlModalBox .ml-row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}'
-  + '#mlModalBox .ml-field{margin-bottom:12px;}'
-  + '#mlModalBox .ml-field label{display:block;font-size:13px;font-weight:700;'
-  +   'color:var(--deep,#2c5f8a);margin-bottom:6px;}'
-  + '#mlModalBox .ml-field:last-child{margin-bottom:0;}'
-  + '#mlModalBox .ml-input,#mlModalBox .ml-textarea,#mlModalBox .ml-select{'
-  +   'width:100%;box-sizing:border-box;padding:10px 12px;'
-  +   'border:2px solid var(--border,#d1d5db);border-radius:8px;'
-  +   'background:var(--surface,#fff);color:var(--text,#1f2937);font-size:14px;'
-  +   'font-family:inherit;outline:none;}'
-  + '#mlModalBox .ml-input:focus,#mlModalBox .ml-textarea:focus,#mlModalBox .ml-select:focus{'
-  +   'border-color:var(--main,#3b82f6);}'
-  + '#mlModalBox .ml-textarea{resize:vertical;line-height:1.7;min-height:110px;}'
-  + '@media (max-width: 640px){'
-  +   '#mlModalBox .ml-row-2{grid-template-columns:1fr;gap:0;}'
-  +   '#mlModalBox{width:100% !important;max-height:92vh !important;}'
-  +   '#mlModalBox .ml-modal-header{padding:12px 16px;}'
-  +   '#mlModalBox .ml-modal-body{padding:12px 16px;}'
-  +   '#mlModalBox .ml-modal-footer{padding:10px 16px;gap:6px;}'
-  +   '#mlModalBox .ml-modal-header h3{font-size:16px;}'
-  +   '#mlModalBox .ml-field{margin-bottom:10px;}'
-  +   '#mlModalBox .ml-textarea{min-height:90px;font-size:15px;}'
-  + '}'
   ;
   var st = document.createElement('style');
   st.id = 'ml-feature-style';
@@ -16733,34 +16599,24 @@ function mlOpenQuickSave(text, questionEl){
     return '<option value="' + escapeHtml(c) + '">' + escapeHtml(c) + '</option>';
   }).join('');
 
-  var srcText = escapeHtml([zoneName(src.zone), src.paper, src.index != null ? ('第' + (src.index + 1) + '题') : ''].filter(Boolean).join(' · '));
   box.innerHTML =
-      '<div class="ml-modal-header">'
-    +   '<h3>📚 加入素材库</h3>'
-    +   '<button class="ml-modal-close" type="button" aria-label="关闭" onclick="mlCloseModal()">✕</button>'
+      '<h3>📚 加入素材库</h3>'
+    + '<div class="ml-field"><label>标题</label>'
+    +   '<input type="text" id="mlqTitle" class="ml-input" value="' + escapeHtml(autoTitle) + '"></div>'
+    + '<div class="ml-field"><label>素材内容</label>'
+    +   '<textarea id="mlqContent" class="ml-textarea" style="min-height:150px">' + escapeHtml(text) + '</textarea></div>'
+    + '<div class="ml-field"><label>分类</label>'
+    +   '<select id="mlqCat" class="ml-select">' + catOpts + '</select></div>'
+    + '<div class="ml-field"><label>标签（空格 / 逗号分隔，可留空）</label>'
+    +   '<input type="text" id="mlqTags" class="ml-input" placeholder="如：乡村振兴 基层治理"></div>'
+    + '<div class="ml-field"><label>我的批注（可选）</label>'
+    +   '<textarea id="mlqNote" class="ml-textarea" style="min-height:80px" placeholder="记下这段素材的用法 / 适用论点"></textarea></div>'
+    + '<div style="font-size:12px;color:var(--text-muted)">来源：'
+    +   escapeHtml([zoneName(src.zone), src.paper, src.index != null ? ('第' + (src.index + 1) + '题') : ''].filter(Boolean).join(' · '))
     + '</div>'
-    + '<div class="ml-modal-body">'
-    +   '<div class="ml-row-2">'
-    +     '<div class="ml-field"><label>标题</label>'
-    +       '<input type="text" id="mlqTitle" class="ml-input" value="' + escapeHtml(autoTitle) + '"></div>'
-    +     '<div class="ml-field"><label>分类</label>'
-    +       '<select id="mlqCat" class="ml-select">' + catOpts + '</select></div>'
-    +   '</div>'
-    +   '<div class="ml-field"><label>素材内容 <span style="font-weight:400;color:var(--text-muted);font-size:12px;">（可编辑）</span></label>'
-    +     '<textarea id="mlqContent" class="ml-textarea">' + escapeHtml(text) + '</textarea></div>'
-    +   '<div class="ml-row-2">'
-    +     '<div class="ml-field"><label>标签（空格/逗号分隔）</label>'
-    +       '<input type="text" id="mlqTags" class="ml-input" placeholder="如：乡村振兴 基层治理"></div>'
-    +     '<div class="ml-field"><label>我的批注（可选）</label>'
-    +       '<input type="text" id="mlqNote" class="ml-input" placeholder="用法 / 适用论点"></div>'
-    +   '</div>'
-    + '</div>'
-    + '<div class="ml-modal-footer">'
-    +   '<div class="ml-modal-src">来源：' + srcText + '</div>'
-    +   '<div id="mlModalBtns">'
-    +     '<button class="btn btn-outline" type="button" onclick="mlCloseModal()">取消</button>'
-    +     '<button class="btn btn-primary" type="button" id="mlqSave">💾 保存</button>'
-    +   '</div>'
+    + '<div id="mlModalBtns">'
+    +   '<button class="btn btn-outline" type="button" onclick="mlCloseModal()">取消</button>'
+    +   '<button class="btn btn-primary" type="button" id="mlqSave">💾 保存</button>'
     + '</div>';
 
   document.getElementById('mlqSave').addEventListener('click', async function(){
@@ -17068,7 +16924,26 @@ window.mlImport = async function(input){
   };
 })();
 
-/* ---------- Part 3：已合并到 #sortFilter，无需独立绑定 ---------- */
+/* ---------- Part 3：正确率区间下拉事件绑定 ---------- */
+(function bindRatioRange(){
+  var sel = document.getElementById('ratioRangeFilter');
+  if(!sel || sel.__bound) return;
+  sel.__bound = true;
+  sel.addEventListener('change', function(){
+    filterState.ratioRange = this.value;
+    if(isRatioRangeMode(this.value)){
+      var mn = document.getElementById('minRatioInput');
+      var mx = document.getElementById('maxRatioInput');
+      if(mn) mn.value = '';
+      if(mx) mx.value = '';
+      filterState.minRatio = '';
+      filterState.maxRatio = '';
+    }
+    currentPage = 1;
+    saveView();
+    renderQuestions();
+  });
+})();
 
 /* 暴露给外部（调试用） */
 window.__materialDebug = { mlState: mlState, materialRefresh: materialRefresh, materialOpen: materialOpen };
@@ -17076,32 +16951,6 @@ window.__materialDebug = { mlState: mlState, materialRefresh: materialRefresh, m
 console.log('✅ 增量补丁已加载（判断题 + 素材库 + 区间下拉）');
 })();
 
-
-
-/* ============================================================
-   临时诊断钩子（2026-09-30）：验证「区间 + 排序」是否可同时生效
-   在控制台可见：用户操作后会在 console 打印当前 filterState。
-   验证完成后可整段删除。
-   ============================================================ */
-(function(){
-  if(window.__filterDebugInstalled) return;
-  window.__filterDebugInstalled = true;
-  ['sortFilter'].forEach(function(id){
-    var el = document.getElementById(id);
-    if(!el || el.__dbgBound) return;
-    el.__dbgBound = true;
-    el.addEventListener('change', function(){
-      setTimeout(function(){
-        console.log('[FILTER-DEBUG] 变更：'+id+' → '+el.value, {
-          'filterState.sortBy': filterState.sortBy,
-          'filterState.ratioRange': filterState.ratioRange,
-          'sortFilter.value': document.getElementById('sortFilter').value
-        });
-      }, 30);
-    });
-  });
-  console.log('[FILTER-DEBUG] 已装载：选完排序/区间后，控制台会打印 filterState 的实时值。');
-})();
 </script>
 </body>
 </html>

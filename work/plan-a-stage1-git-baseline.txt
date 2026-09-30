@@ -1,0 +1,35 @@
+# plan-a-stage1-git-baseline
+# 采集时间: 2026-09-29 14:29:40 +0800
+# 注意: macOS 无 sha256sum，改用 shasum -a 256（等价）
+
+## git status --short
+?? .workbuddy/
+?? work/
+
+## git diff --stat
+(空输出 = 工作区无未提交改动)
+
+## git diff --check
+(无输出 = 通过)
+
+## git rev-parse HEAD
+f6f5e8994d451bdfb57572cea7b3079c1a98c144
+
+## git rev-parse --abbrev-ref HEAD
+main
+
+## git log --oneline -5
+f6f5e89 AI简化解析：思考模式改用专用提示词；补上 jumpToChatKey 等对话记录跳转函数
+b5bb213 对话记录面板打开时隐藏侧边栏与角落按钮，避免一键导出被压住
+d39205b 对话记录跳转改为按题目身份三级匹配；写入时补 identityKey；显示层去重
+4c68510 AI 简化解析渲染抽成公共函数，刷新后格式不再丢失
+37d5fec 翻页滚到第一题；多选题少选时已选选项标红
+
+## shasum -a 256 index.html
+07d26b134f82db30c0a06af68a0137f6d79c786754fb44ea6b7fd94b01a16e5c  index.html
+
+## shasum -a 256 index.html.plan-a-stage1.bak
+shasum: index.html.plan-a-stage1.bak: No such file or directory
+
+## shasum -a 256 plan-a-stage1.diff
+shasum: plan-a-stage1.diff: No such file or directory

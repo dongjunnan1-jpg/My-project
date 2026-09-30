@@ -1,0 +1,33 @@
+index.html sha256 = c29bdbb937935e96adf4f66f820d670f45db4f6e7a5c568debfb2b2ff5cc5417
+代码内 IDB_VER = 1
+phase = timing  zones = gk,sy,mk
+server = http://127.0.0.1:47831
+[T0 冷启动完成] jsHeap=409.4MB domNodes=5509 layout=53
+  T·loadAll_ms = 701.9
+  T·expand_mk_ms = 33.5
+  T·expand_mk_n = 61180
+  T·expand_sy_ms = 61.4
+  T·expand_sy_n = 61288
+  T·expand_gk_ms = 43.5
+  T·expand_gk_n = 51917
+  T·getFiltered_gk_ms = 64.5
+  T·getFiltered_gk_n = 51917
+  T·getFiltered_mk_ms = 163.6
+  T·getFiltered_mk_n = 61180
+  T·searchFirst_gk_ms = 240.5
+  T·searchFirst_gk_hits = 11673
+  T·searchSecond_gk_ms = 22.4
+  T·releaseSearchText_gk_ms = 2.4
+  T·switchZone_gk2sy_ms = 180.9
+  T·switchZone_sy2mk_ms = 220.4
+  T·updateFilterOptions_mk_ms = 83.4
+  T·renderZoneStats_mk_ms = 0.6
+  T·renderModuleBar_mk_ms = 12.9
+  T·pageTurn_ms = [51.1,19.3,18.8,19.8,19.5]
+  T·renderZoneStats_mk_ms_2 = 1.1
+  T·dbQuestions = {"gk":51917,"mk":61180,"sy":61288,"sl":0,"zy":0,"ms":0}
+[T1 计时阶段结束] jsHeap=421.1MB domNodes=9286 layout=113
+
+[落盘] /Users/helium/Library/Mobile Documents/com~apple~CloudDocs/我的程序/My project/work/perf-phaseA-evidence.json
+index.html sha256 复核 = c29bdbb937935e96adf4f66f820d670f45db4f6e7a5c568debfb2b2ff5cc5417
+EXIT=0

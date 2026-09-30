@@ -1,0 +1,18 @@
+index.html sha256 = c29bdbb937935e96adf4f66f820d670f45db4f6e7a5c568debfb2b2ff5cc5417
+代码内 IDB_VER = 1
+phase = measure  zones = gk,sy,mk
+server = http://127.0.0.1:47831
+[M2 冷启动完成（loadAll 后，GC 后）] jsHeap=412.6MB domNodes=7186 layout=53
+[IDB] {"databases":[{"name":"aiChatHistoryDB","version":1},{"name":"qzdb","version":1}],"qzdbStores":["kv"],"qzdbVersion":1,"estimate":{"usageMB":131,"quotaMB":10371},"kvKeyCount":27,"prefixCounts":{"daily":1,"file":24,"idx":1,"view":1}}
+[M3 练习首屏] jsHeap=412.6MB domNodes=7186 layout=57
+[M4 连续翻页 20 页后] jsHeap=412.7MB domNodes=5090 layout=268
+[M5 分区 A→B→A 后（gk→sy→mk→gk）] jsHeap=431.9MB domNodes=5510 layout=743
+[M6 搜索「下列」后（含搜索文本缓存）] jsHeap=453.8MB domNodes=5253 layout=861
+[M7 搜索→清空→再搜索→清空后] jsHeap=432.6MB domNodes=5510 layout=994
+[M8 长时操作后（3 轮搜索 + 60 页翻页）] jsHeap=432.6MB domNodes=5510 layout=1640
+[M9 归因：清空 _prepFiles + _snap 后] jsHeap=408.4MB domNodes=5510 layout=1645
+[M10 重新展开当前分区] jsHeap=417.3MB domNodes=5510 layout=2442
+
+[落盘] /Users/helium/Library/Mobile Documents/com~apple~CloudDocs/我的程序/My project/work/perf-phaseA-evidence.json
+index.html sha256 复核 = c29bdbb937935e96adf4f66f820d670f45db4f6e7a5c568debfb2b2ff5cc5417
+EXIT=0
