@@ -190,6 +190,28 @@
     text-align-last: center !important;
     box-sizing: border-box !important;
 }
+.filter-bar .sf-multi {
+    width: 100% !important;
+    min-height: 44px !important;
+    height: 44px !important;
+    border: none !important;
+    box-sizing: border-box !important;
+}
+.filter-bar .sf-multi-btn {
+    width: 100% !important;
+    min-height: 44px !important;
+    height: 44px !important;
+    font-size: 11px !important;
+    border: 2px solid var(--light) !important;
+    border-radius: 6px !important;
+    box-sizing: border-box !important;
+    padding: 7px 4px !important;
+    gap: 2px !important;
+}
+.filter-bar .sf-multi-caret {
+    font-size: 9px !important;
+    flex: 0 0 auto !important;
+}
   #sourceFilter {
     cursor: pointer !important;
   }
@@ -342,6 +364,26 @@
     border-radius: 5px !important;
     text-align: center !important;
     text-align-last: center !important;
+    box-sizing: border-box !important;
+}
+
+/* [FIX 20260930] 电脑端：排序/区间多选按钮与 select 完全一致 */
+.mobile-mode .filter-bar .sf-multi {
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 44px !important;
+    height: 44px !important;
+    border: none !important;
+    box-sizing: border-box !important;
+}
+.mobile-mode .filter-bar .sf-multi-btn {
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 44px !important;
+    height: 44px !important;
+    font-size: 13px !important;
+    border: 2px solid #999 !important;
+    border-radius: 5px !important;
     box-sizing: border-box !important;
 }
 
@@ -563,6 +605,54 @@ html, body { width:100%; max-width:100%; margin:0; padding:0; box-sizing:border-
   text-align: center;
   text-align-last: center;
 }
+/* ===== [FIX 20260930] 排序 + 正确率区间 多选下拉面板 ===== */
+#sortFilter { display: none !important; }   /* 原下拉隐藏，由自定义面板接管 */
+.sf-multi { position: relative; display: block; width: 100%; min-width: 0; max-width: 100%; }
+.sf-multi-btn {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; min-width: 0; max-width: 100%; min-height: 44px; height: 44px; box-sizing: border-box;
+  padding: 7px 10px; border: 1px solid #ccc; border-radius: 6px;
+  font-size: 13px; background: #fff; color: var(--deep); cursor: pointer;
+  font-family: inherit; line-height: 1.2; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.sf-multi-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.sf-multi-btn:hover { border-color: var(--main); }
+.sf-multi-btn[aria-expanded="true"] { border-color: var(--main); }
+.sf-multi-caret { font-size: 10px; opacity: .7; transition: transform .15s ease; }
+.sf-multi-btn[aria-expanded="true"] .sf-multi-caret { transform: rotate(180deg); }
+.sf-multi-panel {
+  position: absolute; z-index: 100050; top: calc(100% + 6px); left: 0;
+  min-width: 220px; max-height: 60vh; overflow-y: auto;
+  background: var(--surface, #fff); border: 1px solid var(--border, #dbe7f5);
+  border-radius: 10px; box-shadow: 0 8px 28px rgba(0,0,0,.16);
+  padding: 6px; display: none;
+}
+.sf-multi-panel.open { display: block; }
+.sf-group-title {
+  font-size: 11px; font-weight: 700; color: var(--text-muted, #5a6b80);
+  padding: 8px 10px 4px; letter-spacing: .5px;
+}
+.sf-opt {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 10px; border-radius: 7px; font-size: 13px;
+  color: var(--text, #2d3748); cursor: pointer; user-select: none;
+  transition: background .12s ease;
+}
+.sf-opt:hover { background: var(--light, #eef4fc); }
+.sf-opt::before {
+  content: ''; display: inline-block; width: 16px; text-align: center;
+  font-weight: 700; color: var(--main, #5b9bd5); flex: 0 0 16px;
+}
+.sf-opt.selected { background: var(--light, #eef4fc); color: var(--deep, #3a7ab0); font-weight: 700; }
+.sf-opt.selected::before { content: '✓'; }
+/* 深色主题适配 */
+body.skin-dark .sf-multi-btn { background: var(--surface, #1c2333); color: var(--text, #e6edf5); border-color: var(--border, #52627a); }
+body.skin-dark .sf-multi-panel { background: var(--surface, #1c2333); border-color: var(--border, #52627a); }
+body.skin-dark .sf-opt { color: var(--text, #e6edf5); }
+body.skin-dark .sf-opt:hover { background: rgba(255,255,255,.08); }
+body.skin-dark .sf-opt.selected { background: rgba(91,155,213,.22); color: var(--mid, #8fc1ed); }
+body.skin-dark .sf-group-title { color: var(--text-muted, #a0aec0); }
 .essay-topic-buttons { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
 .essay-topic-buttons .module-btn { flex:1; min-width:90px; padding:10px 16px; border:none; border-radius:12px; font-weight:bold; font-size:13px; cursor:pointer; background:#fff; color:var(--deep); box-shadow:0 1px 3px rgba(0,0,0,.06); text-align:center; }
 .essay-topic-buttons .module-btn .count { display:block; font-weight:normal; font-size:11px; color:var(--text-muted); opacity:.8; }
@@ -2708,7 +2798,26 @@ body.skin-dark .en-pagination button.active {
             <option value="range41_60">📊 正确率 41-60%</option>
             <option value="range61_80">📈 正确率 61-80%</option>
             <option value="range81_100">🏆 正确率 81-100%</option>
-        </select> <select id="moduleFilter"><option value="all">📂 全部模块</option></select> <select id="subTypeFilter"><option value="all">🏷️ 全部话题</option></select> <select id="leafTypeFilter"><option value="all">📋 全部细分题型</option></select> <button class="btn btn-outline" onclick="clearFilters()">✕ 清除筛选</button>
+        </select>
+        <!-- [FIX 20260930] 排序 + 正确率区间 多选下拉面板（可同时选择，选中项带 ✓） -->
+        <div class="sf-multi" id="sfMulti">
+            <button type="button" class="sf-multi-btn" id="sfMultiBtn" aria-haspopup="listbox" aria-expanded="false">
+                <span class="sf-multi-label" id="sfMultiLabel">🔀 默认顺序</span>
+                <span class="sf-multi-caret">▾</span>
+            </button>
+            <div class="sf-multi-panel" id="sfMultiPanel" role="listbox" aria-label="排序与正确率区间">
+                <div class="sf-group-title">排序方式</div>
+                <div class="sf-opt" data-group="sort" data-value="default" role="option">默认顺序</div>
+                <div class="sf-opt" data-group="sort" data-value="ratioDesc" role="option">正确率从高到低</div>
+                <div class="sf-opt" data-group="sort" data-value="ratioAsc" role="option">正确率从低到高</div>
+                <div class="sf-group-title">正确率区间</div>
+                <div class="sf-opt" data-group="range" data-value="all" role="option">全部区间</div>
+                <div class="sf-opt" data-group="range" data-value="range0_40" role="option">正确率 0-40%</div>
+                <div class="sf-opt" data-group="range" data-value="range41_60" role="option">正确率 41-60%</div>
+                <div class="sf-opt" data-group="range" data-value="range61_80" role="option">正确率 61-80%</div>
+                <div class="sf-opt" data-group="range" data-value="range81_100" role="option">正确率 81-100%</div>
+            </div>
+        </div> <select id="moduleFilter"><option value="all">📂 全部模块</option></select> <select id="subTypeFilter"><option value="all">🏷️ 全部话题</option></select> <select id="leafTypeFilter"><option value="all">📋 全部细分题型</option></select> <button class="btn btn-outline" onclick="clearFilters()">✕ 清除筛选</button>
         <label class="ratio-label">正确率
             <input type="number" id="minRatioInput" min="0" max="100" placeholder="0" class="ratio-input"> ~
             <input type="number" id="maxRatioInput" min="0" max="100" placeholder="100" class="ratio-input">%
@@ -6149,6 +6258,20 @@ function renderRatioRangeOptions(counts){
   var exists = false;
   for(var j=0;j<sel.options.length;j++){ if(sel.options[j].value===saved){ exists=true; break; } }
   sel.value = exists ? saved : 'default';
+  // [FIX 20260930] 同步自定义多选面板的区间选项文字（追加题数）
+  try{
+    var panel = document.getElementById('sfMultiPanel');
+    if(panel){
+      for(var k=0;k<RATIO_RANGE_DEFS.length;k++){
+        var opt = panel.querySelector('.sf-opt[data-group="range"][data-value="'+RATIO_RANGE_DEFS[k].value+'"]');
+        if(opt){
+          var cnt = (counts && counts[k]) || 0;
+          // 保留 emoji 前缀，去掉原 label 里的「正确率」重复，统一为「正确率 X-Y% (N题)」
+          opt.textContent = RATIO_RANGE_DEFS[k].label.replace(/^[^\u4e00-\u9fa5A-Za-z0-9]*/, '') + ' (' + cnt + '题)';
+        }
+      }
+    }
+  }catch(e){}
 }
 
 // 统计一组题目在 4 个正确率区间上的分布：[0-40, 41-60, 61-80, 81-100]
@@ -16056,11 +16179,26 @@ document.addEventListener('touchend', function(){
   + '.judge-btn{flex:1 1 0;min-width:110px;min-height:48px;padding:10px 18px;border:2px solid var(--border,#d1d5db);'
   +   'border-radius:10px;background:var(--surface,#fff);color:var(--text,#1f2937);font-size:15px;font-weight:700;'
   +   'cursor:pointer;transition:all .15s ease;box-sizing:border-box;}'
-  + '.judge-btn:hover{border-color:var(--main,#3b82f6);background:var(--light,#eef4fc);transform:translateY(-1px);}'
   + '.judge-btn:active{transform:scale(.97);}'
+  // 正确按钮：语义绿（--correct），适配主题
+  + '.judge-btn[data-v="对"]{border-color:var(--correct,#48bb78);color:var(--correct,#48bb78);}'
+  + '.judge-btn[data-v="对"]:hover{background:var(--correct,#48bb78);color:var(--on-main,#fff);'
+  +   'border-color:var(--correct,#48bb78);transform:translateY(-1px);box-shadow:0 4px 12px rgba(72,187,120,.32);}'
+  // 错误按钮：语义红（--wrong），适配主题
+  + '.judge-btn[data-v="错"]{border-color:var(--wrong,#fc8181);color:var(--wrong,#fc8181);}'
+  + '.judge-btn[data-v="错"]:hover{background:var(--wrong,#fc8181);color:var(--on-main,#fff);'
+  +   'border-color:var(--wrong,#fc8181);transform:translateY(-1px);box-shadow:0 4px 12px rgba(252,129,129,.32);}'
   + '.judge-verdict{padding:10px 14px;border-radius:8px;background:var(--light,#eef4fc);color:var(--text,#1f2937);'
-  +   'font-size:14px;line-height:1.7;}'
+  +   'font-size:14px;line-height:1.7;border:1px solid var(--border,#dbe7f5);}'
   + '.judge-verdict b{color:var(--deep,#2c5f8a);}'
+  // 深色主题适配
+  + 'body.skin-dark .judge-btn{background:var(--surface,#1c2333);color:var(--text,#e6edf5);border-color:var(--border,#52627a);}'
+  + 'body.skin-dark .judge-btn[data-v="对"]{border-color:var(--correct,#48bb78);color:var(--correct,#48bb78);}'
+  + 'body.skin-dark .judge-btn[data-v="对"]:hover{background:var(--correct,#48bb78);color:#0f172a;}'
+  + 'body.skin-dark .judge-btn[data-v="错"]{border-color:var(--wrong,#fc8181);color:var(--wrong,#fc8181);}'
+  + 'body.skin-dark .judge-btn[data-v="错"]:hover{background:var(--wrong,#fc8181);color:#0f172a;}'
+  + 'body.skin-dark .judge-verdict{background:var(--surface,#1c2333);color:var(--text,#e6edf5);border-color:var(--border,#52627a);}'
+  + 'body.skin-dark .judge-verdict b{color:var(--mid,#8fc1ed);}'
   + '.ml-sel-btn{position:absolute;z-index:100003;padding:8px 14px;border:0;border-radius:8px;'
   +   'background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-size:13px;font-weight:700;cursor:pointer;'
   +   'box-shadow:0 4px 16px rgba(217,119,6,.42);white-space:nowrap;-webkit-tap-highlight-color:transparent;'
@@ -16190,6 +16328,15 @@ function extractJudgeCorrect(item){
     var c = cands[i];
     if(c === undefined || c === null) continue;
     var v = c;
+    // [FIX 20260930] 判断题标准数据格式：correctAnswer = {choice:"0"|"1", type:201}
+    //   choice "0" → 对/正确；choice "1" → 错/错误。
+    //   旧逻辑把 "0"/"1" 当普通文本，无法匹配任何分支，导致返回 ''，
+    //   进而 enhanceJudgeQuestions 静默跳过、不注入作答按钮（题目无法作答）。
+    if(typeof v === 'object' && v.choice !== undefined && (v.type === 201 || v.type === '201')){
+      var jc = String(v.choice).trim();
+      if(jc === '0' || jc === 'A' || jc === '对' || jc === '正确') return '对';
+      if(jc === '1' || jc === 'B' || jc === '错' || jc === '错误') return '错';
+    }
     if(typeof v === 'object') v = (v.choice !== undefined ? v.choice : (v.answer !== undefined ? v.answer : (v.value !== undefined ? v.value : '')));
     var t = String(v == null ? '' : v).trim();
     if(!t) continue;
@@ -16204,6 +16351,9 @@ function extractJudgeCorrect(item){
     if(/正确答案[是为：:、\s]{0,4}(错误|错|×|✗|B\b)/.test(sol)) return '错';
     if(/(本题|该题|此题|题干)[^。；\n]{0,12}(说法正确|表述正确|是正确的|正确的)/.test(sol)) return '对';
     if(/(本题|该题|此题|题干)[^。；\n]{0,12}(说法错误|表述错误|是错误的|不正确的)/.test(sol)) return '错';
+    // [FIX 20260930] 补充常见结论式表述：「故表述正确/错误」「说法正确/错误」「表述正确/错误」
+    if(/(故|因此|所以|综上)?\s*(表述|说法|题干|本题|该题|此题)[^。；\n]{0,6}(正确|对)(的)?[。；\s]*$/.test(sol)) return '对';
+    if(/(故|因此|所以|综上)?\s*(表述|说法|题干|本题|该题|此题)[^。；\n]{0,6}(错误|错|不正确)(的)?[。；\s]*$/.test(sol)) return '错';
   }
   return '';
 }
@@ -16231,11 +16381,15 @@ function selectJudgeOption(key, value){
     saveFile(activeZone, item._fileId);
   }
   var jc = extractJudgeCorrect(item);
-  var correct = (value === jc);
+  // [FIX 20260930] jc 为空（无法解析正确答案）时不再一律判错：
+  //   仍记录作答，但 correct 记为 null（不计入错题、不计入正确率），
+  //   界面提示「参考答案未知」，避免用户作答后被误判为错误。
+  var known = !!jc;
+  var correct = known ? (value === jc) : null;
   if(!wrongSet[activeZone]) wrongSet[activeZone] = {};
-  if(!correct){ wrongSet[activeZone][key] = true; if(navigator.vibrate) navigator.vibrate(15); }
+  if(known && !correct){ wrongSet[activeZone][key] = true; if(navigator.vibrate) navigator.vibrate(15); }
   saveWrong();
-  try{ recordNormalAttempt(activeZone, key, correct); }catch(e){}
+  if(known){ try{ recordNormalAttempt(activeZone, key, correct); }catch(e){} }
   try{ recordAnswerTiming(); }catch(e){}
   try{ incDaily(); }catch(e){}
   item._answered = value;
@@ -16246,18 +16400,19 @@ function selectJudgeOption(key, value){
     var box = el.querySelector('.judge-box');
     if(box){
       box.innerHTML = '<div class="judge-verdict">'
-        + (correct ? '✅ 回答正确' : '❌ 回答错误')
-        + ' ｜ 正确答案：<b>' + jc + '</b> ｜ 你的答案：<b>' + escapeHtml(String(value)) + '</b></div>';
+        + (known ? (correct ? '✅ 回答正确' : '❌ 回答错误') : '📝 已作答（参考答案未知）')
+        + (known ? (' ｜ 正确答案：<b>' + jc + '</b>') : '')
+        + ' ｜ 你的答案：<b>' + escapeHtml(String(value)) + '</b></div>';
     }
     var ansEl = el.querySelector('.q-answer');
-    if(ansEl) ansEl.textContent = '✅ 正确答案：' + jc;
+    if(ansEl) ansEl.textContent = known ? ('✅ 正确答案：' + jc) : '📝 参考答案未知';
     var vd = el.querySelector('.q-verdict');
     if(vd){
       var va = vd.querySelector('.q-answer');
-      if(va) va.textContent = correct ? '✅ 回答正确' : ('✅ 正确答案：' + jc);
+      if(va) va.textContent = known ? (correct ? '✅ 回答正确' : ('✅ 正确答案：' + jc)) : '📝 已作答（参考答案未知）';
       var ua = vd.querySelector('.q-user-answer');
       if(ua) ua.remove();
-      if(!correct){
+      if(known && !correct){
         var sp = document.createElement('span');
         sp.className = 'q-user-answer';
         sp.textContent = '❌ 你的答案：' + value;
@@ -16285,7 +16440,9 @@ function enhanceJudgeQuestions(){
     var item = filteredQuestions.find(function(q){ return q._key === key; });
     if(!item) continue;
     var jc = extractJudgeCorrect(item);
-    if(!jc) continue;
+    // [FIX 20260930] 不再因 jc 为空而跳过：无选项题一律注入作答按钮，
+    //   保证「判断题一定能作答」。jc 为空时按「参考答案未知」处理。
+    var known = !!jc;
     var contentEl = el.querySelector('.q-content');
     if(!contentEl) continue;
 
@@ -16293,10 +16450,11 @@ function enhanceJudgeQuestions(){
     box.className = 'judge-box';
     var answered = (item._answered !== undefined && item._answered !== null);
     if(answered){
-      var ok = String(item._answered).trim() === jc;
+      var ok = known && String(item._answered).trim() === jc;
       box.innerHTML = '<div class="judge-verdict">'
-        + (ok ? '✅ 回答正确' : '❌ 回答错误')
-        + ' ｜ 正确答案：<b>' + jc + '</b> ｜ 你的答案：<b>' + escapeHtml(String(item._answered)) + '</b></div>';
+        + (known ? (ok ? '✅ 回答正确' : '❌ 回答错误') : '📝 已作答（参考答案未知）')
+        + (known ? (' ｜ 正确答案：<b>' + jc + '</b>') : '')
+        + ' ｜ 你的答案：<b>' + escapeHtml(String(item._answered)) + '</b></div>';
     }else{
       box.innerHTML = '<button type="button" class="judge-btn" data-v="对">✅ 正确</button>'
                     + '<button type="button" class="judge-btn" data-v="错">❌ 错误</button>';
@@ -16312,10 +16470,10 @@ function enhanceJudgeQuestions(){
     contentEl.insertAdjacentElement('afterend', box);
 
     var emptyAns = el.querySelector('.q-answer');
-    if(emptyAns) emptyAns.textContent = '✅ 正确答案：' + jc;
+    if(emptyAns) emptyAns.textContent = known ? ('✅ 正确答案：' + jc) : '📝 参考答案未知';
     if(answered){
       var vAns = el.querySelector('.q-verdict .q-answer');
-      if(vAns) vAns.textContent = (String(item._answered).trim() === jc) ? '✅ 回答正确' : ('✅ 正确答案：' + jc);
+      if(vAns) vAns.textContent = known ? ((String(item._answered).trim() === jc) ? '✅ 回答正确' : ('✅ 正确答案：' + jc)) : '📝 已作答（参考答案未知）';
     }
   }
 }
@@ -16352,7 +16510,17 @@ async function mlLoadAll(){
     return list;
   }catch(e){ console.warn('[素材库] 读取失败', e); return []; }
 }
-function mlSaveOne(m){ return idbSet(ML_PREFIX + m.id, m); }
+function mlSaveOne(m){
+  // 确保 IndexedDB 已打开：idbSet 在 _db 为空时会静默返回 false，
+  // 导致"提示保存成功但实际没写入"。这里先补开，再写入并校验。
+  return Promise.resolve()
+    .then(function(){ if(typeof _db === 'undefined' || !_db){ return idbOpen(); } })
+    .then(function(){ return idbSet(ML_PREFIX + m.id, m); })
+    .then(function(ok){
+      if(!ok){ throw new Error('IndexedDB 写入失败（数据库不可用）'); }
+      return true;
+    });
+}
 function mlDeleteOne(id){ return idbDel(ML_PREFIX + id); }
 function mlNewId(){ return 'm_' + Date.now() + '_' + Math.random().toString(36).slice(2,7); }
 
@@ -16585,7 +16753,13 @@ function mlBindEdit(){
       };
       mlState.items.unshift(m);
     }
-    await mlSaveOne(m);
+    try{
+      await mlSaveOne(m);
+    }catch(e){
+      console.error('[素材库] 保存失败', e);
+      alert('❌ 保存失败：' + (e && (e.message || e)) + '\n\n请检查浏览器是否禁用了 IndexedDB（无痕/隐私模式），或刷新页面后重试。');
+      return;
+    }
     mlState.currentId = null;
     mlState.view = 'list';
     await materialRefresh();
@@ -16779,7 +16953,19 @@ function mlOpenQuickSave(text, questionEl){
       core: '', structure: '', angles: [],
       createdAt: now, updatedAt: now
     };
-    await mlSaveOne(m);
+    // 保存前确保 IndexedDB 已打开（否则 idbSet 会静默返回 false）
+    try{ if(typeof _db === 'undefined' || !_db){ await idbOpen(); } }catch(e){}
+    var ok = false;
+    try{ ok = await mlSaveOne(m); }catch(e){ console.error('[素材库] 保存异常', e); ok = false; }
+    // 回读校验：确认真的写进去了
+    var verify = null;
+    try{ verify = await idbGet(ML_PREFIX + m.id); }catch(e){}
+    if(!ok || !verify){
+      // 保存失败：不要谎报成功
+      console.error('[素材库] 保存失败', { ok: ok, verify: verify, dbOpen: !!_db });
+      alert('❌ 保存失败：本地数据库不可用。\n\n请检查浏览器是否禁用了 IndexedDB（无痕/隐私模式），或尝试刷新页面后重试。');
+      return;
+    }
     mlCloseModal();
     mlToast('✅ 已加入素材库');
     if(document.getElementById('toolFullscreen').style.display === 'block'){
@@ -17068,7 +17254,126 @@ window.mlImport = async function(input){
   };
 })();
 
-/* ---------- Part 3：已合并到 #sortFilter，无需独立绑定 ---------- */
+/* ---------- Part 3：排序 + 正确率区间 多选下拉面板 ----------
+   需求：排序（从高到低 / 从低到高）与正确率区间（如 81-100%）可【同时选择】，
+   且被选中的项要显示 ✓ 勾选。
+   实现：隐藏原 #sortFilter，用自定义面板接管；面板分「排序方式」「正确率区间」两组，
+   每组单选，选中项加 .selected（CSS 用 ::before 显示 ✓）。
+   数据仍写回 filterState.sortBy / filterState.ratioRange，底层筛选/排序逻辑完全复用。 */
+(function installSortRangePanel(){
+  var btn = document.getElementById('sfMultiBtn');
+  var panel = document.getElementById('sfMultiPanel');
+  var labelEl = document.getElementById('sfMultiLabel');
+  var sel = document.getElementById('sortFilter');
+  if(!btn || !panel || !sel) return;
+
+  var SORT_LABELS = { 'default':'🔀 默认顺序', 'ratioDesc':'⬆️ 正确率从高到低', 'ratioAsc':'⬇️ 正确率从低到高' };
+  var RANGE_LABELS = { 'all':'全部区间', 'range0_40':'📉 正确率 0-40%', 'range41_60':'📊 正确率 41-60%', 'range61_80':'📈 正确率 61-80%', 'range81_100':'🏆 正确率 81-100%' };
+  // [FIX 20260930] 窄屏（手机端）用短标签，避免文字被截断
+  var SORT_LABELS_SHORT = { 'default':'🔀', 'ratioDesc':'⬆️', 'ratioAsc':'⬇️' };
+  var RANGE_LABELS_SHORT = { 'all':'默认', 'range0_40':'0-40%', 'range41_60':'41-60%', 'range61_80':'61-80%', 'range81_100':'81-100%' };
+  // 同步面板选中态 + 按钮摘要文字
+  function syncPanel(){
+    var sortBy = filterState.sortBy || 'default';
+    var range = filterState.ratioRange || 'all';
+    panel.querySelectorAll('.sf-opt').forEach(function(opt){
+      var g = opt.getAttribute('data-group');
+      var v = opt.getAttribute('data-value');
+      var on = (g === 'sort') ? (v === sortBy) : (v === range);
+      opt.classList.toggle('selected', on);
+      opt.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    // 按钮摘要：排序 + 区间（区间为 all 时不显示）
+    // 窄屏用短标签，宽屏用完整标签
+    var narrow = window.innerWidth <= 768;
+    var SL = narrow ? SORT_LABELS_SHORT : SORT_LABELS;
+    var RL = narrow ? RANGE_LABELS_SHORT : RANGE_LABELS;
+    var sep = narrow ? '｜' : ' ｜ ';
+    var txt = SL[sortBy] || SL['default'];
+    if(range && range !== 'all'){ txt += sep + (RL[range] || range); }
+    if(labelEl) labelEl.textContent = txt;
+  }
+
+  function openPanel(){ panel.classList.add('open'); btn.setAttribute('aria-expanded','true'); }
+  function closePanel(){ panel.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }
+  function togglePanel(){ panel.classList.contains('open') ? closePanel() : openPanel(); }
+
+  btn.addEventListener('click', function(ev){ ev.preventDefault(); ev.stopPropagation(); togglePanel(); });
+  // 点击面板内部不关闭
+  panel.addEventListener('click', function(ev){ ev.stopPropagation(); });
+  // 点击外部关闭
+  document.addEventListener('click', function(){ if(panel.classList.contains('open')) closePanel(); });
+  document.addEventListener('keydown', function(ev){ if(ev.key === 'Escape') closePanel(); });
+
+  // 选项点击：写回 filterState，并触发与原生下拉一致的刷新流程
+  panel.querySelectorAll('.sf-opt').forEach(function(opt){
+    opt.addEventListener('click', function(ev){
+      ev.preventDefault(); ev.stopPropagation();
+      var g = opt.getAttribute('data-group');
+      var v = opt.getAttribute('data-value');
+      if(g === 'sort'){
+        filterState.sortBy = v;
+        // 同步隐藏的原生下拉（保持与既有逻辑/持久化一致）
+        sel.value = v;
+      }else{
+        filterState.ratioRange = v;
+        // 区间与「手动输入正确率范围」互斥
+        if(v !== 'all'){
+          if(typeof minRatioInput !== 'undefined' && minRatioInput) minRatioInput.value = '';
+          if(typeof maxRatioInput !== 'undefined' && maxRatioInput) maxRatioInput.value = '';
+          filterState.minRatio = ''; filterState.maxRatio = '';
+        }
+      }
+      currentPage = 1;
+      try{ saveView(); }catch(e){}
+      try{ renderQuestions(); }catch(e){}
+      try{ refreshRatioRangeOptions(); }catch(e){}
+      syncPanel();
+      // 单选组：选完即收起面板
+      closePanel();
+    });
+  });
+
+  // 外部（clearFilters / applyFilterStateToUI / 重置等）改动 filterState 后，刷新面板显示
+  window.__syncSortRangePanel = syncPanel;
+  // 包装 renderQuestions，保证每次渲染后面板与状态一致
+  if(typeof window.renderQuestions === 'function'){
+    var _rq = window.renderQuestions;
+    window.renderQuestions = function(){
+      var r = _rq.apply(this, arguments);
+      try{ syncPanel(); }catch(e){}
+      return r;
+    };
+  }
+  // 包装 clearFilters，清空后同步面板
+  if(typeof window.clearFilters === 'function'){
+    var _cf = window.clearFilters;
+    window.clearFilters = function(){
+      var r = _cf.apply(this, arguments);
+      try{ syncPanel(); }catch(e){}
+      return r;
+    };
+  }
+  // 包装 applyFilterStateToUI（若存在），恢复视图后同步面板
+  if(typeof window.applyFilterStateToUI === 'function'){
+    var _af = window.applyFilterStateToUI;
+    window.applyFilterStateToUI = function(){
+      var r = _af.apply(this, arguments);
+      try{ syncPanel(); }catch(e){}
+      return r;
+    };
+  }
+
+  // [FIX 20260930] 窗口尺寸变化时切换长/短标签
+  var _rzTimer = null;
+  window.addEventListener('resize', function(){
+    if(_rzTimer) clearTimeout(_rzTimer);
+    _rzTimer = setTimeout(function(){ try{ syncPanel(); }catch(e){} }, 150);
+  });
+
+  syncPanel();
+  console.log('✅ 排序/区间多选面板已装载');
+})();
 
 /* 暴露给外部（调试用） */
 window.__materialDebug = { mlState: mlState, materialRefresh: materialRefresh, materialOpen: materialOpen };
