@@ -2715,6 +2715,15 @@ body.skin-dark .en-pagination button.active {
   margin-top: 6px;
 }
 
+/* iOS 页面级横向拖动由下方 touchmove 拦截兜底，保留白名单容器横滑。 */
+html, body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden !important;
+  overscroll-behavior-x: none;
+  background: var(--bg);
+}
+
 </style>
 </head>
 <body class="pc-mode">
@@ -17459,6 +17468,60 @@ console.log('✅ 增量补丁已加载（判断题 + 素材库 + 区间下拉）
     });
   });
   console.log('[FILTER-DEBUG] 已装载：选完排序/区间后，控制台会打印 filterState 的实时值。');
+})();
+
+/* 阻止页面级横向拖动和边缘回弹，白名单内的横向滚动保持原生行为。 */
+(function(){
+  var startX = 0;
+  var startY = 0;
+  var activeTouchId = null;
+  var horizontalScrollSelector = '.zone-tabs, .module-bar, .sf-multi-panel, .news-quick';
+
+  document.addEventListener('touchstart', function(e){
+    if(e.touches.length !== 1) {
+      activeTouchId = null;
+      return;
+    }
+    var touch = e.touches[0];
+    activeTouchId = touch.identifier;
+    startX = touch.clientX;
+    startY = touch.clientY;
+  }, { passive: false });
+
+  document.addEventListener('touchmove', function(e){
+    if(activeTouchId === null) return;
+
+    var touch = null;
+    for(var i = 0; i < e.touches.length; i++){
+      if(e.touches[i].identifier === activeTouchId) {
+        touch = e.touches[i];
+        break;
+      }
+    }
+    if(!touch) return;
+
+    var deltaX = touch.clientX - startX;
+    var deltaY = touch.clientY - startY;
+    var target = e.target;
+    var isHorizontalScrollArea = target && typeof target.closest === 'function' &&
+      target.closest(horizontalScrollSelector);
+
+    if(Math.abs(deltaX) > Math.abs(deltaY) && !isHorizontalScrollArea) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  function clearActiveTouch(e){
+    for(var i = 0; i < e.changedTouches.length; i++){
+      if(e.changedTouches[i].identifier === activeTouchId) {
+        activeTouchId = null;
+        break;
+      }
+    }
+  }
+
+  document.addEventListener('touchend', clearActiveTouch, { passive: false });
+  document.addEventListener('touchcancel', clearActiveTouch, { passive: false });
 })();
 </script>
 </body>
