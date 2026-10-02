@@ -1109,6 +1109,23 @@ body.skin-dark .q-solution-toggle { background:var(--surface); color:var(--text)
 .q-ai-btn:disabled { opacity:0.6; cursor:wait; }
 .q-ai-result { margin-top:10px; padding:12px; background:linear-gradient(135deg,#faf5ff,#f3e8ff); border-left:4px solid #7c3aed; border-radius:8px; font-size:14px; line-height:1.6; display:none; }
 .q-ai-result.show { display:block; }
+.q-ai-result .ai-section-title {
+  color: var(--main);
+  display: inline-block;
+  margin-top: 6px;
+  font-weight: 700;
+}
+.q-ai-result .ai-keyword {
+  background: rgba(124,58,237,0.15);
+  background: color-mix(in srgb, var(--main) 15%, transparent);
+  color: var(--deep);
+  padding: 1px 5px;
+  border-radius: 4px;
+  border-bottom: 2px solid var(--main);
+  font-weight: 700;
+  display: inline-block;
+  line-height: 1.25;
+}
 .q-chat-btn { margin-top:8px; margin-left:8px; padding:6px 14px; background:linear-gradient(135deg,#60a5fa,#3b82f6); color:#fff; border:none; border-radius:8px; font-size:13px; cursor:pointer; transition:.15s; font-weight:bold; }
 .q-chat-btn:hover { transform:translateY(-1px) scale(1.02); box-shadow:0 4px 12px rgba(59,130,246,0.35); }
 .q-chat-box { margin-top:10px; padding:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; display:none; }
@@ -1238,6 +1255,13 @@ body.skin-dark .q-content, body.skin-dark .q-title, body.skin-dark .q-solution, 
 body.skin-dark .q-solution,
 body.skin-dark .q-analysis,
 body.skin-dark .q-ai-result { color:#e2e8f0 !important; background:#1e293b !important; }
+body.skin-dark .q-ai-result .ai-section-title { color:#f5d0fe !important; }
+body.skin-dark .q-ai-result .ai-keyword {
+  color:#f8fafc !important;
+  background: rgba(167,139,250,0.22) !important;
+  border-bottom-color:#c4b5fd !important;
+  box-shadow: inset 0 0 0 1px rgba(196,181,253,0.35);
+}
 body.skin-dark .option.selected-correct { color:#4CAF50 !important; border:2px solid #4CAF50 !important; background:rgba(76,175,80,0.2) !important; }
 body.skin-dark .option.selected-wrong { color:#f44336 !important; border:2px solid #f44336 !important; background:rgba(244,67,54,0.2) !important; }
 body.skin-dark .header-pp .pp-card { background:var(--surface) !important; border-color:var(--border) !important; color:var(--text) !important; }
@@ -11306,10 +11330,10 @@ function saveAIHistoryMessage(key, message){
 // AI 简化解析结果的统一渲染函数（实时渲染与刷新恢复共用，避免两处样式不一致）。
 // 顺序固定：先 escapeHtml 转义（防 XSS），再【标题】→ **关键词** → \n 换 <br> → 合并连续 <br>。
 function renderAISimplifyHtml(rawText){
-  return '<strong>🤖 AI 简化解析</strong><br>'
+  return '<strong class="ai-section-title">🤖 AI 简化解析</strong><br>'
     + escapeHtml(formatAIResponse(rawText))
-        .replace(/【([^】]+)】/g, '<strong style="color:var(--main);display:inline-block;margin-top:6px;">【$1】</strong>')
-        .replace(/\*\*([^*]+)\*\*/g, '<strong style="background:rgba(124,58,237,0.15);background:color-mix(in srgb, var(--main) 15%, transparent);color:var(--deep);padding:1px 5px;border-radius:4px;border-bottom:2px solid var(--main);font-weight:700;display:inline-block;line-height:1.25;">$1</strong>')
+        .replace(/【([^】]+)】/g, '<strong class="ai-section-title">【$1】</strong>')
+        .replace(/\*\*([^*]+)\*\*/g, '<strong class="ai-keyword">$1</strong>')
         .replace(/\n/g,'<br>')
         .replace(/(<br>\s*){2,}/g,'<br>');
 }
