@@ -1115,7 +1115,8 @@ body.skin-dark .q-solution-toggle { background:var(--surface); color:var(--text)
   margin-top: 6px;
   font-weight: 700;
 }
-.q-ai-result .ai-keyword {
+.q-ai-result .ai-keyword,
+.q-chat-msg .ai-keyword {
   background: rgba(124,58,237,0.15);
   background: color-mix(in srgb, var(--main) 15%, transparent);
   color: var(--deep);
@@ -1256,7 +1257,8 @@ body.skin-dark .q-solution,
 body.skin-dark .q-analysis,
 body.skin-dark .q-ai-result { color:#e2e8f0 !important; background:#1e293b !important; }
 body.skin-dark .q-ai-result .ai-section-title { color:#f5d0fe !important; }
-body.skin-dark .q-ai-result .ai-keyword {
+body.skin-dark .q-ai-result .ai-keyword,
+body.skin-dark .q-chat-msg .ai-keyword {
   color:#f8fafc !important;
   background: rgba(167,139,250,0.22) !important;
   border-bottom-color:#c4b5fd !important;
@@ -11962,7 +11964,10 @@ function renderChatBox(key, messages) {
     messages.forEach(function(msg) {
       const cls = msg.role === 'user' ? 'q-chat-user' : 'q-chat-ai';
       const label = msg.role === 'user' ? '🙋' : '🤖';
-      html += '<div class="q-chat-msg ' + cls + '">' + label + ' ' + msg.content.replace(/</g,'&lt;').replace(/\n/g,'<br>') + '</div>';
+      var _chatHtml = escapeHtml(msg.content)
+        .replace(/\*\*([^*]+)\*\*/g, '<strong class="ai-keyword">$1</strong>')
+        .replace(/\n/g,'<br>');
+      html += '<div class="q-chat-msg ' + cls + '">' + label + ' ' + _chatHtml + '</div>';
     });
   }
   html += '</div>';
