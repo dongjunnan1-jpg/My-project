@@ -12,3 +12,9 @@ index.html.broken-*
 *.bak
 *.diff
 index.html.broken-20260926
+
+# 编辑器 / AI 工具的本地配置（逐机器不同，不应进仓库）
+# 注：这两个目录曾在 2026-09 前的旧提交里被误纳入，已用 git rm --cached 移出。
+# 磁盘上的文件保留，只是不再跟踪；历史提交里仍可追溯。
+.vscode/
+.workbuddy/
