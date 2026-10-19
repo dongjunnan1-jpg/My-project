@@ -559,6 +559,10 @@ html, body { width:100%; max-width:100%; margin:0; padding:0; box-sizing:border-
 .pp-mini-btn { background: var(--light); border: none; border-radius: 6px; padding: 3px 8px; font-size: 12px; cursor: pointer; color: var(--deep); }
 .pp-mini-btn:hover { background: var(--mid); color: var(--on-main); }
 .q-fav { cursor: pointer; font-size: 16px; margin-left: 6px; user-select: none; display: inline-block; }
+/* 含评论徽章：颜色跟主题走（--deep / --light 都是主题变量，深浅两套都读得清） */
+.q-title .q-cmt { display:inline-block; margin-left:6px; padding:1px 8px; border-radius:10px;
+  font-size:11.5px; font-weight:600; color:var(--deep); background:var(--light);
+  border:1px solid var(--mid); vertical-align:middle; }
 .q-unmark { background: var(--light); border: 1px solid var(--light); border-radius: 6px; padding: 2px 8px; font-size: 12px; cursor: pointer; margin-left: 8px; color: var(--deep); }
 .q-unmark:hover { background: var(--wrong); color: #fff; }
 #zoneAccuracy { background: linear-gradient(135deg, var(--grad-a), var(--grad-b)); color:var(--on-main); border:none; }
@@ -2857,6 +2861,7 @@ html, body {
             <option value="correct">只显示做对</option>
             <option value="favorite">⭐ 只显示收藏</option>
             <option value="note">📝 只显示心得</option>
+            <option value="commented">💬 只显示有评论</option>
         </select>
         <select id="sortFilter">
             <option value="default">🔀 默认顺序</option>
@@ -5688,6 +5693,16 @@ function qzModuleOfBar(p){
 
 // 展开一道普通题（gk/mk/sy/ms）。产出与原 getZoneQuestions 的 `{...q,...}` 完全一致，
 // 额外只是把「以后会反复用到的派生值」惰性缓存到同一个副本上。
+// [20261020] 评论区标记：分类模块里「带评论」的题 solution 尾部有一张「考生讨论」卡片。
+// 判据双保险：优先读 hasComment 字段（合并脚本写入），老文件退回扫 solution 里的锚点。
+// 结果缓存在展开副本上，只算一次。
+function cmtTotalOfSolution(s){
+  if(typeof s!=='string') return 0;
+  const i = s.indexOf('考生讨论');
+  if(i < 0) return 0;
+  const m = /共\s*(\d+)\s*条/.exec(s.slice(i, i+200));
+  return m ? Number(m[1]) : 0;
+}
 function prepareQuestion(zone, f, q, qi){
   var key = 'f'+f.id+'_q'+qi;
   var p = {...q};
@@ -5696,6 +5711,9 @@ function prepareQuestion(zone, f, q, qi){
   p._qi = qi;
   p._key = key;
   p._zone = zone;
+  p._hasComment = (q.hasComment===true) || (typeof q.solution==='string' && q.solution.indexOf('考生讨论')>=0);
+  p._cmtTotal = (typeof q.cmtTotal==='number') ? q.cmtTotal
+              : (p._hasComment ? cmtTotalOfSolution(q.solution) : 0);
   p._answered = (f.answered && f.answered[key]!==undefined) ? f.answered[key] : undefined;
   return p;
 }
@@ -6187,7 +6205,8 @@ function updateFilterOptions() {
       '<option value="wrong">只显示错题</option>' +
       '<option value="correct">只显示做对</option>' +
       '<option value="favorite">⭐ 只显示收藏</option>' +
-      '<option value="note">📝 只显示心得</option>';
+      '<option value="note">📝 只显示心得</option>' +
+      '<option value="commented">💬 只显示有评论</option>';
   }
   if(activeZone==='sl' || activeZone==='zy' || activeZone==='ms') return;
   yearFilter.style.display='';
@@ -6679,6 +6698,7 @@ function getFiltered(skipSort){
       });
     }
     if(filterState.status==='favorite') qs=qs.filter(function(q){ return isFavorite(q._key); });
+    if(filterState.status==='commented') qs=qs.filter(function(q){ return !!q._hasComment; });
     if(skipSort) return qs;
     return qs.sort(function(a,b){ return Number(b._paperYear||0)-Number(a._paperYear||0) || String(b._paperName||'').localeCompare(String(a._paperName||'')); });
   }
@@ -6690,6 +6710,7 @@ function getFiltered(skipSort){
     if(filterState.module!=='all') qs=qs.filter(function(q){ return getSpecialQuestionType(q)===filterState.module; });
     if(filterState.status==='note') qs=qs.filter(function(q){ return getQuestionNoteCount(q._key) > 0; });
     if(filterState.status==='favorite') qs=qs.filter(function(q){ return isFavorite(q._key); });
+    if(filterState.status==='commented') qs=qs.filter(function(q){ return !!q._hasComment; });
     if(skipSort) return qs;
     return qs.sort(function(a,b){ return extractYear(b.paperName||b.source||'')-extractYear(a.paperName||a.source||''); });
   }
@@ -6732,6 +6753,7 @@ function getFiltered(skipSort){
       if(st==='correct')    return ic===true;
       if(st==='favorite')   return isFavorite(q._key);
       if(st==='note')       return getQuestionNoteCount(q._key) > 0;
+      if(st==='commented')  return !!q._hasComment;      // [20261020] 只显示有考生讨论的题
       return true; });
   }
   let min=filterState.minRatio===''?0:parseFloat(filterState.minRatio);
@@ -8332,11 +8354,15 @@ function renderQuestions(){
       else badge='<span style="background:#ef4444;color:#fff;padding:2px 10px;border-radius:12px;font-size:12px;margin-left:6px;">🔴低</span>';
     }
     const favStar = isFavorite(key) ? '⭐' : '☆';
+    // [20261020] 含评论标记：分类模块里已把粉笔考生讨论并进 solution，这里给个一眼可见的徽章
+    const cmtBadge = item._hasComment
+      ? `<span class="q-cmt" title="含粉笔考生讨论${item._cmtTotal?('（共 '+item._cmtTotal+' 条）'):''}">💬${item._cmtTotal?item._cmtTotal:''}</span>`
+      : '';
     // 图片协议字符串级修复 + 资料分析材料
     const contentHtml = fixProtocols(item.content||'');
     const solutionHtml = fixProtocols(solution);
     let materialHtml = materialHtmlOf(item);
-    html+=`<div class="question visible" id="q-${key}"><div class="q-title">第 ${i+1} 题 <button type="button" class="q-speak-btn" data-key="${key}" onclick="speakQuestion('${key}', this);event.stopPropagation();" title="朗读题目" aria-label="朗读题目">🔊</button> 📊 ${ratioText} ${badge} <span class="q-source">${source}</span> <span class="q-fav" data-key="${key}" onclick="event.stopPropagation();toggleFavorite('${key}')" title="收藏/取消收藏">${favStar}</span></div>`;
+    html+=`<div class="question visible" id="q-${key}"><div class="q-title">第 ${i+1} 题 <button type="button" class="q-speak-btn" data-key="${key}" onclick="speakQuestion('${key}', this);event.stopPropagation();" title="朗读题目" aria-label="朗读题目">🔊</button> 📊 ${ratioText} ${badge}${cmtBadge} <span class="q-source">${source}</span> <span class="q-fav" data-key="${key}" onclick="event.stopPropagation();toggleFavorite('${key}')" title="收藏/取消收藏">${favStar}</span></div>`;
     if(materialHtml) html+=materialHtml;
     html+=`<div class="q-content">${contentHtml}</div>`;
     if(options&&options.length){
